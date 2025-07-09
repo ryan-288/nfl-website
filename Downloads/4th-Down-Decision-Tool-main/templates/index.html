@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Decision Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen p-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left Panel - Controls -->
+                <div class="space-y-6">
+                    <!-- Field Position Selection -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Field Position</label>
+                        <div class="flex gap-2">
+                            <button onclick="selectFieldPosition('own')" id="own-side-btn" class="field-pos-btn flex-1 py-3 px-4 rounded-lg font-medium bg-slate-800 text-white">Own Side</button>
+                            <button onclick="selectFieldPosition('opponent')" id="opponent-side-btn" class="field-pos-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">Opponent Side</button>
+                        </div>
+                    </div>
+
+                    <!-- Current Yardline -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Current Yardline</label>
+                        <input type="number" id="yardline" value="50" min="1" max="50" 
+                               class="w-full text-center text-2xl font-bold h-12 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <!-- Yards To Go -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm text-gray-600">Yards To Go</label>
+                            <span id="yards-to-go-display" class="text-2xl font-bold">10</span>
+                        </div>
+                        <input type="range" id="yards-to-go" class="slider" min="1" max="20" value="10" 
+                               oninput="document.getElementById('yards-to-go-display').textContent = this.value">
+                    </div>
+
+                    <!-- Time Remaining -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Time Remaining</label>
+                        <input type="text" id="time-remaining" value="15:00" placeholder="0:00"
+                               class="w-full text-center text-2xl font-bold h-12 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <!-- Score Diff -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Score Diff</label>
+                        <div class="relative">
+                            <input type="number" id="score-diff" value="1"
+                                   class="w-full text-center text-2xl font-bold h-12 border border-gray-300 rounded-lg pr-12">
+                            <div class="absolute right-0 top-0 h-full flex flex-col">
+                                <button onclick="adjustScoreDiff(1)" class="flex-1 px-3 text-gray-600 hover:text-blue-600 hover:bg-gray-100 border-l border-b border-gray-300 rounded-tr-lg">
+                                    ▲
+                                </button>
+                                <button onclick="adjustScoreDiff(-1)" class="flex-1 px-3 text-gray-600 hover:text-blue-600 hover:bg-gray-100 border-l border-gray-300 rounded-br-lg">
+                                    ▼
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quarter Selection -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Quarter</label>
+                        <div class="flex gap-2">
+                            <button onclick="selectQuarter('1st')" class="quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">1st</button>
+                            <button onclick="selectQuarter('2nd')" class="quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">2nd</button>
+                            <button onclick="selectQuarter('3rd')" class="quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">3rd</button>
+                            <button onclick="selectQuarter('4th')" class="quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-slate-800 text-white">4th</button>
+                        </div>
+                    </div>
+
+                    <!-- Kicker Range -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Kicker Range: <span id="kicker-range-display">50</span> yards</label>
+                        <input type="range" id="kicker-range" class="slider" min="25" max="65" value="50"
+                               oninput="document.getElementById('kicker-range-display').textContent = this.value">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>25</span>
+                            <span>45</span>
+                            <span>65</span>
+                        </div>
+                    </div>
+
+                    <!-- Punter Range -->
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Punter Range: <span id="punter-range-display">45</span> yards</label>
+                        <input type="range" id="punter-range" class="slider" min="25" max="65" value="45"
+                               oninput="document.getElementById('punter-range-display').textContent = this.value">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>25</span>
+                            <span>45</span>
+                            <span>65</span>
+                        </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <button onclick="calculate()" id="calculate-btn"
+                            class="w-full py-4 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+                        CALCULATE
+                    </button>
+
+                    <!-- Error Display -->
+                    <div id="error-display" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm"></div>
+                    
+                    <!-- Status Display -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm">
+                        ✅ Python Flask Backend Ready
+                    </div>
+                </div>
+
+                <!-- Right Panel - Results -->
+                <div class="space-y-6">
+                    <!-- Go Section -->
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold mb-1">Go</h3>
+                                <div class="text-sm text-gray-500 mb-3">EPAs × Success% - EPAf = WPA</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ TD prob.:</span>
+                                        <span id="go-td-prob" class="font-medium">+25.8%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ FG prob.:</span>
+                                        <span id="go-fg-prob" class="font-medium">-0.2%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ No score prob.:</span>
+                                        <span id="go-no-score-prob" class="font-medium">-24.8%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pie-chart ml-4" data-percentage="6.7">
+                                <svg width="85" height="85" class="transform -rotate-90">
+                                    <circle cx="42.5" cy="42.5" r="32" fill="none" stroke="#e5e7eb" stroke-width="6"></circle>
+                                    <circle id="go-pie-circle" cx="42.5" cy="42.5" r="32" fill="none" stroke="#3b82f6" stroke-width="6" 
+                                            stroke-dasharray="201" stroke-dashoffset="188" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="go-wpa" class="text-base font-bold text-blue-600">+6.7%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FG Section -->
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold mb-1">FG</h3>
+                                <div class="text-sm text-gray-500 mb-3">EPAs × Success% - EPAf = WPA</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ TD prob.:</span>
+                                        <span id="fg-td-prob" class="font-medium">-13.6%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ FG prob.:</span>
+                                        <span id="fg-fg-prob" class="font-medium">+32.2%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ No score prob.:</span>
+                                        <span id="fg-no-score-prob" class="font-medium">-18.4%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pie-chart ml-4" data-percentage="1.6">
+                                <svg width="85" height="85" class="transform -rotate-90">
+                                    <circle cx="42.5" cy="42.5" r="32" fill="none" stroke="#e5e7eb" stroke-width="6"></circle>
+                                    <circle id="fg-pie-circle" cx="42.5" cy="42.5" r="32" fill="none" stroke="#3b82f6" stroke-width="6" 
+                                            stroke-dasharray="201" stroke-dashoffset="198" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="fg-wpa" class="text-base font-bold text-blue-600">+1.6%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Punt Section -->
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold mb-3">Punt</h3>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ netTD%</span>
+                                        <span id="punt-net-td" class="font-medium">-21.8%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ Score%:</span>
+                                        <span id="punt-score" class="font-medium">+3.7%</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Δ Win%:</span>
+                                        <span id="punt-win" class="font-medium">+2.5%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pie-chart ml-4" data-percentage="2.5">
+                                <svg width="85" height="85" class="transform -rotate-90">
+                                    <circle cx="42.5" cy="42.5" r="32" fill="none" stroke="#e5e7eb" stroke-width="6"></circle>
+                                    <circle id="punt-pie-circle" cx="42.5" cy="42.5" r="32" fill="none" stroke="#3b82f6" stroke-width="6" 
+                                            stroke-dasharray="201" stroke-dashoffset="196" stroke-linecap="round"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="punt-wpa" class="text-base font-bold text-blue-600">+2.5%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-bold mb-4">Recommendation</h3>
+                        <div id="recommendation" class="border-2 border-green-500 rounded-lg p-6 text-center bg-green-50">
+                            <div id="recommendation-action" class="text-3xl font-bold mb-2">Go</div>
+                            <div id="recommendation-wpa" class="text-lg font-medium text-green-700">+6.7% WPA</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedQuarter = '4th';
+        let selectedFieldPosition = 'own';
+
+        function adjustScoreDiff(change) {
+            const scoreDiffInput = document.getElementById('score-diff');
+            const currentValue = parseInt(scoreDiffInput.value) || 0;
+            scoreDiffInput.value = currentValue + change;
+        }
+
+        function selectQuarter(quarter) {
+            selectedQuarter = quarter;
+            document.querySelectorAll('.quarter-btn').forEach(btn => {
+                btn.className = 'quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300';
+            });
+            event.target.className = 'quarter-btn flex-1 py-3 px-4 rounded-lg font-medium bg-slate-800 text-white';
+        }
+
+        function selectFieldPosition(position) {
+            selectedFieldPosition = position;
+            document.querySelectorAll('.field-pos-btn').forEach(btn => {
+                btn.className = 'field-pos-btn flex-1 py-3 px-4 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300';
+            });
+            event.target.className = 'field-pos-btn flex-1 py-3 px-4 rounded-lg font-medium bg-slate-800 text-white';
+        }
+
+        function updatePieChart(elementId, percentage) {
+            const circle = document.getElementById(elementId);
+            const circumference = 2 * Math.PI * 32;
+            const offset = circumference - (Math.abs(percentage) / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        async function calculate() {
+            const btn = document.getElementById('calculate-btn');
+            const errorDiv = document.getElementById('error-display');
+            
+            btn.textContent = 'CALCULATING...';
+            btn.disabled = true;
+            errorDiv.classList.add('hidden');
+
+            try {
+                const data = {
+                    yardline: parseInt(document.getElementById('yardline').value),
+                    yardsToGo: parseInt(document.getElementById('yards-to-go').value),
+                    quarter: selectedQuarter,
+                    timeRemaining: document.getElementById('time-remaining').value,
+                    scoreDiff: parseInt(document.getElementById('score-diff').value),
+                    kickerRange: parseInt(document.getElementById('kicker-range').value),
+                    punterRange: parseInt(document.getElementById('punter-range').value),
+                    fieldPosition: selectedFieldPosition
+                };
+
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const results = await response.json();
+                console.log('Results from Python backend:', results);
+
+                // Update Go section
+                document.getElementById('go-td-prob').textContent = `+${results.go.tdProb}%`;
+                document.getElementById('go-fg-prob').textContent = `${results.go.fgProb}%`;
+                document.getElementById('go-no-score-prob').textContent = `${results.go.noScoreProb}%`;
+                document.getElementById('go-wpa').textContent = `${results.go.wpa >= 0 ? '+' : ''}${results.go.wpa}%`;
+                updatePieChart('go-pie-circle', results.go.wpa);
+
+                // Update FG section
+                document.getElementById('fg-td-prob').textContent = `${results.fg.tdProb}%`;
+                document.getElementById('fg-fg-prob').textContent = `+${results.fg.fgProb}%`;
+                document.getElementById('fg-no-score-prob').textContent = `${results.fg.noScoreProb}%`;
+                document.getElementById('fg-wpa').textContent = `${results.fg.wpa >= 0 ? '+' : ''}${results.fg.wpa}%`;
+                updatePieChart('fg-pie-circle', results.fg.wpa);
+
+                // Update Punt section
+                document.getElementById('punt-net-td').textContent = `${results.punt.netTdProb}%`;
+                document.getElementById('punt-score').textContent = `+${results.punt.scoreProb}%`;
+                document.getElementById('punt-win').textContent = `+${results.punt.winProb}%`;
+                document.getElementById('punt-wpa').textContent = `${results.punt.winProb >= 0 ? '+' : ''}${results.punt.winProb}%`;
+                updatePieChart('punt-pie-circle', results.punt.winProb);
+
+                // Update recommendation
+                console.log('WPA values for recommendation:', {
+                    go: results.go.wpa,
+                    fg: results.fg.wpa,
+                    punt: results.punt.winProb
+                });
+                
+                const bestOption = results.go.wpa > results.fg.wpa && results.go.wpa > results.punt.winProb ? 'Go' :
+                                 results.fg.wpa > results.punt.winProb ? 'FG' : 'Punt';
+                const bestWpa = bestOption === 'Go' ? results.go.wpa : 
+                               bestOption === 'FG' ? results.fg.wpa : results.punt.winProb;
+                
+                console.log('Recommendation:', bestOption, 'with WPA:', bestWpa);
+                
+                document.getElementById('recommendation-action').textContent = bestOption;
+                document.getElementById('recommendation-wpa').textContent = `${bestWpa >= 0 ? '+' : ''}${bestWpa}% WPA`;
+
+            } catch (error) {
+                console.error('Calculation error:', error);
+                errorDiv.textContent = `Connection error: ${error.message}. Check if your Python server is running.`;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                btn.textContent = 'CALCULATE';
+                btn.disabled = false;
+            }
+        }
+
+        // Add relative positioning to pie charts
+        document.querySelectorAll('.pie-chart').forEach(chart => {
+            chart.style.position = 'relative';
+            chart.style.width = '85px';
+            chart.style.height = '85px';
+        });
+    </script>
+</body>
+</html>
