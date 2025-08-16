@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Scores Hub - Live ESPN Data</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+
+
+        <div class="date-navigation">
+            <div class="week-slider">
+                <button class="week-nav-btn" onclick="previousWeek()">◀</button>
+                <div class="week-display">
+                    <div class="week-label" id="weekLabel">Current Week</div>
+                    <div class="week-dates" id="weekDates">Aug 4 - Aug 10</div>
+                </div>
+                <button class="week-nav-btn" onclick="nextWeek()">▶</button>
+            </div>
+            
+            <div class="week-buttons">
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('monday')">Mon</button>
+                    <div class="day-date" id="mondayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('tuesday')">Tue</button>
+                    <div class="day-date" id="tuesdayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('wednesday')">Wed</button>
+                    <div class="day-date" id="wednesdayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('thursday')">Thu</button>
+                    <div class="day-date" id="thursdayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('friday')">Fri</button>
+                    <div class="day-date" id="fridayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('saturday')">Sat</button>
+                    <div class="day-date" id="saturdayDate">-</div>
+                </div>
+                <div class="day-button">
+                    <button class="week-btn" onclick="goToDate('sunday')">Sun</button>
+                    <div class="day-date" id="sundayDate">-</div>
+                </div>
+            </div>
+            
+            <div class="date-picker">
+                <input type="date" id="customDate" onchange="goToCustomDate(this.value)">
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="live-games-counter">
+                <span id="liveGamesCount">0</span> Live Games
+            </div>
+            <div class="sport-filters">
+                <button class="sport-btn active" data-sport="all">All Sports</button>
+                <button class="sport-btn" data-sport="nfl">NFL</button>
+                <button class="sport-btn" data-sport="nba">NBA</button>
+                <button class="sport-btn" data-sport="mlb">MLB</button>
+                <button class="sport-btn" data-sport="nhl">NHL</button>
+                <button class="sport-btn" data-sport="college-football">NCAAF</button>
+                <button class="sport-btn" data-sport="college-basketball">NCAAB</button>
+                <button class="sport-btn" data-sport="soccer">Soccer</button>
+            </div>
+        </div>
+
+        <!-- Current date display removed - nothing here -->
+
+        <div class="scores-container" id="scoresContainer">
+            <!-- Scores will be loaded here -->
+        </div>
+
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
