@@ -121,31 +121,45 @@ function setupSportFilters() {
 
 // Start auto-update functionality with smart refresh
 function startAutoUpdate() {
+    console.log('Starting auto-update system...');
+    
     // Initial update
     updateScoresIfNeeded();
     
-    // Set up smart refresh intervals
+    // Set up frequent updates for live games
     setInterval(() => {
+        console.log('Auto-update interval triggered');
         updateScoresIfNeeded();
-    }, 30000); // Check every 30 seconds
+    }, 10000); // Check every 10 seconds for live games
+    
+    // Also check for new live games every 30 seconds
+    setInterval(() => {
+        console.log('Checking for new live games...');
+        updateScoresIfNeeded();
+    }, 30000);
 }
 
-// Smart score update - only refresh if needed
+// Smart score update - refresh live games frequently
 async function updateScoresIfNeeded() {
     try {
-        // Check if we have live games
+        console.log('Checking if scores need updating...');
+        
+        // Always refresh if we have live games
         const liveGames = allScores.filter(game => game.status === 'live');
         hasLiveGames = liveGames.length > 0;
         
         if (hasLiveGames) {
-            console.log(`Found ${liveGames.length} live games, refreshing scores...`);
+            console.log(`Found ${liveGames.length} live games, refreshing scores NOW...`);
             await loadAllScores(true); // Silent refresh
+            console.log('Live games refreshed successfully');
         } else {
-            // No live games, refresh less frequently
+            // No live games, refresh every 2 minutes
             const timeSinceLastUpdate = Date.now() - (window.lastUpdateTime || 0);
-            if (timeSinceLastUpdate > 300000) { // 5 minutes
-                console.log('No live games, refreshing every 5 minutes...');
+            if (timeSinceLastUpdate > 120000) { // 2 minutes
+                console.log('No live games, refreshing every 2 minutes...');
                 await loadAllScores(true); // Silent refresh
+            } else {
+                console.log(`Last update was ${Math.round(timeSinceLastUpdate / 1000)} seconds ago, skipping update`);
             }
         }
     } catch (error) {
@@ -218,31 +232,29 @@ function filterScores() {
     displayScores(filteredScores);
 }
 
-// Load scores from all sports for the current date
+// Load all scores from ESPN APIs
 async function loadAllScores(silent = false) {
-    const container = document.getElementById('scoresContainer');
-    console.log('loadAllScores called, silent:', silent, 'currentDate:', currentDate);
-    
-    // No loading message - just fetch scores directly
+    if (!silent) {
+        console.log('Loading all scores...');
+    }
     
     try {
         const scores = [];
         
-        // Fetch scores from multiple sports for the current date
-        const promises = [
-            fetchScores('nfl', 'NFL'),
-            fetchScores('nba', 'NBA'),
-            fetchScores('mlb', 'MLB'),
-            fetchScores('nhl', 'NHL'),
-            fetchScores('college-football', 'College Football'),
-            fetchScores('college-basketball', 'College Basketball'),
-            fetchScores('soccer', 'Premier League')
-        ];
-        
-        console.log('Fetching scores for date:', currentDate.toDateString());
+        // Fetch scores from all sports concurrently
+        const promises = Object.entries(ESPN_APIS).map(async ([sport, apiUrl]) => {
+            try {
+                const sportScores = await fetchScores(sport, sport);
+                return sportScores;
+            } catch (error) {
+                console.error(`Error fetching ${sport} scores:`, error);
+                return [];
+            }
+        });
         
         const results = await Promise.allSettled(promises);
         
+        // Combine all scores
         results.forEach(result => {
             if (result.status === 'fulfilled' && result.value) {
                 scores.push(...result.value);
@@ -260,9 +272,18 @@ async function loadAllScores(silent = false) {
             allScores = getSampleData();
         }
         
-        // After fetching all scores, apply the filter
+        // After fetching all scores, apply the filter and update display
         console.log('Calling filterScores with', allScores.length, 'scores');
         filterScores();
+        
+        // Force a display update to ensure new data is shown
+        if (silent) {
+            console.log('Silent update - forcing display refresh');
+            // Trigger a display update even for silent refreshes
+            setTimeout(() => {
+                filterScores();
+            }, 100);
+        }
         
     } catch (error) {
         console.error('Error loading scores:', error);
@@ -407,6 +428,9 @@ function parseESPNData(espnData, sportKey) {
             awayScore: awayTeam.score || '0',
             homeScore: homeTeam.score || '0',
             status: status,
+            period: event.status?.period || null,
+            clock: event.status?.clock || null,
+            topBottom: event.status?.type?.description?.includes('top') ? 'top' : 'bottom',
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
@@ -534,34 +558,17 @@ function getLiveGameTime(event) {
     
     console.log('Getting live game time:', { description, period, clock });
     
+    // For live games, just return the raw data - let getGameTimeDisplay format it
+    if (status.type?.state === 'in') {
+        return 'Live';
+    }
+    
+    // For non-live games, return the description or status
     if (description) {
-        // Clean up the description for display
-        let cleanDescription = description
-            .replace(/final\/ot\d*/gi, 'Final')
-            .replace(/final/gi, 'Final')
-            .replace(/quarter/gi, 'Q')
-            .replace(/period/gi, 'P')
-            .replace(/inning/gi, 'Inning');
-        
-        // If we have period and clock, add them
-        if (period && clock) {
-            cleanDescription = `Q${period} ${clock}`;
-        } else if (period) {
-            cleanDescription = `Q${period}`;
-        }
-        
-        console.log('Clean description:', cleanDescription);
-        return cleanDescription;
+        return description;
     }
     
-    // Fallback to period and clock if available
-    if (period && clock) {
-        return `Q${period} ${clock}`;
-    } else if (period) {
-        return `Q${period}`;
-    }
-    
-    return 'Live';
+    return 'Scheduled';
 }
 
 // Display scores in the container with change detection
@@ -1700,6 +1707,18 @@ function getSoccerLogoUrl(teamName) {
 
 // Get game time display with quarter/period info for live games
 function getGameTimeDisplay(game) {
+    // Debug logging for live games to see data structure
+    if (game.status === 'live') {
+        console.log(`Live game data for ${game.awayTeam} vs ${game.homeTeam}:`, {
+            sport: game.sport,
+            period: game.period,
+            clock: game.clock,
+            time: game.time,
+            displayTime: game.displayTime,
+            fullGame: game
+        });
+    }
+    
     if (game.status === 'live') {
         let periodInfo = '';
         
@@ -1716,14 +1735,63 @@ function getGameTimeDisplay(game) {
             periodInfo = `${game.period || '1'}H`;
         }
         
-        // Add clock if available
-        if (game.clock && game.clock !== '0:00') {
-            return `${periodInfo} ${game.clock}`;
+        // Convert clock to readable time format
+        let clockInfo = '';
+        if (game.clock && game.clock !== '0:00' && game.clock !== '' && game.clock !== '697') {
+            // Convert raw clock data to readable format
+            const readableClock = convertClockToReadable(game.clock, game.sport);
+            if (readableClock) {
+                clockInfo = ` ${readableClock}`;
+            }
+        }
+        
+        // Return period + clock/time info, or just period if no valid time
+        if (clockInfo && clockInfo.trim() !== '') {
+            return `${periodInfo}${clockInfo}`;
         } else {
-            return periodInfo;
+            return `${periodInfo}`;
         }
     }
     
     // For non-live games, return the regular time
-    return game.displayTime;
+    return game.displayTime || game.time || 'TBD';
+}
+
+// Convert raw clock data to readable time format
+function convertClockToReadable(clock, sport) {
+    console.log(`Converting clock: ${clock} for sport: ${sport}`);
+    
+    // If it's already in readable format (e.g., "8:45"), return as is
+    if (typeof clock === 'string' && clock.includes(':')) {
+        return clock;
+    }
+    
+    // Convert raw numbers to readable time
+    if (typeof clock === 'number' || !isNaN(parseInt(clock))) {
+        const clockNum = parseInt(clock);
+        
+        if (sport === 'soccer') {
+            // Soccer: convert seconds to MM:SS format
+            const minutes = Math.floor(clockNum / 60);
+            const seconds = clockNum % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        } else if (sport === 'nfl' || sport === 'ncaaf' || sport === 'nba' || sport === 'ncaab') {
+            // Football/Basketball: convert seconds to MM:SS format
+            const minutes = Math.floor(clockNum / 60);
+            const seconds = clockNum % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        } else if (sport === 'mlb') {
+            // Baseball: might be outs or inning info
+            return `${clockNum} outs`;
+        } else if (sport === 'nhl') {
+            // Hockey: convert seconds to MM:SS format
+            const minutes = Math.floor(clockNum / 60);
+            const seconds = clockNum % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+    }
+    
+    // If we can't convert it, return null
+    console.log(`Could not convert clock: ${clock}`);
+    return null;
 }
