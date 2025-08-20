@@ -126,17 +126,17 @@ function startAutoUpdate() {
     // Initial update
     updateScoresIfNeeded();
     
-    // Set up frequent updates for live games
+    // Set up frequent updates for live games (every 15 seconds)
     setInterval(() => {
         console.log('Auto-update interval triggered');
         updateScoresIfNeeded();
-    }, 10000); // Check every 10 seconds for live games
+    }, 15000); // Check every 15 seconds for live games
     
-    // Also check for new live games every 30 seconds
+    // Also check for new live games every minute
     setInterval(() => {
         console.log('Checking for new live games...');
         updateScoresIfNeeded();
-    }, 30000);
+    }, 60000); // 1 minute
 }
 
 // Smart score update - refresh live games frequently
@@ -150,13 +150,15 @@ async function updateScoresIfNeeded() {
         
         if (hasLiveGames) {
             console.log(`Found ${liveGames.length} live games, refreshing scores NOW...`);
+            // Show update indicator for live games
+            showAutoUpdateIndicator();
             await loadAllScores(true); // Silent refresh
             console.log('Live games refreshed successfully');
         } else {
-            // No live games, refresh every 2 minutes
+            // No live games, refresh every 3 minutes instead of 5
             const timeSinceLastUpdate = Date.now() - (window.lastUpdateTime || 0);
-            if (timeSinceLastUpdate > 120000) { // 2 minutes
-                console.log('No live games, refreshing every 2 minutes...');
+            if (timeSinceLastUpdate > 180000) { // 3 minutes
+                console.log('No live games, refreshing every 3 minutes...');
                 await loadAllScores(true); // Silent refresh
             } else {
                 console.log(`Last update was ${Math.round(timeSinceLastUpdate / 1000)} seconds ago, skipping update`);
@@ -361,6 +363,57 @@ async function fetchScores(sport, sportName) {
         const parsedScores = parseESPNData(data, sport);
         console.log(`${sport} parsed scores:`, parsedScores);
         
+        // Log MLB data specifically for debugging
+        if (sport === 'mlb') {
+            logMLBGameData(parsedScores);
+            
+            // Additional debugging: log raw ESPN API response for MLB
+            console.log('=== RAW ESPN MLB API RESPONSE ===');
+            if (data.events && data.events.length > 0) {
+                data.events.forEach((event, index) => {
+                    console.log(`Event ${index + 1}:`, {
+                        name: event.name,
+                        status: event.status,
+                        sport: event.sport,
+                        leagues: event.leagues,
+                        competitions: event.competitions
+                    });
+                    
+                    // Log detailed status information for MLB games
+                    if (event.status) {
+                        console.log(`  Status details for ${event.name}:`, {
+                            state: event.status.type?.state,
+                            description: event.status.type?.description,
+                            shortDetail: event.status.type?.shortDetail,
+                            detailedState: event.status.type?.detailedState,
+                            period: event.status.period,
+                            clock: event.status.clock
+                        });
+                    }
+                });
+            }
+            console.log('=== END RAW MLB RESPONSE ===');
+        }
+        
+        // Enhanced logging for live games
+        const liveGames = parsedScores.filter(game => game.status === 'live');
+        if (liveGames.length > 0) {
+            console.log('=== LIVE GAMES DEBUG ===');
+            liveGames.forEach((game, index) => {
+                console.log(`Live Game ${index + 1}:`, {
+                    sport: game.sport,
+                    teams: `${game.awayTeam} vs ${game.homeTeam}`,
+                    status: game.status,
+                    period: game.period,
+                    inningNumber: game.inningNumber,
+                    topBottom: game.topBottom,
+                    time: game.time,
+                    displayTime: game.displayTime
+                });
+            });
+            console.log('=== END LIVE GAMES DEBUG ===');
+        }
+        
         return parsedScores;
         
     } catch (error) {
@@ -420,6 +473,77 @@ function parseESPNData(espnData, sportKey) {
         const status = getGameStatus(event);
         const displayDateTime = getGameDateTime(event.date);
         
+        // Enhanced MLB inning detection
+        let topBottom = null;
+        let inningNumber = null;
+        
+        if (sportKey === 'mlb') {
+            // Try to get inning info from status description
+            if (event.status?.type?.description) {
+                const description = event.status.type.description.toLowerCase();
+                if (description.includes('top')) {
+                    topBottom = 'top';
+                } else if (description.includes('bottom')) {
+                    topBottom = 'bottom';
+                }
+                
+                // Extract inning number from description (e.g., "Top 3rd", "Bottom 5th")
+                const inningMatch = description.match(/(\d+)(?:st|nd|rd|th)/);
+                if (inningMatch) {
+                    inningNumber = parseInt(inningMatch[1]);
+                }
+            }
+            
+            // If no inning number from description, try to get it from period
+            if (!inningNumber && event.status?.period) {
+                inningNumber = event.status.period;
+            }
+            
+            // Try to get inning info from other possible fields
+            if (!inningNumber && event.status?.type?.shortDetail) {
+                const shortDetail = event.status.type.shortDetail.toLowerCase();
+                if (shortDetail.includes('inning')) {
+                    const inningMatch = shortDetail.match(/(\d+)(?:st|nd|rd|th)/);
+                    if (inningMatch) {
+                        inningNumber = parseInt(inningMatch[1]);
+                    }
+                    // Check for top/bottom in shortDetail
+                    if (!topBottom) {
+                        if (shortDetail.includes('top')) topBottom = 'top';
+                        else if (shortDetail.includes('bottom')) topBottom = 'bottom';
+                    }
+                }
+            }
+            
+            // Check for inning info in detailedState
+            if (!inningNumber && event.status?.type?.detailedState) {
+                const detailedState = event.status.type.detailedState.toLowerCase();
+                if (detailedState.includes('inning')) {
+                    const inningMatch = detailedState.match(/(\d+)(?:st|nd|rd|th)/);
+                    if (inningMatch) {
+                        inningNumber = parseInt(inningMatch[1]);
+                    }
+                    // Check for top/bottom in detailedState
+                    if (!topBottom) {
+                        if (detailedState.includes('top')) topBottom = 'top';
+                        else if (detailedState.includes('bottom')) topBottom = 'bottom';
+                    }
+                }
+            }
+            
+            // If still no inning number, default to 1
+            if (!inningNumber) {
+                inningNumber = 1;
+            }
+            
+            // If no top/bottom detected, default to top
+            if (!topBottom) {
+                topBottom = 'top';
+            }
+            
+            console.log(`MLB inning detection: inningNumber=${inningNumber}, topBottom=${topBottom}`);
+        }
+        
         const parsedGame = {
             sport: sportKey,
             sportName: getSportDisplayName(sportKey),
@@ -430,7 +554,8 @@ function parseESPNData(espnData, sportKey) {
             status: status,
             period: event.status?.period || null,
             clock: event.status?.clock || null,
-            topBottom: event.status?.type?.description?.includes('top') ? 'top' : 'bottom',
+            topBottom: topBottom,
+            inningNumber: inningNumber,
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
@@ -514,27 +639,70 @@ function getGameStatus(event) {
         description.toLowerCase().includes('final') ||
         description.toLowerCase().includes('ended') ||
         description.toLowerCase().includes('complete') ||
-        (period && period > 4 && !clock)) {
+        description.toLowerCase().includes('final/ot') ||
+        (period && period > 9 && !clock && state !== 'in')) {
         console.log('Game is finished');
         return 'final';
     }
     
-    // Check if game is live/in progress - be more strict
+    // Check if game is live/in progress - improved MLB detection
     if (state === 'in' && (
         description.toLowerCase().includes('quarter') ||
         description.toLowerCase().includes('period') ||
         description.toLowerCase().includes('inning') ||
-        (period && period > 0 && clock) ||
-        description.toLowerCase().includes('live'))) {
+        description.toLowerCase().includes('top') ||
+        description.toLowerCase().includes('bottom') ||
+        description.toLowerCase().includes('live') ||
+        (period && period > 0) ||
+        (clock && clock !== '0:00' && clock !== '' && clock !== '0'))) {
         console.log('Game is live');
         return 'live';
+    }
+    
+    // Special handling for MLB games that might be in progress
+    if (event.sport && event.sport.toLowerCase().includes('baseball') || 
+        event.leagues && event.leagues[0] && event.leagues[0].slug === 'mlb') {
+        // Use enhanced MLB detection
+        if (isMLBGameLive(event)) {
+            console.log('MLB game detected as live by enhanced detection');
+            return 'live';
+        }
+        // Check if there's any period/inning info that suggests live play
+        if (period && period > 0) {
+            console.log('MLB game with period > 0, treating as live');
+            return 'live';
+        }
+        // Check if there are scores that suggest the game has started
+        const competition = event.competitions?.[0];
+        if (competition && competition.competitors) {
+            const hasScores = competition.competitors.some(comp => 
+                comp.score && comp.score !== '0' && comp.score !== '');
+            if (hasScores && state === 'in') {
+                console.log('MLB game with scores and state "in", treating as live');
+                return 'live';
+            }
+        }
+        // For MLB, if state is 'in' and we have any competition data, treat as live
+        if (state === 'in' && competition) {
+            console.log('MLB game with state "in" and competition data, treating as live');
+            return 'live';
+        }
+        // Additional MLB live detection: check if description contains inning info
+        if (state === 'in' && description && (
+            description.toLowerCase().includes('inning') ||
+            description.toLowerCase().includes('top') ||
+            description.toLowerCase().includes('bottom'))) {
+            console.log('MLB game with inning description, treating as live');
+            return 'live';
+        }
     }
     
     // Check if game is scheduled/upcoming
     if (state === 'pre' || 
         description.toLowerCase().includes('scheduled') ||
         description.toLowerCase().includes('upcoming') ||
-        description.toLowerCase().includes('pregame')) {
+        description.toLowerCase().includes('pregame') ||
+        description.toLowerCase().includes('delayed')) {
         console.log('Game is scheduled');
         return 'scheduled';
     }
@@ -558,8 +726,24 @@ function getLiveGameTime(event) {
     
     console.log('Getting live game time:', { description, period, clock });
     
-    // For live games, just return the raw data - let getGameTimeDisplay format it
+    // For live games, return the raw data - let getGameTimeDisplay format it
     if (status.type?.state === 'in') {
+        // For MLB games, try to get more specific inning information
+        if (event.leagues && event.leagues[0] && event.leagues[0].slug === 'mlb') {
+            // Check if we have detailed MLB status info
+            if (description && description.toLowerCase().includes('inning')) {
+                return description;
+            }
+            // Check for top/bottom inning info
+            if (period && (description.toLowerCase().includes('top') || description.toLowerCase().includes('bottom'))) {
+                return `${period}${description.toLowerCase().includes('top') ? 'T' : 'B'}`;
+            }
+            // If we have period but no description, create inning info
+            if (period && period > 0) {
+                const topBottom = description.toLowerCase().includes('bottom') ? 'B' : 'T';
+                return `${period}${topBottom}`;
+            }
+        }
         return 'Live';
     }
     
@@ -1021,6 +1205,34 @@ function updateActiveButtons(activeType) {
 // Refresh scores (fetch from APIs)
 function refreshScores() {
     loadAllScores();
+}
+
+// Refresh only MLB scores for debugging
+async function refreshMLBScores() {
+    console.log('Manually refreshing MLB scores...');
+    try {
+        const mlbScores = await fetchScores('mlb', 'MLB');
+        console.log('MLB scores fetched:', mlbScores);
+        
+        // Update the global scores array with new MLB data
+        const otherScores = allScores.filter(game => game.sport !== 'mlb');
+        allScores = [...otherScores, ...mlbScores];
+        
+        // Apply filters and update display
+        filterScores();
+        
+        // Show update indicator
+        showAutoUpdateIndicator();
+        
+        // Test inning display after refresh
+        setTimeout(() => {
+            testMLBInningDisplay();
+        }, 1000);
+        
+        console.log('MLB scores refreshed successfully');
+    } catch (error) {
+        console.error('Error refreshing MLB scores:', error);
+    }
 }
 
 // Update current date display
@@ -1728,7 +1940,25 @@ function getGameTimeDisplay(game) {
         } else if (game.sport === 'nba' || game.sport === 'ncaab') {
             periodInfo = `Q${game.period || '1'}`;
         } else if (game.sport === 'mlb') {
-            periodInfo = `${game.period || '1'}${game.topBottom === 'top' ? 'T' : 'B'}`;
+            // MLB: Show inning with top/bottom indicator
+            if (game.inningNumber && game.inningNumber > 0) {
+                const inningText = game.inningNumber === 1 ? '1st' : 
+                                  game.inningNumber === 2 ? '2nd' : 
+                                  game.inningNumber === 3 ? '3rd' : 
+                                  `${game.inningNumber}th`;
+                const arrow = game.topBottom === 'top' ? '↑' : '↓';
+                periodInfo = `${inningText} ${arrow}`;
+            } else if (game.period && game.period > 0) {
+                // Fallback to period if inningNumber not available
+                const inningText = game.period === 1 ? '1st' : 
+                                  game.period === 2 ? '2nd' : 
+                                  game.period === 3 ? '3rd' : 
+                                  `${game.period}th`;
+                const arrow = game.topBottom === 'top' ? '↑' : '↓';
+                periodInfo = `${inningText} ${arrow}`;
+            } else {
+                periodInfo = '1st ↑';
+            }
         } else if (game.sport === 'nhl') {
             periodInfo = `P${game.period || '1'}`;
         } else if (game.sport === 'soccer') {
@@ -1795,3 +2025,121 @@ function convertClockToReadable(clock, sport) {
     console.log(`Could not convert clock: ${clock}`);
     return null;
 }
+
+// Test function for MLB inning display (can be called from console)
+function testMLBInningDisplay() {
+    console.log('=== TESTING MLB INNING DISPLAY ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Status:', game.status);
+        console.log('Period:', game.period);
+        console.log('Inning Number:', game.inningNumber);
+        console.log('Top/Bottom:', game.topBottom);
+        console.log('Time:', game.time);
+        console.log('Display Time:', game.displayTime);
+        
+        // Test the inning display
+        const inningDisplay = getGameTimeDisplay(game);
+        console.log('Final Inning Display:', inningDisplay);
+    });
+    
+    console.log('=== END TESTING ===');
+}
+
+// Enhanced MLB status detection
+function isMLBGameLive(event) {
+    // Check if this is an MLB game
+    const isMLB = event.leagues && event.leagues[0] && event.leagues[0].slug === 'mlb';
+    if (!isMLB) {
+        // Also check if the sport is baseball
+        if (event.sport && event.sport.toLowerCase().includes('baseball')) {
+            console.log(`Baseball game detected: ${event.name}`);
+        } else {
+            return false;
+        }
+    }
+    
+    const status = event.status;
+    if (!status || !status.type) return false;
+    
+    const state = status.type.state;
+    const description = status.type.description || '';
+    const period = status.period;
+    const clock = status.clock;
+    
+    console.log(`MLB status check for ${event.name}:`, { state, description, period, clock });
+    
+    // MLB games are live if:
+    // 1. State is 'in' (in progress)
+    // 2. Has period > 0 (inning number)
+    // 3. Description contains inning-related text
+    if (state === 'in' && period && period > 0) {
+        console.log(`MLB game ${event.name} is LIVE - Inning ${period}`);
+        return true;
+    }
+    
+    // Check if description indicates live play
+    if (state === 'in' && (
+        description.toLowerCase().includes('inning') ||
+        description.toLowerCase().includes('top') ||
+        description.toLowerCase().includes('bottom') ||
+        description.toLowerCase().includes('live') ||
+        description.toLowerCase().includes('in progress'))) {
+        console.log(`MLB game ${event.name} is LIVE - ${description}`);
+        return true;
+    }
+    
+    // Check if there are scores that suggest the game has started
+    const competition = event.competitions?.[0];
+    if (competition && competition.competitors && state === 'in') {
+        const hasScores = competition.competitors.some(comp => 
+            comp.score && comp.score !== '0' && comp.score !== '');
+        if (hasScores) {
+            console.log(`MLB game ${event.name} is LIVE - Has scores and state is 'in'`);
+            return true;
+        }
+    }
+    
+    // Additional check: if state is 'in' and we have any competition data, likely live
+    if (state === 'in' && competition) {
+        console.log(`MLB game ${event.name} is LIVE - State 'in' with competition data`);
+        return true;
+    }
+    
+    return false;
+}
+
+// Get game status display text
+
+// Log MLB game data for debugging
+function logMLBGameData(mlbScores) {
+    if (mlbScores.length === 0) {
+        console.log('No MLB scores to log');
+        return;
+    }
+    
+    console.log('=== MLB GAMES DATA DEBUG ===');
+    mlbScores.forEach((game, index) => {
+        console.log(`MLB Game ${index + 1}:`, {
+            awayTeam: game.awayTeam,
+            homeTeam: game.homeTeam,
+            awayScore: game.awayScore,
+            homeScore: game.homeScore,
+            status: game.status,
+            period: game.period,
+            inningNumber: game.inningNumber,
+            topBottom: game.topBottom,
+            time: game.time,
+            displayTime: game.displayTime,
+            fullGame: game
+        });
+    });
+    console.log('=== END MLB DEBUG ===');
+}
+
+// Enhanced MLB status detection
