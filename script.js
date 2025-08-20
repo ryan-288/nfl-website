@@ -389,6 +389,11 @@ async function fetchScores(sport, sportName) {
                             period: event.status.period,
                             clock: event.status.clock
                         });
+                        
+                        // Additional debugging for MLB status fields
+                        if (event.status.type) {
+                            console.log(`  Full status.type object:`, event.status.type);
+                        }
                     }
                 });
             }
@@ -407,9 +412,21 @@ async function fetchScores(sport, sportName) {
                     period: game.period,
                     inningNumber: game.inningNumber,
                     topBottom: game.topBottom,
+                    bases: game.bases,
+                    outs: game.outs,
                     time: game.time,
                     displayTime: game.displayTime
                 });
+                
+                // Additional logging for MLB games to debug bases/outs
+                if (game.sport === 'mlb') {
+                    console.log(`MLB Game ${index + 1} - Raw data:`, {
+                        bases: game.bases,
+                        outs: game.outs,
+                        inningNumber: game.inningNumber,
+                        topBottom: game.topBottom
+                    });
+                }
             });
             console.log('=== END LIVE GAMES DEBUG ===');
         }
@@ -476,21 +493,41 @@ function parseESPNData(espnData, sportKey) {
         // Enhanced MLB inning detection
         let topBottom = null;
         let inningNumber = null;
+        let bases = null;
+        let outs = null;
+        let balls = null;
+        let strikes = null;
         
         if (sportKey === 'mlb') {
+            // Enhanced inning parsing with better logging
+            console.log('=== MLB INNING PARSING DEBUG ===');
+            console.log('Event status:', event.status);
+            console.log('Event status type:', event.status?.type);
+            
             // Try to get inning info from status description
             if (event.status?.type?.description) {
-                const description = event.status.type.description.toLowerCase();
-                if (description.includes('top')) {
-                    topBottom = 'top';
-                } else if (description.includes('bottom')) {
-                    topBottom = 'bottom';
+            const description = event.status.type.description.toLowerCase();
+                console.log(`MLB status description: "${description}"`);
+                
+            if (description.includes('top')) {
+                topBottom = 'top';
+                    console.log('Found top from description');
+            } else if (description.includes('bottom')) {
+                    topBottom = 'bot';
+                    console.log('Found bottom from description');
+                } else if (description.includes('between')) {
+                    topBottom = 'mid';
+                    console.log('Found between from description');
+                } else if (description.includes('end')) {
+                    topBottom = 'end';
+                    console.log('Found end from description');
                 }
                 
                 // Extract inning number from description (e.g., "Top 3rd", "Bottom 5th")
                 const inningMatch = description.match(/(\d+)(?:st|nd|rd|th)/);
                 if (inningMatch) {
                     inningNumber = parseInt(inningMatch[1]);
+                    console.log(`Found inning number from description: ${inningNumber}`);
                 }
             }
             
@@ -510,7 +547,9 @@ function parseESPNData(espnData, sportKey) {
                     // Check for top/bottom in shortDetail
                     if (!topBottom) {
                         if (shortDetail.includes('top')) topBottom = 'top';
-                        else if (shortDetail.includes('bottom')) topBottom = 'bottom';
+                        else if (shortDetail.includes('bottom')) topBottom = 'bot';
+                        else if (shortDetail.includes('between')) topBottom = 'mid';
+                        else if (shortDetail.includes('end')) topBottom = 'end';
                     }
                 }
             }
@@ -526,8 +565,180 @@ function parseESPNData(espnData, sportKey) {
                     // Check for top/bottom in detailedState
                     if (!topBottom) {
                         if (detailedState.includes('top')) topBottom = 'top';
-                        else if (detailedState.includes('bottom')) topBottom = 'bottom';
+                        else if (detailedState.includes('bottom')) topBottom = 'bot';
+                        else if (detailedState.includes('between')) topBottom = 'mid';
+                        else if (detailedState.includes('end')) topBottom = 'end';
                     }
+                }
+            }
+            
+            // Try to extract inning info and other data from competition.situation object (more reliable)
+            if (competition?.situation) {
+                console.log(`MLB competition situation found:`, competition.situation);
+                console.log(`Full situation object keys:`, Object.keys(competition.situation));
+                console.log(`Situation object values:`, Object.values(competition.situation));
+                
+                // Check if inning info is in the situation object
+                if (competition.situation.inning !== undefined && competition.situation.inning !== null) {
+                    inningNumber = competition.situation.inning;
+                    console.log(`Found inning from situation: ${inningNumber}`);
+                }
+                
+                if (competition.situation.topOfInning !== undefined && competition.situation.topOfInning !== null) {
+                    topBottom = competition.situation.topOfInning ? 'top' : 'bot';
+                    console.log(`Found topOfInning from situation: ${competition.situation.topOfInning} -> ${topBottom}`);
+                }
+                
+                // Extract outs, balls, and strikes from situation object
+                if (competition.situation.outs !== undefined && competition.situation.outs !== null) {
+                    outs = competition.situation.outs;
+                    console.log(`Found outs from situation: ${outs}`);
+                }
+                
+                if (competition.situation.balls !== undefined && competition.situation.balls !== null) {
+                    balls = competition.situation.balls;
+                    console.log(`Found balls from situation: ${balls}`);
+                }
+                
+                if (competition.situation.strikes !== undefined && competition.situation.strikes !== null) {
+                    strikes = competition.situation.strikes;
+                    console.log(`Found strikes from situation: ${strikes}`);
+                }
+                
+                // Extract bases from situation object - try different possible property names
+                let onFirst = competition.situation.onFirst;
+                let onSecond = competition.situation.onSecond;
+                let onThird = competition.situation.onThird;
+                
+                console.log(`Base situation (direct from situation): onFirst=${onFirst}, onSecond=${onSecond}, onThird=${onThird}`);
+                
+                // Check if any base properties exist (including false values)
+                if (onFirst !== undefined || onSecond !== undefined || onThird !== undefined) {
+                    console.log(`Final base values: onFirst=${onFirst}, onSecond=${onSecond}, onThird=${onThird}`);
+                    
+                    if (onFirst && onSecond && onThird) {
+                        bases = 'loaded';
+                        console.log(`Found bases: loaded (all bases occupied)`);
+                    } else if (onFirst && onSecond && !onThird) {
+                        bases = '1st & 2nd';
+                        console.log(`Found bases: 1st & 2nd`);
+                    } else if (onFirst && !onSecond && onThird) {
+                        bases = '1st & 3rd';
+                        console.log(`Found bases: 1st & 3rd`);
+                    } else if (!onFirst && onSecond && onThird) {
+                        bases = '2nd & 3rd';
+                        console.log(`Found bases: 2nd & 3rd`);
+                    } else if (onFirst && !onSecond && !onThird) {
+                        bases = '1st';
+                        console.log(`Found bases: 1st`);
+                    } else if (!onFirst && onSecond && !onThird) {
+                        bases = '2nd';
+                        console.log(`Found bases: 2nd`);
+                    } else if (!onFirst && !onSecond && onThird) {
+                        bases = '3rd';
+                        console.log(`Found bases: 3rd`);
+                    } else if (!onFirst && !onSecond && !onThird) {
+                        bases = 'empty';
+                        console.log(`Found bases: empty (no runners on base)`);
+                    }
+                } else {
+                    console.log(`No base properties found in situation object`);
+                }
+            }
+            
+            // Fallback: Try to extract bases and outs from status description if situation object didn't have the data
+            if (event.status?.type?.description && (outs === null || bases === null)) {
+                const description = event.status.type.description;
+                console.log(`MLB parsing description (fallback): "${description}"`);
+                
+                // Look for outs (e.g., "2 outs", "0 outs")
+                if (outs === null) {
+                    const outsMatch = description.match(/(\d+)\s*out/);
+                    if (outsMatch) {
+                        outs = parseInt(outsMatch[1]);
+                        console.log(`Found outs from description: ${outs}`);
+                    }
+                }
+                
+                // Look for bases loaded indicators
+                if (bases === null) {
+                    if (description.toLowerCase().includes('bases loaded')) {
+                        bases = 'loaded';
+                        console.log(`Found bases from description: loaded`);
+                    } else if (description.toLowerCase().includes('runner on third')) {
+                        bases = '3rd';
+                        console.log(`Found bases from description: 3rd`);
+                    } else if (description.toLowerCase().includes('runner on second')) {
+                        bases = '2nd';
+                        console.log(`Found bases from description: 2nd`);
+                    } else if (description.toLowerCase().includes('runner on first')) {
+                        bases = '1st';
+                        console.log(`Found bases from description: 1st`);
+                    } else if (description.toLowerCase().includes('runners on first and second')) {
+                        bases = '1st & 2nd';
+                        console.log(`Found bases from description: 1st & 2nd`);
+                    } else if (description.toLowerCase().includes('runners on first and third')) {
+                        bases = '1st & 3rd';
+                        console.log(`Found bases from description: 1st & 3rd`);
+                    } else if (description.toLowerCase().includes('runners on second and third')) {
+                        bases = '2nd & 3rd';
+                        console.log(`Found bases from description: 2nd & 3rd`);
+                    }
+                    // Additional base detection patterns
+                    else if (description.toLowerCase().includes('man on first')) {
+                        bases = '1st';
+                        console.log(`Found bases from description: 1st (man on first)`);
+                    } else if (description.toLowerCase().includes('man on second')) {
+                        bases = '2nd';
+                        console.log(`Found bases from description: 2nd (man on second)`);
+                    } else if (description.toLowerCase().includes('man on third')) {
+                        bases = '3rd';
+                        console.log(`Found bases from description: 3rd (man on third)`);
+                    } else if (description.toLowerCase().includes('men on first and second')) {
+                        bases = '1st & 2nd';
+                        console.log(`Found bases from description: 1st & 2nd (men on first and second)`);
+                    } else if (description.toLowerCase().includes('men on first and third')) {
+                        bases = '1st & 3rd';
+                        console.log(`Found bases from description: 1st & 3rd (men on first and third)`);
+                    } else if (description.toLowerCase().includes('men on second and third')) {
+                        bases = '2nd & 3rd';
+                        console.log(`Found bases from description: 2nd & 3rd (men on second and third)`);
+                    } else {
+                        console.log(`No base pattern matched in description: "${description}"`);
+                    }
+                    
+                    // Try alternative patterns that might be used
+                    if (!bases) {
+                        if (description.toLowerCase().includes('first and second')) {
+                            bases = '1st & 2nd';
+                            console.log(`Found bases via alternative pattern: 1st & 2nd`);
+                        } else if (description.toLowerCase().includes('first and third')) {
+                            bases = '1st & 3rd';
+                            console.log(`Found bases via alternative pattern: 1st & 3rd`);
+                        } else if (description.toLowerCase().includes('second and third')) {
+                            bases = '2nd & 3rd';
+                            console.log(`Found bases via alternative pattern: 2nd & 3rd`);
+                        }
+                    }
+                }
+            } else if (!competition?.situation) {
+                console.log('No competition.situation object found in MLB event');
+            }
+            
+            // Also check shortDetail and detailedState for bases/outs info
+            if (!outs && event.status?.type?.shortDetail) {
+                const shortDetail = event.status.type.shortDetail;
+                const outsMatch = shortDetail.match(/(\d+)\s*out/);
+                if (outsMatch) {
+                    outs = parseInt(outsMatch[1]);
+                }
+            }
+            
+            if (!outs && event.status?.type?.detailedState) {
+                const detailedState = event.status.type.detailedState;
+                const outsMatch = detailedState.match(/(\d+)\s*out/);
+                if (outsMatch) {
+                    outs = parseInt(outsMatch[1]);
                 }
             }
             
@@ -541,7 +752,12 @@ function parseESPNData(espnData, sportKey) {
                 topBottom = 'top';
             }
             
-            console.log(`MLB inning detection: inningNumber=${inningNumber}, topBottom=${topBottom}`);
+            // If no outs detected, default to 0
+            if (outs === null) {
+                outs = 0;
+            }
+            
+            console.log(`MLB inning detection: inningNumber=${inningNumber}, topBottom=${topBottom}, bases=${bases}, outs=${outs}`);
         }
         
         const parsedGame = {
@@ -556,6 +772,10 @@ function parseESPNData(espnData, sportKey) {
             clock: event.status?.clock || null,
             topBottom: topBottom,
             inningNumber: inningNumber,
+            bases: bases,
+            outs: outs,
+            balls: balls,
+            strikes: strikes,
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
@@ -808,7 +1028,9 @@ function displayScores(scores) {
             <div class="score-card ${changeClass}" data-game-id="${game.sport}-${game.awayTeam}-${game.homeTeam}">
                 <div class="game-header">
                     <span class="sport-type">${game.sport}</span>
-                    <span class="game-status ${game.status}">${getStatusDisplay(game.status)}</span>
+                    ${game.sport === 'mlb' && game.status === 'live' && game.inningNumber ? `<span class="inning-display live">${getInningDisplay(game)}</span>` : ''}
+                    ${game.sport === 'mlb' && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${game.status === 'scheduled' ? `<span class="inning-display scheduled">${game.displayTime || game.time || 'TBD'}</span>` : ''}
                 </div>
                 <div class="teams">
                     <div class="team ${getWinner(game) === 'away' ? 'winner' : ''}">
@@ -830,10 +1052,15 @@ function displayScores(scores) {
                         <span class="team-score">${game.status === 'scheduled' ? '' : game.homeScore}</span>
                     </div>
                 </div>
-                <div class="game-info">
-                    <span class="game-time">${getGameTimeDisplay(game)}</span>
-                    <span class="game-date">${game.displayDate}</span>
-                </div>
+
+                ${game.sport === 'mlb' && game.status === 'live' ? `<div class="mlb-game-state">
+                    <div class="mlb-bases-container">
+                        ${game.bases ? getBasesVisual(game.bases) : ''}
+                    </div>
+                    <div class="mlb-count-container">
+                        ${getCountDotsVisual(game)}
+                    </div>
+                </div>` : ''}
             </div>
         `;
     }).join('');
@@ -1946,19 +2173,40 @@ function getGameTimeDisplay(game) {
                                   game.inningNumber === 2 ? '2nd' : 
                                   game.inningNumber === 3 ? '3rd' : 
                                   `${game.inningNumber}th`;
-                const arrow = game.topBottom === 'top' ? '↑' : '↓';
-                periodInfo = `${inningText} ${arrow}`;
+                
+                let inningState = '';
+                if (game.topBottom === 'top') inningState = 'top';
+                else if (game.topBottom === 'bot') inningState = 'bot';
+                else if (game.topBottom === 'mid') inningState = 'mid';
+                else if (game.topBottom === 'end') inningState = 'end';
+                
+                periodInfo = `${inningState} ${inningText}`;
             } else if (game.period && game.period > 0) {
                 // Fallback to period if inningNumber not available
                 const inningText = game.period === 1 ? '1st' : 
                                   game.period === 2 ? '2nd' : 
                                   game.period === 3 ? '3rd' : 
                                   `${game.period}th`;
-                const arrow = game.topBottom === 'top' ? '↑' : '↓';
-                periodInfo = `${inningText} ${arrow}`;
+                
+                let inningState = '';
+                if (game.topBottom === 'top') inningState = 'top';
+                else if (game.topBottom === 'bot') inningState = 'bot';
+                else if (game.topBottom === 'mid') inningState = 'mid';
+                else if (game.topBottom === 'end') inningState = 'end';
+                
+                periodInfo = `${inningState} ${inningText}`;
             } else {
-                periodInfo = '1st ↑';
+                periodInfo = 'top 1st';
             }
+            
+            // Count dots will be displayed next to bases (outside the bubble)
+            
+            // Store bases info separately (will be displayed outside the bubble)
+            if (game.bases) {
+                console.log(`Bases info available: ${game.bases}`);
+            }
+            
+            console.log(`Final periodInfo: "${periodInfo}"`);
         } else if (game.sport === 'nhl') {
             periodInfo = `P${game.period || '1'}`;
         } else if (game.sport === 'soccer') {
@@ -2026,6 +2274,71 @@ function convertClockToReadable(clock, sport) {
     return null;
 }
 
+// Get visual representation of bases as HTML
+function getBasesVisual(bases) {
+    if (!bases) return '';
+    
+    // Create a baseball diamond layout (first base on right, third on left)
+    let html = '<div class="bases-diamond">';
+    
+    // Second base (top)
+    const secondBase = (bases === '2nd' || bases === '1st & 2nd' || bases === '2nd & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
+    html += `<div class="base second-base ${secondBase}">2</div>`;
+    
+    // Third base (left) and first base (right)
+    html += '<div class="bases-row">';
+    const firstBase = (bases === '1st' || bases === '1st & 2nd' || bases === '1st & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
+    const thirdBase = (bases === '3rd' || bases === '1st & 3rd' || bases === '2nd & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
+    
+    html += `<div class="base third-base ${thirdBase}">3</div>`;
+    html += `<div class="base first-base ${firstBase}">1</div>`;
+    html += '</div>';
+    
+    html += '</div>';
+    
+    return html;
+}
+
+// Get visual representation of count dots (balls, strikes, outs)
+function getCountDotsVisual(game) {
+    if (game.sport !== 'mlb') return '';
+    
+    let html = '<div class="count-dots-container">';
+    
+    // Add balls dots (3 dots horizontal)
+    if (game.balls !== null && game.balls !== undefined) {
+        html += '<div class="count-dots balls-dots">';
+        html += '<span class="count-label">B</span>';
+        for (let i = 0; i < 3; i++) {
+            html += `<span class="count-dot ${i < game.balls ? 'active' : ''}">●</span>`;
+        }
+        html += '</div>';
+    }
+    
+    // Add strikes dots (2 dots horizontal)
+    if (game.strikes !== null && game.strikes !== undefined) {
+        html += '<div class="count-dots strikes-dots">';
+        html += '<span class="count-label">S</span>';
+        for (let i = 0; i < 2; i++) {
+            html += `<span class="count-dot ${i < game.strikes ? 'active' : ''}">●</span>`;
+        }
+        html += '</div>';
+    }
+    
+    // Add outs dots (2 dots horizontal)
+    if (game.outs !== null && game.outs !== undefined) {
+        html += '<div class="count-dots outs-dots">';
+        html += '<span class="count-label">O</span>';
+        for (let i = 0; i < 2; i++) {
+            html += `<span class="count-dot ${i < game.outs ? 'active' : ''}">●</span>`;
+        }
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
 // Test function for MLB inning display (can be called from console)
 function testMLBInningDisplay() {
     console.log('=== TESTING MLB INNING DISPLAY ===');
@@ -2040,6 +2353,8 @@ function testMLBInningDisplay() {
         console.log('Period:', game.period);
         console.log('Inning Number:', game.inningNumber);
         console.log('Top/Bottom:', game.topBottom);
+        console.log('Bases:', game.bases);
+        console.log('Outs:', game.outs);
         console.log('Time:', game.time);
         console.log('Display Time:', game.displayTime);
         
@@ -2049,6 +2364,285 @@ function testMLBInningDisplay() {
     });
     
     console.log('=== END TESTING ===');
+}
+
+// Test function for MLB inning states including between innings and end of innings
+function testMLBInningStates() {
+    console.log('=== TESTING MLB INNING STATES ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Status:', game.status);
+        console.log('Top/Bottom:', game.topBottom);
+        console.log('Inning Number:', game.inningNumber);
+        console.log('Period:', game.period);
+        
+        // Test the inning display
+        const inningDisplay = getGameTimeDisplay(game);
+        console.log('Inning Display:', inningDisplay);
+        
+        // Show what the inning state means
+        let inningStateMeaning = '';
+        if (game.topBottom === 'top') inningStateMeaning = 'Top of inning';
+        else if (game.topBottom === 'bot') inningStateMeaning = 'Bottom of inning';
+        else if (game.topBottom === 'mid') inningStateMeaning = 'Between innings';
+        else if (game.topBottom === 'end') inningStateMeaning = 'End of inning';
+        else inningStateMeaning = 'Unknown';
+        
+        console.log('Inning State Meaning:', inningStateMeaning);
+    });
+    
+    console.log('=== END INNING STATES TESTING ===');
+}
+
+// Debug function to check count data for MLB games
+function debugMLBCountData() {
+    console.log('=== DEBUGGING MLB COUNT DATA ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Balls:', game.balls);
+        console.log('Strikes:', game.strikes);
+        console.log('Outs:', game.outs);
+        console.log('Bases:', game.bases);
+        
+        // Test the count dots function
+        const countDots = getCountDotsVisual(game);
+        console.log('Count Dots HTML:', countDots);
+    });
+    
+    console.log('=== END COUNT DATA DEBUGGING ===');
+}
+
+// Get clean inning display for header
+function getInningDisplay(game) {
+    if (game.sport !== 'mlb') return '';
+    
+    if (game.inningNumber && game.inningNumber > 0) {
+        const inningText = game.inningNumber === 1 ? '1st' : 
+                          game.inningNumber === 2 ? '2nd' : 
+                          game.inningNumber === 3 ? '3rd' : 
+                          `${game.inningNumber}th`;
+        
+        let inningState = '';
+        if (game.topBottom === 'top') inningState = 'top';
+        else if (game.topBottom === 'bot') inningState = 'bot';
+        else if (game.topBottom === 'mid') inningState = 'mid';
+        else if (game.topBottom === 'end') inningState = 'end';
+        
+        return `${inningState} ${inningText}`;
+    }
+    
+    return '';
+}
+
+// Debug function to check inning parsing for MLB games
+function debugMLBInningParsing() {
+    console.log('=== DEBUGGING MLB INNING PARSING ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Raw inning data:', {
+            inningNumber: game.inningNumber,
+            topBottom: game.topBottom,
+            period: game.period
+        });
+        
+        // Test the inning display
+        const inningDisplay = getGameTimeDisplay(game);
+        console.log('Final inning display:', inningDisplay);
+        
+        // Show what the inning state means
+        let inningStateMeaning = '';
+        if (game.topBottom === 'top') inningStateMeaning = 'Top of inning';
+        else if (game.topBottom === 'bot') inningStateMeaning = 'Bottom of inning';
+        else if (game.topBottom === 'mid') inningStateMeaning = 'Between innings';
+        else if (game.topBottom === 'end') inningStateMeaning = 'End of inning';
+        else inningStateMeaning = 'Unknown';
+        
+        console.log('Inning state meaning:', inningStateMeaning);
+    });
+    
+    console.log('=== END INNING PARSING DEBUGGING ===');
+}
+
+// Function to manually set sample bases/outs data for testing display
+function setSampleMLBBases() {
+    console.log('=== SETTING SAMPLE MLB BASES DATA ===');
+    
+    // Find the first live MLB game
+    const liveMLBGame = allScores.find(game => game.sport === 'mlb' && game.status === 'live');
+    
+    if (!liveMLBGame) {
+        console.log('No live MLB game found. Try refreshing the page or wait for a live game.');
+        return;
+    }
+    
+    console.log(`Setting sample data for: ${liveMLBGame.awayTeam} vs ${liveMLBGame.homeTeam}`);
+    
+    // Set sample bases and outs data
+    liveMLBGame.bases = 'loaded';
+    liveMLBGame.outs = 2;
+    
+    console.log('Sample data set:', {
+        bases: liveMLBGame.bases,
+        outs: liveMLBGame.outs
+    });
+    
+    // Test the display
+    const inningDisplay = getGameTimeDisplay(liveMLBGame);
+    console.log('New inning display:', inningDisplay);
+    
+    // Refresh the display
+    displayScores(allScores);
+    
+    console.log('=== END SETTING SAMPLE DATA ===');
+}
+
+// Test function specifically for bases and outs display
+function testMLBBasesAndOuts() {
+    console.log('=== TESTING MLB BASES AND OUTS ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Bases:', game.bases);
+        console.log('Outs:', game.outs);
+        console.log('Bases Visual:', getBasesVisual(game.bases));
+        
+        // Test the full inning display
+        const inningDisplay = getGameTimeDisplay(game);
+        console.log('Full Inning Display:', inningDisplay);
+    });
+    
+    console.log('=== END BASES AND OUTS TESTING ===');
+}
+
+// Debug function to examine competition.situation object for MLB games
+function debugMLBCompetitionSituation() {
+    console.log('=== DEBUGGING MLB COMPETITION SITUATION ===');
+    
+    // Find all MLB games
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    console.log(`Found ${mlbGames.length} MLB games`);
+    
+    if (mlbGames.length === 0) {
+        console.log('No MLB games found in allScores. Try refreshing the page first.');
+        return;
+    }
+    
+    mlbGames.forEach((game, index) => {
+        console.log(`\nMLB Game ${index + 1}: ${game.awayTeam} vs ${game.homeTeam}`);
+        console.log('Current parsed data:', {
+            bases: game.bases,
+            outs: game.outs,
+            inningNumber: game.inningNumber,
+            topBottom: game.topBottom
+        });
+    });
+    
+    console.log('\nTo see the raw ESPN API response structure, check the console logs above for "MLB competition situation found:" messages.');
+    console.log('=== END DEBUGGING ===');
+}
+
+// Function to examine the raw ESPN API response for a specific live MLB game
+function examineLiveMLBResponse() {
+    console.log('=== EXAMINING LIVE MLB API RESPONSE ===');
+    
+    // Find the first live MLB game
+    const liveMLBGame = allScores.find(game => game.sport === 'mlb' && game.status === 'live');
+    
+    if (!liveMLBGame) {
+        console.log('No live MLB game found. Try refreshing the page or wait for a live game.');
+        return;
+    }
+    
+    console.log(`Examining live game: ${liveMLBGame.awayTeam} vs ${liveMLBGame.homeTeam}`);
+    
+    // This will show the raw API response structure in the console
+    console.log('Check the console logs above for "MLB competition situation found:" messages to see the raw API structure.');
+    console.log('Look for the "Full situation object keys:" and "Situation object values:" logs.');
+    
+    console.log('=== END EXAMINATION ===');
+}
+
+// Test function with sample MLB data to verify bases detection
+function testMLBBasesDetection() {
+    console.log('=== TESTING MLB BASES DETECTION WITH SAMPLE DATA ===');
+    
+    // Create sample MLB game data
+    const sampleGame = {
+        sport: 'mlb',
+        sportName: 'MLB',
+        awayTeam: 'Test Team A',
+        homeTeam: 'Test Team B',
+        awayScore: '2',
+        homeScore: '1',
+        status: 'live',
+        period: 3,
+        inningNumber: 3,
+        topBottom: 'bottom',
+        bases: 'loaded',
+        outs: 2,
+        time: 'Live',
+        displayDate: 'Today',
+        displayTime: '7:30 PM'
+    };
+    
+    console.log('Sample game data:', sampleGame);
+    
+    // Test the inning display
+    const inningDisplay = getGameTimeDisplay(sampleGame);
+    console.log('Sample game inning display:', inningDisplay);
+    
+    // Test bases visual
+    const visualBases = getBasesVisual(sampleGame.bases);
+    console.log('Sample game bases visual:', visualBases);
+    
+    console.log('=== END SAMPLE DATA TESTING ===');
+}
+
+// Function to manually test bases display by setting sample data
+function setSampleMLBBases() {
+    console.log('=== SETTING SAMPLE MLB BASES FOR TESTING ===');
+    
+    // Find the first MLB game and set sample bases/outs
+    const mlbGames = allScores.filter(game => game.sport === 'mlb');
+    if (mlbGames.length > 0) {
+        const testGame = mlbGames[0];
+        testGame.bases = 'loaded';
+        testGame.outs = 2;
+        testGame.inningNumber = 5;
+        testGame.topBottom = 'bottom';
+        
+        console.log('Set sample data for:', testGame.awayTeam, 'vs', testGame.homeTeam);
+        console.log('Bases:', testGame.bases, 'Outs:', testGame.outs);
+        
+        // Refresh the display
+        filterScores();
+        
+        // Test the display
+        testMLBBasesAndOuts();
+    } else {
+        console.log('No MLB games found to test with');
+    }
+    
+    console.log('=== END SAMPLE SETTING ===');
 }
 
 // Enhanced MLB status detection
@@ -2134,6 +2728,8 @@ function logMLBGameData(mlbScores) {
             period: game.period,
             inningNumber: game.inningNumber,
             topBottom: game.topBottom,
+            bases: game.bases,
+            outs: game.outs,
             time: game.time,
             displayTime: game.displayTime,
             fullGame: game
