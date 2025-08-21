@@ -776,26 +776,26 @@ body.pwa-mode {
     
     .count-dots-container {
         gap: 1px;
-        /* Make count dots more compact */
-        transform: scale(0.85);
+        /* Make count dots much more compact */
+        transform: scale(0.6);
         transform-origin: left center;
     }
     
     .count-dots {
         gap: 1px;
-        min-height: 8px;
+        min-height: 6px;
     }
     
     .count-dot {
-        width: 4px;
-        height: 4px;
-        font-size: 2px;
+        width: 3px;
+        height: 3px;
+        font-size: 1px;
     }
     
     .count-label {
-        font-size: 7px;
-        width: 14px;
-        height: 8px;
+        font-size: 5px;
+        width: 10px;
+        height: 5px;
     }
 }
 
@@ -902,19 +902,19 @@ body.pwa-mode {
     }
     
     .count-dots-container {
-        transform: scale(0.75);
+        transform: scale(0.5);
     }
     
     .count-dot {
-        width: 3px;
-        height: 3px;
+        width: 2px;
+        height: 2px;
         font-size: 1px;
     }
     
     .count-label {
-        font-size: 6px;
-        width: 12px;
-        height: 6px;
+        font-size: 4px;
+        width: 8px;
+        height: 4px;
     }
     
     .score-card {
@@ -1104,28 +1104,31 @@ body.pwa-mode {
 .count-dots-container {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     align-items: flex-start;
+    /* Make count dots more compact by default */
+    transform: scale(0.9);
+    transform-origin: left center;
 }
 
 .count-dots {
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-height: 12px;
+    gap: 2px;
+    min-height: 10px;
     width: 100%;
 }
 
 .count-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: #333;
     border: 1px solid #555;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4px;
+    font-size: 3px;
     color: #666;
     transition: all 0.3s ease;
 }
@@ -1133,20 +1136,20 @@ body.pwa-mode {
 .count-dot.active {
     background: #007bff;
     border-color: #0056b3;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
     color: #fff;
 }
 
 .count-label {
-    font-size: 10px;
+    font-size: 8px;
     color: #888;
     font-weight: bold;
-    width: 20px;
+    width: 16px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 12px;
+    height: 10px;
     flex-shrink: 0;
 }
 
