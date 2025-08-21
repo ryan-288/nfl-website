@@ -743,7 +743,7 @@ body.pwa-mode {
 
 .team.possession .team-score,
 .team.at-bat .team-score {
-    color: inherit;
+    color: #007bff;
     font-weight: inherit;
     text-shadow: none;
 }
