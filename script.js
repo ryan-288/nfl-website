@@ -57,6 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if running as PWA and apply appropriate styles
     checkPWAMode();
     
+    // Check header visibility and force CSS reload if needed
+    checkHeaderVisibility();
+    
     // Set up sport filter buttons
     setupSportFilters();
     
@@ -95,6 +98,32 @@ function checkPWAMode() {
         // Ensure normal mobile behavior
         document.body.classList.remove('pwa-mode');
         console.log('Applied normal mobile mode styles');
+    }
+}
+
+// Function to check if header is visible and force CSS reload if needed
+function checkHeaderVisibility() {
+    const header = document.querySelector('.site-header');
+    if (header) {
+        const styles = window.getComputedStyle(header);
+        const display = styles.display;
+        const visibility = styles.visibility;
+        const opacity = styles.opacity;
+        
+        console.log('Header visibility check:', {
+            display: display,
+            visibility: visibility,
+            opacity: opacity,
+            height: header.offsetHeight,
+            width: header.offsetWidth
+        });
+        
+        if (display === 'none' || visibility === 'hidden' || opacity === '0' || header.offsetHeight === 0) {
+            console.log('Header not visible - forcing CSS reload');
+            forceCSSReload();
+        }
+    } else {
+        console.log('Header element not found');
     }
 }
 
