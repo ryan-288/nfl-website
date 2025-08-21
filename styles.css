@@ -1022,6 +1022,23 @@ body.pwa-mode {
         font-size: 0.15rem;
     }
     
+    /* Extra small mobile: Horizontal count dots */
+    .count-dots-container {
+        flex-direction: row !important;
+        gap: 6px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transform: scale(0.7) !important;
+        transform-origin: center bottom !important;
+    }
+    
+    .count-dots {
+        flex-direction: column !important;
+        gap: 1px !important;
+        align-items: center !important;
+        min-height: auto !important;
+    }
+    
     .count-dot {
         width: 1.5px;
         height: 1.5px;
@@ -1132,6 +1149,23 @@ body.pwa-mode {
         max-width: 45px !important;
         gap: 1px !important;
         justify-content: flex-start !important;
+    }
+    
+    /* Mobile: Make count dots horizontal along bottom */
+    .count-dots-container {
+        flex-direction: row !important;
+        gap: 8px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transform: scale(0.8) !important;
+        transform-origin: center bottom !important;
+    }
+    
+    .count-dots {
+        flex-direction: column !important;
+        gap: 2px !important;
+        align-items: center !important;
+        min-height: auto !important;
     }
 }
 
