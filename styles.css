@@ -603,8 +603,10 @@ body.pwa-mode {
 
 /* Responsive design for dark theme */
 @media (max-width: 768px) {
+    /* TEST: Force mobile styles to be visible */
     .container {
         padding: 8px;
+        background-color: #ff0000 !important;
     }
     
     /* PWA-specific mobile styles - only apply when app is installed */
@@ -700,6 +702,9 @@ body.pwa-mode {
         gap: 4px;
         /* Ensure proper spacing on mobile */
         justify-content: space-between;
+        /* TEST: Force mobile game content to be visible */
+        background-color: #00ff00 !important;
+        border: 3px solid #0000ff !important;
     }
     
     .teams {
@@ -801,8 +806,10 @@ body.pwa-mode {
 
 /* Extra small mobile devices */
 @media (max-width: 480px) {
+    /* TEST: Force extra small mobile styles to be visible */
     .container {
         padding: 5px;
+        background-color: #ffff00 !important;
     }
     
     /* PWA-specific extra small mobile styles - only apply when app is installed */
