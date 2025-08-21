@@ -379,7 +379,7 @@ body.pwa-mode {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
 }
 
 .sport-type {
@@ -707,7 +707,7 @@ body.pwa-mode {
     }
     
     .game-header {
-        margin-bottom: 15px;
+        margin-bottom: 6px;
     }
     
     .sport-type {
@@ -952,7 +952,7 @@ body.pwa-mode {
     }
     
     .game-header {
-        margin-bottom: 12px;
+        margin-bottom: 4px;
     }
     
     .sport-type, .game-status, .inning-display {
