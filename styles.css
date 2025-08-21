@@ -1087,15 +1087,19 @@ body.pwa-mode {
 }
 
 .second-base {
-    /* Remove individual margins - let flexbox gap handle spacing */
+    margin-bottom: 2px;
+    align-self: center;
+    /* Center the second base properly */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .first-base {
-    /* Remove individual margins - let flexbox gap handle spacing */
+    margin-right: 2px;
 }
 
 .third-base {
-    /* Remove individual margins - let flexbox gap handle spacing */
+    margin-left: 2px;
 }
 
 /* MLB bases container styling */
