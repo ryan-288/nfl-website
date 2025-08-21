@@ -1033,7 +1033,7 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 8px;
+    margin-top: 0px;
     position: relative;
     width: 100%;
     /* Ensure proper centering on mobile */
