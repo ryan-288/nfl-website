@@ -14,7 +14,7 @@
         <div class="date-navigation">
             <div class="week-slider">
                 <button class="week-nav-btn" onclick="previousWeek()">◀</button>
-                <div class="week-display">
+                <div class="week-display" onclick="toggleDatePicker()" style="cursor: pointer;">
                     <div class="week-label" id="weekLabel">Current Week</div>
                     <div class="week-dates" id="weekDates">Aug 4 - Aug 10</div>
                 </div>
@@ -52,8 +52,8 @@
                 </div>
             </div>
             
-            <div class="date-picker">
-                <input type="date" id="customDate" onchange="goToCustomDate(this.value)">
+            <div class="date-picker" id="datePicker" style="display: none;">
+                <input type="date" id="customDate" onchange="goToCustomDate(this.value)" style="display: none;">
             </div>
         </div>
 
