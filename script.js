@@ -40,6 +40,9 @@ const ESPN_APIS = {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
+    // Force CSS reload to bypass caching issues
+    forceCSSReload();
+    
     // Register service worker for PWA functionality
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
@@ -1281,6 +1284,17 @@ function updateLiveGamesCounter(count) {
         } else {
             counterContainer.style.display = 'flex';
         }
+    }
+}
+
+// Force CSS reload to bypass caching issues
+function forceCSSReload() {
+    const cssLink = document.querySelector('link[href*="styles.css"]');
+    if (cssLink) {
+        const timestamp = new Date().getTime();
+        const newHref = cssLink.href.split('?')[0] + '?v=' + timestamp;
+        cssLink.href = newHref;
+        console.log('Forced CSS reload with timestamp:', timestamp);
     }
 }
 

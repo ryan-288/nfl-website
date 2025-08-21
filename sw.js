@@ -1,8 +1,8 @@
-const CACHE_NAME = 'sports-scores-v1';
+const CACHE_NAME = 'sports-scores-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/styles.css',
+  '/styles.css?v=20250821',
   '/script.js',
   '/manifest.json'
 ];
