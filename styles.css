@@ -1109,8 +1109,8 @@ body.pwa-mode {
     min-width: 120px;
     /* Ensure it doesn't overflow on mobile */
     max-width: 100%;
-    /* Better centering and containment */
-    justify-content: center;
+    /* Position at top instead of center */
+    justify-content: flex-start;
     overflow: hidden;
 }
 
@@ -1120,6 +1120,7 @@ body.pwa-mode {
         min-width: 40px !important;
         max-width: 45px !important;
         gap: 1px !important;
+        justify-content: flex-start !important;
     }
 }
 
@@ -1127,6 +1128,8 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Remove vertical centering to move bases up */
+    align-self: flex-start;
 }
 
 .mlb-count-container {
