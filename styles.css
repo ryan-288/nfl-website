@@ -653,16 +653,23 @@ body.pwa-mode {
         overscroll-behavior: none;
     }
     
+    .header {
+        padding: 40px 20px;
+        margin-bottom: 40px;
+    }
+    
     .header h1 {
-        font-size: 1.6rem;
+        font-size: 2.2rem;
+        margin-bottom: 15px;
     }
     
     .header p {
-        font-size: 0.85rem;
+        font-size: 1rem;
+        margin-bottom: 10px;
     }
     
     .date-navigation {
-        padding: 10px;
+        padding: 20px;
         margin-bottom: 3px;
     }
     
