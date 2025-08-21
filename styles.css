@@ -1,11 +1,6 @@
 /* Pitch Black Theme */
 
-/* TEST: Basic mobile media query test */
-@media (max-width: 768px) {
-    body {
-        background-color: #ff0000 !important;
-    }
-}
+
 
 * {
     margin: 0;
@@ -447,8 +442,6 @@ body.pwa-mode {
     .game-content {
         gap: 4px !important;
         justify-content: space-between !important;
-        background-color: #00ff00 !important;
-        border: 3px solid #0000ff !important;
     }
 }
 
@@ -465,8 +458,6 @@ body.pwa-mode {
     .teams {
         gap: 2px !important;
         flex: 1.1 !important;
-        background-color: #ff00ff !important;
-        border: 3px solid #ffff00 !important;
     }
 }
 
@@ -631,10 +622,8 @@ body.pwa-mode {
 
 /* Responsive design for dark theme */
 @media (max-width: 768px) {
-    /* TEST: Force mobile styles to be visible */
     .container {
         padding: 8px;
-        background-color: #ff0000 !important;
     }
     
     /* PWA-specific mobile styles - only apply when app is installed */
@@ -730,9 +719,6 @@ body.pwa-mode {
         gap: 4px;
         /* Ensure proper spacing on mobile */
         justify-content: space-between;
-        /* TEST: Force mobile game content to be visible */
-        background-color: #00ff00 !important;
-        border: 3px solid #0000ff !important;
     }
     
     .teams {
@@ -834,10 +820,8 @@ body.pwa-mode {
 
 /* Extra small mobile devices */
 @media (max-width: 480px) {
-    /* TEST: Force extra small mobile styles to be visible */
     .container {
         padding: 5px;
-        background-color: #ffff00 !important;
     }
     
     /* PWA-specific extra small mobile styles - only apply when app is installed */
@@ -1129,8 +1113,6 @@ body.pwa-mode {
         min-width: 40px !important;
         max-width: 45px !important;
         gap: 1px !important;
-        background-color: #00ffff !important;
-        border: 3px solid #ff0080 !important;
     }
 }
 
