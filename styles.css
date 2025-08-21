@@ -342,8 +342,19 @@ body.pwa-mode {
 .sport-filters {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    padding: 0 10px;
+    scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.sport-filters::-webkit-scrollbar {
+    display: none;
 }
 
 .sport-btn {
@@ -357,6 +368,8 @@ body.pwa-mode {
     font-weight: 500;
     transition: all 0.3s ease;
     min-width: 50px;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .sport-btn:hover {
