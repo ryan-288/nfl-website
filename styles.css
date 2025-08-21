@@ -738,9 +738,9 @@ body.pwa-mode {
     
     /* MLB game state mobile optimization */
     .mlb-game-state {
-        min-width: 60px;
-        max-width: 70px;
-        gap: 3px;
+        min-width: 50px;
+        max-width: 60px;
+        gap: 2px;
         /* Ensure it fits within the card */
         flex-shrink: 1;
     }
@@ -756,20 +756,21 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 4px;
+        gap: 2px;
         justify-content: center;
     }
     
     .base {
-        width: 12px;
-        height: 12px;
-        font-size: 0.5rem;
+        width: 8px;
+        height: 8px;
+        font-size: 0.3rem;
         /* Ensure bases don't overflow */
         flex-shrink: 0;
+        border-width: 1px;
     }
     
     .base span {
-        font-size: 0.4rem;
+        font-size: 0.25rem;
         line-height: 1;
     }
     
@@ -869,9 +870,9 @@ body.pwa-mode {
     
     /* MLB game state extra small mobile optimization */
     .mlb-game-state {
-        min-width: 50px;
-        max-width: 60px;
-        gap: 2px;
+        min-width: 40px;
+        max-width: 50px;
+        gap: 1px;
     }
     
     .bases-diamond {
@@ -883,19 +884,20 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 3px;
+        gap: 1px;
         justify-content: center;
     }
     
     .base {
-        width: 10px;
-        height: 10px;
-        font-size: 0.4rem;
+        width: 6px;
+        height: 6px;
+        font-size: 0.2rem;
         flex-shrink: 0;
+        border-width: 1px;
     }
     
     .base span {
-        font-size: 0.3rem;
+        font-size: 0.15rem;
         line-height: 1;
     }
     
@@ -1010,7 +1012,7 @@ body.pwa-mode {
 
 .bases-row {
     display: flex;
-    gap: 6px;
+    gap: 3px;
     align-items: center;
     justify-content: center;
     /* Ensure bases don't overflow */
@@ -1018,14 +1020,14 @@ body.pwa-mode {
 }
 
 .base {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #666;
-    border-radius: 3px;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #666;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 9px;
+    font-size: 7px;
     font-weight: bold;
     color: #fff;
     transition: all 0.3s ease;
