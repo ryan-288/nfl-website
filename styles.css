@@ -51,13 +51,13 @@ body {
 /* Mobile: Reduce top padding for smaller header */
 @media (max-width: 768px) {
     body {
-        padding-top: 70px;
+        padding-top: 100px;
     }
 }
 
 @media (max-width: 480px) {
     body {
-        padding-top: 60px;
+        padding-top: 90px;
     }
 }
 
