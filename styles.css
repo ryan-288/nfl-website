@@ -1033,14 +1033,11 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
+    margin-top: 8px;
     position: relative;
     width: 100%;
-    /* Force to top with no centering */
-    justify-content: flex-start;
+    /* Ensure proper centering on mobile */
+    justify-content: center;
 }
 
 .bases-row {
@@ -1050,10 +1047,6 @@ body.pwa-mode {
     justify-content: center;
     /* Ensure bases don't overflow */
     max-width: 100%;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding-top: 0px;
-    padding-bottom: 0px;
 }
 
 .base {
@@ -1111,13 +1104,13 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0px;
+    gap: 6px;
     flex-shrink: 0;
     min-width: 120px;
     /* Ensure it doesn't overflow on mobile */
     max-width: 100%;
-    /* Position at top instead of center */
-    justify-content: flex-start;
+    /* Better centering and containment */
+    justify-content: center;
     overflow: hidden;
 }
 
@@ -1133,20 +1126,14 @@ body.pwa-mode {
 
 .mlb-bases-container {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    /* Force bases to the very top */
-    align-self: flex-start;
-    margin-top: 0px;
-    padding-top: 0px;
 }
 
 .mlb-count-container {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    margin-top: 0px;
-    padding-top: 0px;
 }
 
 /* Count dots styling for balls, strikes, and outs - arranged in a grid layout */
