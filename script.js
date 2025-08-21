@@ -40,6 +40,17 @@ const ESPN_APIS = {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful:', registration.scope);
+            })
+            .catch(error => {
+                console.log('ServiceWorker registration failed:', error);
+            });
+    }
+    
     // Set up sport filter buttons
     setupSportFilters();
     
