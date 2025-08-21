@@ -182,23 +182,26 @@ body.pwa-mode {
 }
 
 .week-nav-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s ease;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .week-nav-btn:hover {
-    background: #333;
-    border-color: #007bff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
 }
 
 .week-display {
@@ -207,8 +210,8 @@ body.pwa-mode {
 }
 
 .week-display:hover {
-    color: #007bff;
-    transform: scale(1.05);
+    color: var(--text-primary);
+    transform: scale(1.02);
 }
 
 .week-label {
@@ -239,27 +242,30 @@ body.pwa-mode {
 }
 
 .week-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: none;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
     padding: 8px 16px;
     cursor: pointer;
     font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 400;
+    transition: all 0.2s ease;
     min-width: 60px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .week-btn:hover {
-    background: #333;
-    border-color: #007bff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
 }
 
 .week-btn.active {
-    background: #007bff;
-    border-color: #007bff;
-    color: #ffffff;
+    background: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.4);
+    color: #007bff;
 }
 
 .day-date {
@@ -358,34 +364,39 @@ body.pwa-mode {
 }
 
 .sport-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: none;
-    border-radius: 20px;
-    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 16px;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 400;
+    transition: all 0.2s ease;
     min-width: 50px;
     flex-shrink: 0;
     white-space: nowrap;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .sport-btn:hover {
-    background: #333;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
 }
 
 .sport-btn.active {
-    background: #007bff;
-    color: #ffffff;
+    background: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.4);
+    color: #007bff;
 }
 
 /* Scores container with dark theme */
 .scores-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    gap: 20px;
     margin-top: 30px;
 }
 
@@ -429,13 +440,13 @@ body.pwa-mode {
 
 /* Score cards with dark theme and team logos */
 .score-card {
-    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-secondary) 100%);
-    border-radius: 8px;
-    padding: 4px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
     margin: 0;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease;
-    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
 }
@@ -443,8 +454,9 @@ body.pwa-mode {
 
 
 .score-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .score-card.score-changed {
