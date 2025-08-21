@@ -8,6 +8,25 @@ let autoUpdateInterval;
 let lastScoreHash = ''; // Track if scores actually changed
 let hasLiveGames = false; // Track if there are live games
 
+// Debug function to log raw ESPN data for a specific game
+function debugESPNData(gameIndex = 0) {
+    if (!allScores || allScores.length === 0) {
+        console.log('No games loaded');
+        return;
+    }
+    
+    const game = allScores[gameIndex];
+    if (!game) {
+        console.log(`Game ${gameIndex} not found`);
+        return;
+    }
+    
+    console.log('=== RAW ESPN DEBUG DATA ===');
+    console.log(`Game: ${game.homeTeam} vs ${game.awayTeam}`);
+    console.log('Raw ESPN event data:', window.rawESPNData?.events?.[gameIndex]);
+    console.log('=== END ESPN DEBUG ===');
+}
+
 // ESPN API endpoints
 const ESPN_APIS = {
     'nfl': 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
@@ -127,47 +146,29 @@ function setupSportFilters() {
 
 // Start auto-update functionality with smart refresh
 function startAutoUpdate() {
-    console.log('Starting auto-update system...');
-    
     // Initial update
     updateScoresIfNeeded();
     
-    // Set up frequent updates for live games (every 15 seconds)
+    // Set up frequent updates for live games (every 1 second)
     setInterval(() => {
-        console.log('Auto-update interval triggered');
         updateScoresIfNeeded();
-    }, 15000); // Check every 15 seconds for live games
-    
-    // Also check for new live games every minute
-    setInterval(() => {
-        console.log('Checking for new live games...');
-        updateScoresIfNeeded();
-    }, 60000); // 1 minute
+    }, 1000); // Check every 1 second for live games
 }
 
 // Smart score update - refresh live games frequently
 async function updateScoresIfNeeded() {
     try {
-        console.log('Checking if scores need updating...');
-        
         // Always refresh if we have live games
         const liveGames = allScores.filter(game => game.status === 'live');
         hasLiveGames = liveGames.length > 0;
         
         if (hasLiveGames) {
-            console.log(`Found ${liveGames.length} live games, refreshing scores NOW...`);
-            // Show update indicator for live games
-            showAutoUpdateIndicator();
             await loadAllScores(true); // Silent refresh
-            console.log('Live games refreshed successfully');
         } else {
-            // No live games, refresh every 3 minutes instead of 5
+            // No live games, refresh every 30 seconds
             const timeSinceLastUpdate = Date.now() - (window.lastUpdateTime || 0);
-            if (timeSinceLastUpdate > 180000) { // 3 minutes
-                console.log('No live games, refreshing every 3 minutes...');
+            if (timeSinceLastUpdate > 30000) { // 30 seconds
                 await loadAllScores(true); // Silent refresh
-            } else {
-                console.log(`Last update was ${Math.round(timeSinceLastUpdate / 1000)} seconds ago, skipping update`);
             }
         }
     } catch (error) {
@@ -175,38 +176,7 @@ async function updateScoresIfNeeded() {
     }
 }
 
-// Show auto-update indicator
-function showAutoUpdateIndicator() {
-    const container = document.getElementById('scoresContainer');
-    const existingIndicator = container.querySelector('.auto-update-indicator');
-    
-    if (!existingIndicator) {
-        const indicator = document.createElement('div');
-        indicator.className = 'auto-update-indicator';
-        indicator.innerHTML = '🔄 Updating scores...';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #007bff;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        `;
-        
-        container.appendChild(indicator);
-        
-        // Remove the indicator after 3 seconds
-        setTimeout(() => {
-            if (indicator.parentNode) {
-                indicator.parentNode.removeChild(indicator);
-            }
-        }, 3000);
-    }
-}
+// Auto-update indicator removed for silent operation
 
 // Stop auto-update (if needed)
 function stopAutoUpdate() {
@@ -616,6 +586,25 @@ function parseESPNData(espnData, sportKey) {
                  }
              }
              
+             // Also check the main status description for inning info
+             if (!inningNumber && event.status?.type?.description) {
+                 const description = event.status.type.description.toLowerCase();
+                 if (description.includes('inning')) {
+                     const inningMatch = description.match(/(\d+)(?:st|nd|rd|th)/);
+                     if (inningMatch) {
+                         inningNumber = parseInt(inningMatch[1]);
+                         console.log(`Found inning from main description: ${inningNumber}`);
+                     }
+                     // Check for top/bottom in main description
+                     if (!topBottom) {
+                         if (description.includes('top') || description.includes('1st')) topBottom = 'top';
+                         else if (description.includes('bottom') || description.includes('2nd')) topBottom = 'bot';
+                         else if (description.includes('between')) topBottom = 'mid';
+                         else if (description.includes('end')) topBottom = 'end';
+                     }
+                 }
+             }
+             
              // Try to get more reliable inning info from competition.situation object
              if (competition?.situation) {
                  console.log(`MLB competition situation found:`, competition.situation);
@@ -632,10 +621,31 @@ function parseESPNData(espnData, sportKey) {
                      console.log(`Found topOfInning from situation: ${competition.situation.topOfInning} -> ${topBottom}`);
                  } else {
                      console.log('topOfInning not available, will try to infer from game flow');
+                     
+                     // Try to infer from other fields
+                     if (event.status?.type?.description) {
+                         const desc = event.status.type.description.toLowerCase();
+                         if (desc.includes('top') || desc.includes('1st')) {
+                             topBottom = 'top';
+                             console.log(`Inferred top from description: ${desc}`);
+                         } else if (desc.includes('bottom') || desc.includes('2nd')) {
+                             topBottom = 'bot';
+                             console.log(`Inferred bottom from description: ${desc}`);
+                         }
+                     }
                  }
                  
                  // DEBUG: Log what we have so far
                  console.log(`DEBUG: After ESPN parsing - inningNumber: ${inningNumber}, topBottom: ${topBottom}`);
+                 
+                 // Log the raw ESPN data for debugging
+                 console.log(`🔍 RAW ESPN DATA FOR DEBUGGING:`);
+                 console.log(`  - event.status.type.description: ${event.status?.type?.description}`);
+                 console.log(`  - event.status.type.detailedState: ${event.status?.type?.detailedState}`);
+                 console.log(`  - competition.situation:`, competition.situation);
+                 console.log(`  - competition.situation.topOfInning: ${competition.situation.topOfInning}`);
+                 console.log(`  - competition.situation.inning: ${competition.situation.inning}`);
+                 console.log(`  - competition.situation.outs: ${competition.situation.outs}`);
                  
                  // Simple default: if no top/bottom info, start with top
                  if (inningNumber && !topBottom) {
@@ -643,245 +653,257 @@ function parseESPNData(espnData, sportKey) {
                      console.log(`No top/bottom info, defaulting to top of inning ${inningNumber}`);
                  }
                  
-                 // SIMPLE APPROACH: Always use ESPN's inning number, flip on 3 outs
-                 if (outs !== null && outs !== undefined) {
-                     console.log(`=== SIMPLE INNING DEBUG ===`);
-                     console.log(`ESPN inning: ${inningNumber}, current topBottom: ${topBottom}, outs: ${outs}`);
-                     
-                     // Create a unique key for this game to track outs changes
-                     const gameKey = `${event.id || event.name}`;
-                     
-                     // Initialize tracking for this game if not exists
-                     if (!window.inningTracker) window.inningTracker = {};
-                     if (!window.inningTracker[gameKey]) {
-                         window.inningTracker[gameKey] = {
-                             lastOuts: outs,
-                             lastInning: inningNumber,
-                             lastTopBottom: topBottom || 'top', // Default to top if not set
-                             outsInHalfInning: 0
-                         };
-                         console.log(`Initialized tracking for game: ${gameKey}`);
-                     }
-                     
-                     const tracker = window.inningTracker[gameKey];
-                     console.log(`Current tracker state:`, tracker);
-                     
-                     // Check if outs changed (meaning we're progressing)
-                     if (outs !== tracker.lastOuts) {
-                         console.log(`Outs changed from ${tracker.lastOuts} to ${outs}`);
-                         
-                         // If outs reset to 0, we completed a half-inning
-                         if (outs === 0 && tracker.lastOuts === 3) {
-                             console.log(`3 outs reached! Flipping inning state`);
-                             
-                             if (tracker.lastTopBottom === 'top') {
-                                 // Top of inning ended, go to bottom
-                                 topBottom = 'bot';
-                                 console.log(`✅ Flipped: top → bottom of inning ${inningNumber}`);
-                             } else if (tracker.lastTopBottom === 'bot') {
-                                 // Bottom of inning ended, go to next inning top
-                                 inningNumber++;
-                                 topBottom = 'top';
-                                 console.log(`✅ Flipped: bottom → top of inning ${inningNumber}`);
-                             }
-                         } else if (outs > tracker.lastOuts) {
-                             // Outs increased, still in same half-inning
-                             console.log(`Outs increased to ${outs}, staying in ${topBottom} of inning ${inningNumber}`);
-                         } else {
-                             // Outs decreased (new half-inning started)
-                             console.log(`Outs reset to ${outs}, new half-inning started`);
-                         }
-                         
-                         // Update tracker
-                         tracker.lastOuts = outs;
-                         tracker.lastInning = inningNumber;
-                         tracker.lastTopBottom = topBottom;
-                         
-                         console.log(`Updated tracker:`, tracker);
-                     } else {
-                         console.log(`Outs unchanged, keeping current state: inning ${inningNumber} ${topBottom}`);
-                     }
-                     
-                     console.log(`Final result: inning ${inningNumber} ${topBottom}`);
-                     console.log(`=== END SIMPLE DEBUG ===`);
-                 } else {
-                     console.log('No outs data available, using ESPN data as fallback');
-                 }
+                 // Inning tracking logic will run after we extract outs data
                  
                  // Extract outs, balls, and strikes from situation object
                  if (competition.situation.outs !== undefined && competition.situation.outs !== null) {
                      outs = competition.situation.outs;
                      console.log(`Found outs from situation: ${outs}`);
                      
-                     // Track inning transitions based on outs
-                     if (outs === 3) {
-                         console.log(`3 outs detected in inning ${inningNumber}, top/bottom: ${topBottom}`);
+                     // ESPN-ONLY INNING DETECTION - NO TRACKING
+                     if (outs !== null && outs !== undefined) {
+                         console.log(`=== ESPN INNING DETECTION ===`);
+                         console.log(`ESPN inning: ${inningNumber}, outs: ${outs}`);
                          
-                         // If we're in top of inning with 3 outs, next should be bottom
-                         if (topBottom === 'top') {
-                             console.log('Top of inning ended, next should be bottom');
-                             // Store this for the next update
-                             window.lastInningState = { inning: inningNumber, topBottom: 'bot' };
+                         // Log ALL available ESPN data to find top/bottom indicators
+                         console.log(`🔍 SEARCHING FOR TOP/BOTTOM INDICATORS:`);
+                         console.log(`  - competition.situation.topOfInning: ${competition.situation.topOfInning}`);
+                         console.log(`  - competition.situation.inningHalf: ${competition.situation.inningHalf}`);
+                         console.log(`  - competition.situation.inningState: ${competition.situation.inningState}`);
+                         console.log(`  - event.status.type.description: "${event.status?.type?.description}"`);
+                         console.log(`  - event.status.type.detailedState: "${event.status?.type?.detailedState}"`);
+                         console.log(`  - event.status.type.shortDetail: "${event.status?.type?.shortDetail}"`);
+                         console.log(`  - event.status.type.state: "${event.status?.type?.state}"`);
+                         console.log(`  - competition.status?.type?.description: "${competition.status?.type?.description}"`);
+                         console.log(`  - competition.status?.type?.detail: "${competition.status?.type?.detail}"`);
+                         console.log(`  - competition.situation (full object):`, competition.situation);
+                         
+                         // Method 1: Use ESPN's topOfInning field if available
+                         if (competition.situation.topOfInning !== undefined && competition.situation.topOfInning !== null) {
+                             topBottom = competition.situation.topOfInning ? 'top' : 'bot';
+                             console.log(`✅ Found topOfInning: ${competition.situation.topOfInning} → ${topBottom}`);
                          }
-                         // If we're in bottom of inning with 3 outs, next should be top of next inning
-                         else if (topBottom === 'bot') {
-                             console.log('Bottom of inning ended, next should be top of next inning');
-                             // Store this for the next update
-                             window.lastInningState = { inning: inningNumber + 1, topBottom: 'top' };
+                         // Method 1b: Check inningHalf field
+                         else if (competition.situation.inningHalf !== undefined && competition.situation.inningHalf !== null) {
+                             if (competition.situation.inningHalf === 1 || competition.situation.inningHalf === 'top') {
+                                 topBottom = 'top';
+                             } else if (competition.situation.inningHalf === 2 || competition.situation.inningHalf === 'bottom') {
+                                 topBottom = 'bot';
+                             }
+                             console.log(`✅ Found inningHalf: ${competition.situation.inningHalf} → ${topBottom}`);
                          }
+                         // Method 1c: Check inningState field
+                         else if (competition.situation.inningState !== undefined && competition.situation.inningState !== null) {
+                             const state = competition.situation.inningState.toString().toLowerCase();
+                             if (state.includes('top') || state === '1') {
+                                 topBottom = 'top';
+                             } else if (state.includes('bottom') || state.includes('bot') || state === '2') {
+                                 topBottom = 'bot';
+                             }
+                             console.log(`✅ Found inningState: ${competition.situation.inningState} → ${topBottom}`);
+                         }
+                         // Method 2: Parse status descriptions for top/bottom keywords
+                         else {
+                             console.log(`❌ topOfInning not available, parsing text descriptions...`);
+                             
+                             // Check all possible description fields
+                             const descriptions = [
+                                 event.status?.type?.description,
+                                 event.status?.type?.detailedState,
+                                 event.status?.type?.shortDetail,
+                                 competition.status?.type?.description,
+                                 competition.status?.type?.detail
+                             ].filter(desc => desc); // Remove undefined/null values
+                             
+                             console.log(`Found ${descriptions.length} description fields to check:`, descriptions);
+                             
+                             let foundTopBottom = false;
+                             for (const desc of descriptions) {
+                                 const lowerDesc = desc.toLowerCase();
+                                 if (lowerDesc.includes('top') || lowerDesc.includes('1st')) {
+                                     topBottom = 'top';
+                                     foundTopBottom = true;
+                                     console.log(`✅ Found "top" in: "${desc}" → ${topBottom}`);
+                                     break;
+                                 } else if (lowerDesc.includes('bottom') || lowerDesc.includes('2nd')) {
+                                     topBottom = 'bot';
+                                     foundTopBottom = true;
+                                     console.log(`✅ Found "bottom" in: "${desc}" → ${topBottom}`);
+                                     break;
+                                 } else if (lowerDesc.includes('mid') || lowerDesc.includes('between')) {
+                                     topBottom = 'mid';
+                                     foundTopBottom = true;
+                                     console.log(`✅ Found "mid" in: "${desc}" → ${topBottom}`);
+                                     break;
+                                 } else if (lowerDesc.includes('end')) {
+                                     topBottom = 'end';
+                                     foundTopBottom = true;
+                                     console.log(`✅ Found "end" in: "${desc}" → ${topBottom}`);
+                                     break;
+                                 }
+                             }
+                             
+                             if (!foundTopBottom) {
+                                 console.log(`❌ No top/bottom indicators found, defaulting to "top"`);
+                                 topBottom = 'top';
+                             }
+                         }
+                         
+                         console.log(`🎯 FINAL RESULT: Inning ${inningNumber} ${topBottom}`);
+                         console.log(`=== END ESPN DETECTION ===`);
                      }
                  }
                  
                  if (competition.situation.balls !== undefined && competition.situation.balls !== null) {
-                     balls = competition.situation.balls;
-                     console.log(`Found balls from situation: ${balls}`);
-                 }
-                 
-                 if (competition.situation.strikes !== undefined && competition.situation.strikes !== null) {
-                     strikes = competition.situation.strikes;
-                     console.log(`Found strikes from situation: ${strikes}`);
-                 }
-                 
-                 // Extract bases from situation object
-                 let onFirst = competition.situation.onFirst;
-                 let onSecond = competition.situation.onSecond;
-                 let onThird = competition.situation.onThird;
-                 
-                 if (onFirst !== undefined || onSecond !== undefined || onThird !== undefined) {
-                     if (onFirst && onSecond && onThird) {
-                         bases = 'loaded';
-                     } else if (onFirst && onSecond && !onThird) {
-                         bases = '1st & 2nd';
-                     } else if (onFirst && !onSecond && onThird) {
-                         bases = '1st & 3rd';
-                     } else if (!onFirst && onSecond && onThird) {
-                         bases = '2nd & 3rd';
-                     } else if (onFirst && !onSecond && !onThird) {
-                         bases = '1st';
-                     } else if (!onFirst && onSecond && !onThird) {
-                         bases = '2nd';
-                     } else if (!onFirst && !onSecond && onThird) {
-                         bases = '3rd';
-                     } else if (!onFirst && !onSecond && !onThird) {
-                         bases = 'empty';
+                         balls = competition.situation.balls;
+                         console.log(`Found balls from situation: ${balls}`);
+                     }
+                     
+                     if (competition.situation.strikes !== undefined && competition.situation.strikes !== null) {
+                         strikes = competition.situation.strikes;
+                         console.log(`Found strikes from situation: ${strikes}`);
+                     }
+                     
+                     // Extract bases from situation object
+                     let onFirst = competition.situation.onFirst;
+                     let onSecond = competition.situation.onSecond;
+                     let onThird = competition.situation.onThird;
+                     
+                     if (onFirst !== undefined || onSecond !== undefined || onThird !== undefined) {
+                         if (onFirst && onSecond && onThird) {
+                             bases = 'loaded';
+                         } else if (onFirst && onSecond && !onThird) {
+                             bases = '1st & 2nd';
+                         } else if (onFirst && !onSecond && onThird) {
+                             bases = '1st & 3rd';
+                         } else if (!onFirst && onSecond && onThird) {
+                             bases = '2nd & 3rd';
+                         } else if (onFirst && !onSecond && !onThird) {
+                             bases = '1st';
+                         } else if (!onFirst && onSecond && !onThird) {
+                             bases = '2nd';
+                         } else if (!onFirst && !onSecond && onThird) {
+                             bases = '3rd';
+                         } else if (!onFirst && !onSecond && !onThird) {
+                             bases = 'empty';
+                         }
                      }
                  }
-             }
-            
+                
 
-            
-            // Fallback: Try to extract bases and outs from status description if situation object didn't have the data
-            if (event.status?.type?.description && (outs === null || bases === null)) {
-                const description = event.status.type.description;
-                console.log(`MLB parsing description (fallback): "${description}"`);
                 
-                // Look for outs (e.g., "2 outs", "0 outs")
-                if (outs === null) {
-                    const outsMatch = description.match(/(\d+)\s*out/);
-                    if (outsMatch) {
-                        outs = parseInt(outsMatch[1]);
-                        console.log(`Found outs from description: ${outs}`);
-                    }
-                }
-                
-                // Look for bases loaded indicators
-                if (bases === null) {
-                    if (description.toLowerCase().includes('bases loaded')) {
-                        bases = 'loaded';
-                        console.log(`Found bases from description: loaded`);
-                    } else if (description.toLowerCase().includes('runner on third')) {
-                        bases = '3rd';
-                        console.log(`Found bases from description: 3rd`);
-                    } else if (description.toLowerCase().includes('runner on second')) {
-                        bases = '2nd';
-                        console.log(`Found bases from description: 2nd`);
-                    } else if (description.toLowerCase().includes('runner on first')) {
-                        bases = '1st';
-                        console.log(`Found bases from description: 1st`);
-                    } else if (description.toLowerCase().includes('runners on first and second')) {
-                        bases = '1st & 2nd';
-                        console.log(`Found bases from description: 1st & 2nd`);
-                    } else if (description.toLowerCase().includes('runners on first and third')) {
-                        bases = '1st & 3rd';
-                        console.log(`Found bases from description: 1st & 3rd`);
-                    } else if (description.toLowerCase().includes('runners on second and third')) {
-                        bases = '2nd & 3rd';
-                        console.log(`Found bases from description: 2nd & 3rd`);
-                    }
-                    // Additional base detection patterns
-                    else if (description.toLowerCase().includes('man on first')) {
-                        bases = '1st';
-                        console.log(`Found bases from description: 1st (man on first)`);
-                    } else if (description.toLowerCase().includes('man on second')) {
-                        bases = '2nd';
-                        console.log(`Found bases from description: 2nd (man on second)`);
-                    } else if (description.toLowerCase().includes('man on third')) {
-                        bases = '3rd';
-                        console.log(`Found bases from description: 3rd (man on third)`);
-                    } else if (description.toLowerCase().includes('men on first and second')) {
-                        bases = '1st & 2nd';
-                        console.log(`Found bases from description: 1st & 2nd (men on first and second)`);
-                    } else if (description.toLowerCase().includes('men on first and third')) {
-                        bases = '1st & 3rd';
-                        console.log(`Found bases from description: 1st & 3rd (men on first and third)`);
-                    } else if (description.toLowerCase().includes('men on second and third')) {
-                        bases = '2nd & 3rd';
-                        console.log(`Found bases from description: 2nd & 3rd (men on second and third)`);
-                    } else {
-                        console.log(`No base pattern matched in description: "${description}"`);
-                    }
+                // Fallback: Try to extract bases and outs from status description if situation object didn't have the data
+                if (event.status?.type?.description && (outs === null || bases === null)) {
+                    const description = event.status.type.description;
+                    console.log(`MLB parsing description (fallback): "${description}"`);
                     
-                    // Try alternative patterns that might be used
-                    if (!bases) {
-                        if (description.toLowerCase().includes('first and second')) {
-                            bases = '1st & 2nd';
-                            console.log(`Found bases via alternative pattern: 1st & 2nd`);
-                        } else if (description.toLowerCase().includes('first and third')) {
-                            bases = '1st & 3rd';
-                            console.log(`Found bases via alternative pattern: 1st & 3rd`);
-                        } else if (description.toLowerCase().includes('second and third')) {
-                            bases = '2nd & 3rd';
-                            console.log(`Found bases via alternative pattern: 2nd & 3rd`);
+                    // Look for outs (e.g., "2 outs", "0 outs")
+                    if (outs === null) {
+                        const outsMatch = description.match(/(\d+)\s*out/);
+                        if (outsMatch) {
+                            outs = parseInt(outsMatch[1]);
+                            console.log(`Found outs from description: ${outs}`);
                         }
                     }
+                    
+                    // Look for bases loaded indicators
+                    if (bases === null) {
+                        if (description.toLowerCase().includes('bases loaded')) {
+                            bases = 'loaded';
+                            console.log(`Found bases from description: loaded`);
+                        } else if (description.toLowerCase().includes('runner on third')) {
+                            bases = '3rd';
+                            console.log(`Found bases from description: 3rd`);
+                        } else if (description.toLowerCase().includes('runner on second')) {
+                            bases = '2nd';
+                            console.log(`Found bases from description: 2nd`);
+                        } else if (description.toLowerCase().includes('runner on first')) {
+                            bases = '1st';
+                            console.log(`Found bases from description: 1st`);
+                        } else if (description.toLowerCase().includes('runners on first and second')) {
+                            bases = '1st & 2nd';
+                            console.log(`Found bases from description: 1st & 2nd`);
+                        } else if (description.toLowerCase().includes('runners on first and third')) {
+                            bases = '1st & 3rd';
+                            console.log(`Found bases from description: 1st & 3rd`);
+                        } else if (description.toLowerCase().includes('runners on second and third')) {
+                            bases = '2nd & 3rd';
+                            console.log(`Found bases from description: 2nd & 3rd`);
+                        }
+                        // Additional base detection patterns
+                        else if (description.toLowerCase().includes('man on first')) {
+                            bases = '1st';
+                            console.log(`Found bases from description: 1st (man on first)`);
+                        } else if (description.toLowerCase().includes('man on second')) {
+                            bases = '2nd';
+                            console.log(`Found bases from description: 2nd (man on second)`);
+                        } else if (description.toLowerCase().includes('man on third')) {
+                            bases = '3rd';
+                            console.log(`Found bases from description: 3rd (man on third)`);
+                        } else if (description.toLowerCase().includes('men on first and second')) {
+                            bases = '1st & 2nd';
+                            console.log(`Found bases from description: 1st & 2nd (men on first and second)`);
+                        } else if (description.toLowerCase().includes('men on first and third')) {
+                            bases = '1st & 3rd';
+                            console.log(`Found bases from description: 1st & 3rd (men on first and third)`);
+                        } else if (description.toLowerCase().includes('men on second and third')) {
+                            bases = '2nd & 3rd';
+                            console.log(`Found bases from description: 2nd & 3rd (men on second and third)`);
+                        } else {
+                            console.log(`No base pattern matched in description: "${description}"`);
+                        }
+                        
+                        // Try alternative patterns that might be used
+                        if (!bases) {
+                            if (description.toLowerCase().includes('first and second')) {
+                                bases = '1st & 2nd';
+                                console.log(`Found bases via alternative pattern: 1st & 2nd`);
+                            } else if (description.toLowerCase().includes('first and third')) {
+                                bases = '1st & 3rd';
+                                console.log(`Found bases via alternative pattern: 1st & 3rd`);
+                            } else if (description.toLowerCase().includes('second and third')) {
+                                bases = '2nd & 3rd';
+                                console.log(`Found bases via alternative pattern: 2nd & 3rd`);
+                            }
+                        }
+                    }
+                } else if (!competition?.situation) {
+                    console.log('No competition.situation object found in MLB event');
                 }
-            } else if (!competition?.situation) {
-                console.log('No competition.situation object found in MLB event');
-            }
-            
-            // Also check shortDetail and detailedState for bases/outs info
-            if (!outs && event.status?.type?.shortDetail) {
-                const shortDetail = event.status.type.shortDetail;
-                const outsMatch = shortDetail.match(/(\d+)\s*out/);
-                if (outsMatch) {
-                    outs = parseInt(outsMatch[1]);
+                
+                // Also check shortDetail and detailedState for bases/outs info
+                if (!outs && event.status?.type?.shortDetail) {
+                    const shortDetail = event.status.type.shortDetail;
+                    const outsMatch = shortDetail.match(/(\d+)\s*out/);
+                    if (outsMatch) {
+                        outs = parseInt(outsMatch[1]);
+                    }
                 }
-            }
-            
-            if (!outs && event.status?.type?.detailedState) {
-                const detailedState = event.status.type.detailedState;
-                const outsMatch = detailedState.match(/(\d+)\s*out/);
-                if (outsMatch) {
-                    outs = parseInt(outsMatch[1]);
+                
+                if (!outs && event.status?.type?.detailedState) {
+                    const detailedState = event.status.type.detailedState;
+                    const outsMatch = detailedState.match(/(\d+)\s*out/);
+                    if (outsMatch) {
+                        outs = parseInt(outsMatch[1]);
+                    }
                 }
-            }
-            
-            // If still no inning number, default to 1
-            if (!inningNumber) {
-                inningNumber = 1;
-            }
-            
-            // If no top/bottom detected, default to top
-            if (!topBottom) {
-                topBottom = 'top';
-            }
-            
-            // If no outs detected, default to 0
-            if (outs === null) {
-                outs = 0;
-            }
-            
-            console.log(`MLB inning detection: inningNumber=${inningNumber}, topBottom=${topBottom}, bases=${bases}, outs=${outs}`);
+                
+                // If still no inning number, default to 1
+                if (!inningNumber) {
+                    inningNumber = 1;
+                }
+                
+                // If no top/bottom detected, default to top
+                if (!topBottom) {
+                    topBottom = 'top';
+                }
+                
+                // If no outs detected, default to 0
+                if (outs === null) {
+                    outs = 0;
+                }
+                
+                console.log(`MLB inning detection: inningNumber=${inningNumber}, topBottom=${topBottom}, bases=${bases}, outs=${outs}`);
         }
         
         const parsedGame = {
@@ -895,11 +917,11 @@ function parseESPNData(espnData, sportKey) {
             period: event.status?.period || null,
             clock: event.status?.clock || null,
             topBottom: topBottom,
-            inningNumber: inningNumber,
-            bases: bases,
-            outs: outs,
-            balls: balls,
-            strikes: strikes,
+                inningNumber: inningNumber,
+                bases: bases,
+                outs: outs,
+                balls: balls,
+                strikes: strikes,
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
@@ -1627,12 +1649,12 @@ function updateCurrentDateDisplay() {
     dateText.textContent = displayDate;
 }
 
-// Auto-refresh every 2 minutes for live data
+// Auto-refresh every 5 seconds for live data
 setInterval(() => {
     if (allScores.length > 0) {
         loadAllScores();
     }
-}, 120000); // 2 minutes
+}, 5000); // 5 seconds
 
 // Add interactivity to score cards
 document.addEventListener('click', function(e) {
@@ -2743,6 +2765,102 @@ function debugHybridInningTracking() {
     });
     
     console.log('=== END HYBRID DEBUG ===');
+}
+
+// Function to test outs tracking and see what's happening
+function testOutsTracking() {
+    console.log('=== TESTING OUTS TRACKING ===');
+    
+    if (!window.inningTracker) {
+        console.log('No inning tracker initialized yet');
+        return;
+    }
+    
+    Object.keys(window.inningTracker).forEach(gameKey => {
+        const tracker = window.inningTracker[gameKey];
+        console.log(`\nGame: ${gameKey}`);
+        console.log('Tracker state:', tracker);
+        
+        // Find the corresponding game in allScores
+        const game = allScores.find(g => 
+            g.sport === 'mlb' && 
+            (g.awayTeam + ' vs ' + g.homeTeam).includes(gameKey) ||
+            gameKey.includes(g.awayTeam) || gameKey.includes(g.homeTeam)
+        );
+        
+        if (game) {
+            console.log('Current game state:', {
+                inning: game.inningNumber,
+                topBottom: game.topBottom,
+                outs: game.outs,
+                status: game.status
+            });
+            
+            // Check if we should be flipping
+            if (tracker.lastOuts === 3 && game.outs === 0) {
+                console.log('🎯 SHOULD FLIP: lastOuts was 3 and current outs is 0');
+                if (tracker.lastTopBottom === 'bot') {
+                    console.log('Should go from bottom → next inning top');
+                } else if (tracker.lastTopBottom === 'top') {
+                    console.log('Should go from top → bottom');
+                }
+            } else {
+                console.log('❌ NOT FLIPPING: condition not met');
+                console.log(`Last outs: ${tracker.lastOuts}, Current outs: ${game.outs}`);
+                console.log(`Need: lastOuts === 3 AND current outs === 0`);
+                console.log(`This means: we need to see 3 outs, then 0 outs to flip`);
+            }
+            
+            // Show what would happen if we manually triggered a flip
+            console.log(`\n🔮 MANUAL FLIP TEST:`);
+            if (tracker.lastTopBottom === 'top') {
+                console.log(`If we were in top of inning ${tracker.lastInning}, we should go to bottom of inning ${tracker.lastInning}`);
+            } else if (tracker.lastTopBottom === 'bot') {
+                console.log(`If we were in bottom of inning ${tracker.lastInning}, we should go to top of inning ${tracker.lastInning + 1}`);
+            }
+        } else {
+            console.log('Could not find matching game in allScores');
+        }
+    });
+    
+    console.log('=== END TESTING ===');
+}
+
+// Function to manually test the flipping logic
+function testFlippingLogic() {
+    console.log('=== TESTING FLIPPING LOGIC ===');
+    
+    if (!window.inningTracker) {
+        console.log('No inning tracker initialized yet');
+        return;
+    }
+    
+    Object.keys(window.inningTracker).forEach(gameKey => {
+        const tracker = window.inningTracker[gameKey];
+        console.log(`\nGame: ${gameKey}`);
+        console.log('Current tracker state:', tracker);
+        
+        // Simulate what should happen
+        console.log(`\n🔮 SIMULATING FLIP LOGIC:`);
+        console.log(`Current: inning ${tracker.lastInning} ${tracker.lastTopBottom}, outs: ${tracker.lastOuts}`);
+        
+        if (tracker.lastTopBottom === 'top') {
+            console.log(`If we flip from top: inning ${tracker.lastInning} top → inning ${tracker.lastInning} bottom`);
+        } else if (tracker.lastTopBottom === 'bot') {
+            console.log(`If we flip from bottom: inning ${tracker.lastInning} bottom → inning ${tracker.lastInning + 1} top`);
+        }
+        
+        // Check if we're in a state where flipping should happen
+        if (tracker.lastOuts === 3) {
+            console.log(`🎯 READY TO FLIP: We have 3 outs, waiting for 0 outs to trigger flip`);
+        } else if (tracker.lastOuts === 0) {
+            console.log(`🔄 RESET STATE: We have 0 outs, waiting for outs to increase`);
+        } else {
+            console.log(`📊 BUILDING OUTS: We have ${tracker.lastOuts} outs, need ${3 - tracker.lastOuts} more to reach 3`);
+        }
+    });
+    
+    console.log('=== END FLIPPING TEST ===');
 }
 
 // Test function for MLB inning states including between innings and end of innings
