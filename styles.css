@@ -775,7 +775,7 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 1px;
+        gap: 4px;
         justify-content: center;
     }
     
@@ -903,7 +903,7 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 1px;
+        gap: 3px;
         justify-content: center;
     }
     
