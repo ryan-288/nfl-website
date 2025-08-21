@@ -23,6 +23,15 @@
 <body>
     <div class="container">
 
+        <!-- Site Header with Title and Live Games Indicator -->
+        <div class="site-header">
+            <h1>Scores Hub</h1>
+            <p>Live ESPN Sports Data</p>
+            <div class="live-games-indicator">
+                <span class="count" id="liveGamesCount">0</span>
+                <span>Live Games</span>
+            </div>
+        </div>
 
         <div class="date-navigation">
             <div class="week-slider">
@@ -71,9 +80,6 @@
         </div>
 
         <div class="controls">
-            <div class="live-games-counter">
-                <span id="liveGamesCount">0</span> Live Games
-            </div>
             <div class="sport-filters">
                 <button class="sport-btn active" data-sport="all">All Sports</button>
                 <button class="sport-btn" data-sport="nfl">NFL</button>

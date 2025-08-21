@@ -65,7 +65,63 @@ body.pwa-mode {
     padding: 20px 0px;
 }
 
-/* Header with dark theme */
+/* Site header with title and live games indicator */
+.site-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px 0;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-primary);
+    position: relative;
+    width: 100%;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.site-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    margin-bottom: 10px;
+}
+
+.site-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Live games indicator in site header */
+.live-games-indicator {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: #dc3545;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-games-indicator .count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* Main content header with dark theme */
 .header {
     text-align: center;
     margin-bottom: 30px;
@@ -255,30 +311,13 @@ body.pwa-mode {
     gap: 15px;
 }
 
-/* Live games counter */
+/* Live games counter - now moved to site header */
 .live-games-counter {
-    background: #dc3545;
-    color: #ffffff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    animation: pulse 2s infinite;
+    display: none; /* Hidden since moved to site header */
 }
 
 .live-games-counter span {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
+    display: none; /* Hidden since moved to site header */
 }
 
 /* Sport filters */
@@ -658,6 +697,32 @@ body.pwa-mode {
         margin-bottom: 40px;
     }
     
+    .site-header {
+        padding: 20px 15px;
+        margin-bottom: 25px;
+        margin-left: -15px;
+        margin-right: -15px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .site-header h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .site-header p {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .live-games-indicator {
+        top: 10px;
+        right: 15px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
     .header h1 {
         font-size: 2.2rem;
         margin-bottom: 15px;
@@ -1022,23 +1087,6 @@ body.pwa-mode {
         font-size: 0.15rem;
     }
     
-    /* Extra small mobile: Horizontal count dots */
-    .count-dots-container {
-        flex-direction: row !important;
-        gap: 6px !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transform: scale(0.7) !important;
-        transform-origin: center bottom !important;
-    }
-    
-    .count-dots {
-        flex-direction: column !important;
-        gap: 1px !important;
-        align-items: center !important;
-        min-height: auto !important;
-    }
-    
     .count-dot {
         width: 1.5px;
         height: 1.5px;
@@ -1149,23 +1197,6 @@ body.pwa-mode {
         max-width: 45px !important;
         gap: 1px !important;
         justify-content: flex-start !important;
-    }
-    
-    /* Mobile: Make count dots horizontal along bottom */
-    .count-dots-container {
-        flex-direction: row !important;
-        gap: 8px !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transform: scale(0.8) !important;
-        transform-origin: center bottom !important;
-    }
-    
-    .count-dots {
-        flex-direction: column !important;
-        gap: 2px !important;
-        align-items: center !important;
-        min-height: auto !important;
     }
 }
 
