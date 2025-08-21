@@ -428,45 +428,18 @@ body.pwa-mode {
 }
 
 /* Game content container - horizontal layout for live games */
-/* CRITICAL: This controls spacing between team scores and MLB game state */
 .game-content {
-    display: flex !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-    /* DEBUG: Force spacing to be visible */
-    border: 2px solid red !important;
-}
-
-/* Force override any conflicting styles */
-body .game-content,
-html .game-content,
-.game-content {
-    gap: 8px !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    /* Alternative spacing method */
-    margin-right: 8px !important;
-}
-
-/* Use margin as backup for gap */
-.game-content > *:not(:last-child) {
-    margin-right: 8px !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
 }
 
 /* Teams section with logos */
 .teams {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    flex: 1.5 !important;
-}
-
-/* Force override any conflicting styles */
-body .teams,
-html .teams,
-.teams {
-    flex: 1.5 !important;
-    gap: 6px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1.5;
 }
 
 .team {
@@ -724,33 +697,33 @@ html .teams,
     }
     
     .game-content {
-        gap: 6px;
+        gap: 4px;
         /* Ensure proper spacing on mobile */
         justify-content: space-between;
     }
     
     .teams {
-        gap: 4px;
-        flex: 1.2;
+        gap: 2px;
+        flex: 1.1;
     }
     
     .team {
-        padding: 6px 8px;
-        gap: 8px;
+        padding: 4px 6px;
+        gap: 4px;
     }
     
     .team-logo {
-        width: 22px;
-        height: 22px;
-        margin-right: 4px;
+        width: 16px;
+        height: 16px;
+        margin-right: 2px;
     }
     
     .team-name {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
     }
     
     .team-score {
-        font-size: 0.9rem;
+        font-size: 0.75rem;
     }
     
     .game-info {
@@ -765,17 +738,17 @@ html .teams,
     
     /* MLB game state mobile optimization */
     .mlb-game-state {
-        min-width: 50px;
-        max-width: 60px;
-        gap: 2px;
+        min-width: 40px;
+        max-width: 45px;
+        gap: 1px;
         /* Ensure it fits within the card */
         flex-shrink: 1;
     }
     
     .bases-diamond {
-        margin-top: 4px;
+        margin-top: 2px;
         /* Ensure bases fit within the container */
-        transform: scale(0.85);
+        transform: scale(0.6);
         transform-origin: center;
         /* Better centering on mobile */
         width: 100%;
@@ -783,46 +756,46 @@ html .teams,
     }
     
     .bases-row {
-        gap: 2px;
+        gap: 1px;
         justify-content: center;
     }
     
     .base {
-        width: 8px;
-        height: 8px;
-        font-size: 0.3rem;
+        width: 6px;
+        height: 6px;
+        font-size: 0.2rem;
         /* Ensure bases don't overflow */
         flex-shrink: 0;
         border-width: 1px;
     }
     
     .base span {
-        font-size: 0.25rem;
+        font-size: 0.15rem;
         line-height: 1;
     }
     
     .count-dots-container {
-        gap: 1px;
+        gap: 0px;
         /* Make count dots much more compact */
-        transform: scale(0.6);
+        transform: scale(0.4);
         transform-origin: left center;
     }
     
     .count-dots {
-        gap: 1px;
-        min-height: 6px;
+        gap: 0px;
+        min-height: 4px;
     }
     
     .count-dot {
-        width: 3px;
-        height: 3px;
-        font-size: 1px;
+        width: 2px;
+        height: 2px;
+        font-size: 0.5px;
     }
     
     .count-label {
-        font-size: 5px;
-        width: 10px;
-        height: 5px;
+        font-size: 4px;
+        width: 8px;
+        height: 4px;
     }
 }
 
@@ -962,66 +935,66 @@ html .teams,
     }
     
     .game-content {
-        gap: 4px;
+        gap: 2px;
         /* Ensure proper spacing on extra small mobile */
         justify-content: space-between;
     }
     
     .teams {
-        gap: 3px;
+        gap: 1px;
     }
     
     .team {
-        padding: 4px 6px;
-        gap: 6px;
+        padding: 2px 4px;
+        gap: 2px;
     }
     
     .team-logo {
-        width: 18px;
-        height: 18px;
-        margin-right: 3px;
+        width: 14px;
+        height: 14px;
+        margin-right: 1px;
     }
     
     .team-name {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
     }
     
     .team-score {
-        font-size: 0.8rem;
+        font-size: 0.65rem;
     }
     
     .game-info {
-        padding-top: 10px;
-        font-size: 0.75rem;
+        padding-top: 6px;
+        font-size: 0.65rem;
     }
     
     .game-time, .game-date {
-        padding: 3px 6px;
-        font-size: 0.7rem;
+        padding: 2px 4px;
+        font-size: 0.6rem;
     }
     
     /* MLB game state extra small mobile */
     .mlb-game-state {
-        min-width: 70px;
-        gap: 3px;
+        min-width: 35px;
+        gap: 1px;
     }
     
     .base {
-        width: 14px;
-        height: 14px;
-        font-size: 0.6rem;
+        width: 5px;
+        height: 5px;
+        font-size: 0.15rem;
     }
     
     .count-dot {
-        width: 4px;
-        height: 4px;
-        font-size: 2px;
+        width: 1.5px;
+        height: 1.5px;
+        font-size: 0.3px;
     }
     
     .count-label {
-        font-size: 7px;
-        width: 14px;
-        height: 8px;
+        font-size: 4px;
+        width: 8px;
+        height: 4px;
     }
 }
 
