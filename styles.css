@@ -1,6 +1,25 @@
-/* Pitch Black Theme */
+/* Pitch Black Theme - Consistent Dark Mode Colors */
 
-
+/* CSS Variables for consistent dark mode */
+:root {
+    --bg-primary: #000000;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2d2d2d;
+    --bg-card: #0a0a0a;
+    --bg-card-secondary: #1a1a1a;
+    --border-primary: #333333;
+    --border-secondary: #444444;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+    --accent-primary: #007bff;
+    --accent-secondary: #0056b3;
+    --base-empty: #2d2d2d;
+    --base-occupied: #007bff;
+    --count-dot: #2d2d2d;
+    --count-dot-border: #444444;
+    --count-label: #666666;
+}
 
 * {
     margin: 0;
@@ -10,8 +29,8 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #000000;
-    color: #ffffff;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
     /* Enable smooth scrolling by default */
@@ -51,22 +70,22 @@ body.pwa-mode {
     text-align: center;
     margin-bottom: 30px;
     padding: 30px 0;
-    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
     border-radius: 15px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-primary);
 }
 
 .header h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-primary);
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     margin-bottom: 10px;
 }
 
 .header p {
     font-size: 1.1rem;
-    color: #cccccc;
+    color: var(--text-secondary);
     opacity: 0.9;
 }
 
@@ -312,37 +331,29 @@ body.pwa-mode {
 
 /* Score cards with dark theme and team logos */
 .score-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-secondary) 100%);
     border-radius: 8px;
     padding: 12px;
     margin: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
-    border: 1px solid #333;
+    border: 1px solid var(--border-primary);
     position: relative;
     overflow: hidden;
 }
 
-.score-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #007bff, #00d4ff);
-}
+
 
 .score-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
-    border-color: #555;
+    border-color: var(--border-secondary);
 }
 
 .score-card.score-changed {
     animation: scoreUpdate 2s ease-in-out;
     border-color: #28a745;
-    background: linear-gradient(135deg, #1a2a1a 0%, #2d3d2d 100%);
+    background: linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%);
 }
 
 @keyframes scoreUpdate {
@@ -1041,14 +1052,14 @@ body.pwa-mode {
 .base {
     width: 20px;
     height: 20px;
-    border: 1px solid #666;
+    border: 1px solid var(--border-secondary);
     border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10px;
     font-weight: bold;
-    color: #fff;
+    color: var(--text-primary);
     transition: all 0.3s ease;
     transform: rotate(45deg);
     /* Ensure bases don't get cut off */
@@ -1063,15 +1074,15 @@ body.pwa-mode {
 }
 
 .base.empty {
-    background: #333;
-    border-color: #555;
-    color: #888;
+    background: var(--base-empty);
+    border-color: var(--border-secondary);
+    color: var(--text-muted);
 }
 
 .base.occupied {
-    background: #007bff;
-    border-color: #0056b3;
-    color: #fff;
+    background: var(--base-occupied);
+    border-color: var(--accent-secondary);
+    color: var(--text-primary);
     box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
 }
 
@@ -1147,26 +1158,26 @@ body.pwa-mode {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: #333;
-    border: 1px solid #555;
+    background: var(--count-dot);
+    border: 1px solid var(--count-dot-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3px;
-    color: #666;
+    color: var(--count-label);
     transition: all 0.3s ease;
 }
 
 .count-dot.active {
-    background: #007bff;
-    border-color: #0056b3;
+    background: var(--accent-primary);
+    border-color: var(--accent-secondary);
     box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
-    color: #fff;
+    color: var(--text-primary);
 }
 
 .count-label {
     font-size: 8px;
-    color: #888;
+    color: var(--text-muted);
     font-weight: bold;
     width: 16px;
     text-align: center;
