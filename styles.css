@@ -428,18 +428,45 @@ body.pwa-mode {
 }
 
 /* Game content container - horizontal layout for live games */
+/* CRITICAL: This controls spacing between team scores and MLB game state */
 .game-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    /* DEBUG: Force spacing to be visible */
+    border: 2px solid red !important;
+}
+
+/* Force override any conflicting styles */
+body .game-content,
+html .game-content,
+.game-content {
+    gap: 8px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    /* Alternative spacing method */
+    margin-right: 8px !important;
+}
+
+/* Use margin as backup for gap */
+.game-content > *:not(:last-child) {
+    margin-right: 8px !important;
 }
 
 /* Teams section with logos */
 .teams {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1.5;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    flex: 1.5 !important;
+}
+
+/* Force override any conflicting styles */
+body .teams,
+html .teams,
+.teams {
+    flex: 1.5 !important;
+    gap: 6px !important;
 }
 
 .team {
