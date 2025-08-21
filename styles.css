@@ -431,7 +431,7 @@ body.pwa-mode {
 .game-content {
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: 8px;
 }
 
 /* Teams section with logos */
@@ -439,7 +439,7 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 2;
+    flex: 1.5;
 }
 
 .team {
@@ -697,14 +697,14 @@ body.pwa-mode {
     }
     
     .game-content {
-        gap: 8px;
+        gap: 6px;
         /* Ensure proper spacing on mobile */
         justify-content: space-between;
     }
     
     .teams {
         gap: 4px;
-        flex: 1;
+        flex: 1.2;
     }
     
     .team {
@@ -935,7 +935,7 @@ body.pwa-mode {
     }
     
     .game-content {
-        gap: 6px;
+        gap: 4px;
         /* Ensure proper spacing on extra small mobile */
         justify-content: space-between;
     }
