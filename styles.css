@@ -1031,7 +1031,7 @@ body.pwa-mode {
 
 .bases-row {
     display: flex;
-    gap: 3px;
+    gap: 8px;
     align-items: center;
     justify-content: center;
     /* Ensure bases don't overflow */
@@ -1039,14 +1039,14 @@ body.pwa-mode {
 }
 
 .base {
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
     border: 1px solid #666;
-    border-radius: 2px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 7px;
+    font-size: 10px;
     font-weight: bold;
     color: #fff;
     transition: all 0.3s ease;
@@ -1058,7 +1058,7 @@ body.pwa-mode {
 .base span {
     transform: rotate(-45deg);
     /* Ensure text is readable */
-    font-size: 8px;
+    font-size: 12px;
     line-height: 1;
 }
 
@@ -1076,19 +1076,15 @@ body.pwa-mode {
 }
 
 .second-base {
-    margin-bottom: 2px;
-    align-self: center;
-    /* Center the second base properly */
-    margin-left: auto;
-    margin-right: auto;
+    /* Remove individual margins - let flexbox gap handle spacing */
 }
 
 .first-base {
-    margin-right: 2px;
+    /* Remove individual margins - let flexbox gap handle spacing */
 }
 
 .third-base {
-    margin-left: 2px;
+    /* Remove individual margins - let flexbox gap handle spacing */
 }
 
 /* MLB bases container styling */
