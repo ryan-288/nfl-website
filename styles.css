@@ -1,4 +1,12 @@
 /* Pitch Black Theme */
+
+/* TEST: Basic mobile media query test */
+@media (max-width: 768px) {
+    body {
+        background-color: #ff0000 !important;
+    }
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -434,12 +442,32 @@ body.pwa-mode {
     gap: 20px;
 }
 
+/* Mobile-first approach - apply mobile styles by default */
+@media (max-width: 768px) {
+    .game-content {
+        gap: 4px !important;
+        justify-content: space-between !important;
+        background-color: #00ff00 !important;
+        border: 3px solid #0000ff !important;
+    }
+}
+
 /* Teams section with logos */
 .teams {
     display: flex;
     flex-direction: column;
     gap: 6px;
     flex: 2;
+}
+
+/* Mobile-first approach - apply mobile styles by default */
+@media (max-width: 768px) {
+    .teams {
+        gap: 2px !important;
+        flex: 1.1 !important;
+        background-color: #ff00ff !important;
+        border: 3px solid #ffff00 !important;
+    }
 }
 
 .team {
@@ -1093,6 +1121,17 @@ body.pwa-mode {
     /* Better centering and containment */
     justify-content: center;
     overflow: hidden;
+}
+
+/* Mobile-first approach - apply mobile styles by default */
+@media (max-width: 768px) {
+    .mlb-game-state {
+        min-width: 40px !important;
+        max-width: 45px !important;
+        gap: 1px !important;
+        background-color: #00ffff !important;
+        border: 3px solid #ff0080 !important;
+    }
 }
 
 .mlb-bases-container {
