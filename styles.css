@@ -51,13 +51,13 @@ body {
 /* Mobile: Reduce top padding for smaller header */
 @media (max-width: 768px) {
     body {
-        padding-top: 60px;
+        padding-top: 45px;
     }
 }
 
 @media (max-width: 480px) {
     body {
-        padding-top: 50px;
+        padding-top: 35px;
     }
 }
 
@@ -387,7 +387,7 @@ body.pwa-mode {
 /* Extra small mobile devices */
 @media (max-width: 480px) {
     .site-header {
-        padding: 6px 0 !important;
+        padding: 3px 0 !important;
         width: 100vw !important;
         left: 0 !important;
         right: 0 !important;
@@ -407,9 +407,9 @@ body.pwa-mode {
     }
     
     .live-games-indicator {
-        top: 6px;
-        right: 8px;
-        padding: 4px 8px;
+        top: 3px;
+        right: 6px;
+        padding: 3px 6px;
         font-size: 0.6rem;
     }
 }
@@ -742,8 +742,8 @@ body.pwa-mode {
     }
     
     .site-header {
-        padding: 8px 0 !important;
-        margin-bottom: 20px !important;
+        padding: 4px 0 !important;
+        margin-bottom: 15px !important;
         width: 100vw !important;
         left: 0 !important;
         right: 0 !important;
@@ -765,10 +765,10 @@ body.pwa-mode {
     }
     
     .live-games-indicator {
-        top: 10px;
-        right: 15px;
-        padding: 6px 12px;
-        font-size: 0.8rem;
+        top: 5px;
+        right: 12px;
+        padding: 4px 8px;
+        font-size: 0.7rem;
     }
     
     .header h1 {
