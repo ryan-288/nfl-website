@@ -13,21 +13,28 @@ body {
     min-height: 100vh;
     /* Enable smooth scrolling by default */
     -webkit-overflow-scrolling: touch;
+    /* Explicitly allow pull-to-refresh by default */
+    overscroll-behavior: auto;
+    /* Allow text selection by default */
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+    /* Allow normal touch behavior by default */
+    touch-action: auto;
 }
 
 /* PWA-specific styles - only apply when app is installed */
-@media (display-mode: standalone) {
-    body {
-        /* Prevent pull-to-refresh and search bar only in PWA mode */
-        overscroll-behavior: none;
-        /* Prevent text selection on mobile */
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        /* Prevent zoom on double tap */
-        touch-action: manipulation;
-    }
+body.pwa-mode {
+    /* Prevent pull-to-refresh and search bar only in PWA mode */
+    overscroll-behavior: none;
+    /* Prevent text selection on mobile */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* Prevent zoom on double tap */
+    touch-action: manipulation;
 }
 
 .container {
@@ -601,21 +608,19 @@ body {
     }
     
     /* PWA-specific mobile styles - only apply when app is installed */
-    @media (display-mode: standalone) {
-        body {
-            /* Prevent address bar from showing/hiding */
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .container {
-            height: 100vh;
-            overflow-y: auto;
-            /* Prevent pull-to-refresh */
-            overscroll-behavior: none;
-        }
+    body.pwa-mode {
+        /* Prevent address bar from showing/hiding */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    body.pwa-mode .container {
+        height: 100vh;
+        overflow-y: auto;
+        /* Prevent pull-to-refresh */
+        overscroll-behavior: none;
     }
     
     .header h1 {
@@ -774,25 +779,23 @@ body {
     }
     
     /* PWA-specific extra small mobile styles - only apply when app is installed */
-    @media (display-mode: standalone) {
-        body {
-            /* Ensure full screen on mobile */
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            /* Prevent address bar from showing */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-        }
-        
-        .container {
-            height: 100vh;
-            overflow-y: auto;
-            /* Prevent pull-to-refresh and search bar */
-            overscroll-behavior: none;
-            -webkit-overflow-scrolling: touch;
-        }
+    body.pwa-mode {
+        /* Ensure full screen on mobile */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        /* Prevent address bar from showing */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+    
+    body.pwa-mode .container {
+        height: 100vh;
+        overflow-y: auto;
+        /* Prevent pull-to-refresh and search bar */
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
     }
     
     .header {

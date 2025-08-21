@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
+    // Check if running as PWA and apply appropriate styles
+    checkPWAMode();
+    
     // Set up sport filter buttons
     setupSportFilters();
     
@@ -72,6 +75,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start auto-update (every 2 minutes)
     startAutoUpdate();
 });
+
+// Function to check PWA mode and apply appropriate styles
+function checkPWAMode() {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true ||
+                   document.referrer.includes('android-app://');
+    
+    console.log('PWA Mode detected:', isPWA);
+    
+    if (isPWA) {
+        // Apply PWA-specific styles
+        document.body.classList.add('pwa-mode');
+        console.log('Applied PWA mode styles');
+    } else {
+        // Ensure normal mobile behavior
+        document.body.classList.remove('pwa-mode');
+        console.log('Applied normal mobile mode styles');
+    }
+}
 
 // Set the current day as active when page loads
 function setCurrentDayActive() {
