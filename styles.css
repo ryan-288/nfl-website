@@ -431,24 +431,24 @@ body.pwa-mode {
 .game-content {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 2px;
 }
 
 /* Teams section with logos */
 .teams {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1.5;
+    gap: 2px;
+    flex: 1;
 }
 
 .team {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 8px;
+    padding: 2px 4px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 5px;
+    border-radius: 3px;
     border: 1px solid #444;
     transition: all 0.3s ease;
 }
@@ -466,8 +466,8 @@ body.pwa-mode {
 
 /* Team logo styling */
 .team-logo {
-    width: 20px;
-    height: 20px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     overflow: hidden;
     display: flex;
@@ -476,7 +476,7 @@ body.pwa-mode {
     background: #333;
     border: 1px solid #444;
     flex-shrink: 0;
-    margin-right: 6px;
+    margin-right: 2px;
 }
 
 .team-logo img {
@@ -501,13 +501,13 @@ body.pwa-mode {
 }
 
 .team-name {
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     font-weight: 600;
     color: #ffffff;
 }
 
 .team-score {
-    font-size: 1rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #007bff;
     text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
@@ -1003,7 +1003,7 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 8px;
+    margin-top: 2px;
     position: relative;
     width: 100%;
     /* Ensure proper centering on mobile */
@@ -1020,14 +1020,14 @@ body.pwa-mode {
 }
 
 .base {
-    width: 14px;
-    height: 14px;
+    width: 8px;
+    height: 8px;
     border: 1px solid #666;
-    border-radius: 2px;
+    border-radius: 1px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 7px;
+    font-size: 4px;
     font-weight: bold;
     color: #fff;
     transition: all 0.3s ease;
@@ -1039,7 +1039,7 @@ body.pwa-mode {
 .base span {
     transform: rotate(-45deg);
     /* Ensure text is readable */
-    font-size: 8px;
+    font-size: 5px;
     line-height: 1;
 }
 
@@ -1078,9 +1078,9 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
     flex-shrink: 0;
-    min-width: 120px;
+    min-width: 60px;
     /* Ensure it doesn't overflow on mobile */
     max-width: 100%;
     /* Better centering and containment */
@@ -1104,31 +1104,31 @@ body.pwa-mode {
 .count-dots-container {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0px;
     align-items: flex-start;
     /* Make count dots more compact by default */
-    transform: scale(0.9);
+    transform: scale(0.5);
     transform-origin: left center;
 }
 
 .count-dots {
     display: flex;
     align-items: center;
-    gap: 2px;
-    min-height: 10px;
+    gap: 0px;
+    min-height: 6px;
     width: 100%;
 }
 
 .count-dot {
-    width: 5px;
-    height: 5px;
+    width: 3px;
+    height: 3px;
     border-radius: 50%;
     background: #333;
     border: 1px solid #555;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3px;
+    font-size: 1px;
     color: #666;
     transition: all 0.3s ease;
 }
@@ -1141,15 +1141,15 @@ body.pwa-mode {
 }
 
 .count-label {
-    font-size: 8px;
+    font-size: 5px;
     color: #888;
     font-weight: bold;
-    width: 16px;
+    width: 10px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 10px;
+    height: 6px;
     flex-shrink: 0;
 }
 
