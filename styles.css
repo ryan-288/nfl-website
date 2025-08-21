@@ -748,14 +748,29 @@ body.pwa-mode {
     .bases-diamond {
         margin-top: 4px;
         /* Ensure bases fit within the container */
-        transform: scale(0.9);
+        transform: scale(0.85);
         transform-origin: center;
+        /* Better centering on mobile */
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .bases-row {
+        gap: 4px;
+        justify-content: center;
     }
     
     .base {
-        width: 14px;
-        height: 14px;
-        font-size: 0.6rem;
+        width: 12px;
+        height: 12px;
+        font-size: 0.5rem;
+        /* Ensure bases don't overflow */
+        flex-shrink: 0;
+    }
+    
+    .base span {
+        font-size: 0.4rem;
+        line-height: 1;
     }
     
     .count-dots-container {
@@ -861,13 +876,27 @@ body.pwa-mode {
     
     .bases-diamond {
         margin-top: 3px;
-        transform: scale(0.8);
+        transform: scale(0.75);
+        /* Better centering on extra small mobile */
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .bases-row {
+        gap: 3px;
+        justify-content: center;
     }
     
     .base {
-        width: 12px;
-        height: 12px;
-        font-size: 0.5rem;
+        width: 10px;
+        height: 10px;
+        font-size: 0.4rem;
+        flex-shrink: 0;
+    }
+    
+    .base span {
+        font-size: 0.3rem;
+        line-height: 1;
     }
     
     .count-dots-container {
@@ -975,31 +1004,41 @@ body.pwa-mode {
     margin-top: 8px;
     position: relative;
     width: 100%;
+    /* Ensure proper centering on mobile */
+    justify-content: center;
 }
 
 .bases-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
+    justify-content: center;
+    /* Ensure bases don't overflow */
+    max-width: 100%;
 }
 
 .base {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border: 2px solid #666;
-    border-radius: 4px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: bold;
     color: #fff;
     transition: all 0.3s ease;
     transform: rotate(45deg);
+    /* Ensure bases don't get cut off */
+    flex-shrink: 0;
 }
 
 .base span {
     transform: rotate(-45deg);
+    /* Ensure text is readable */
+    font-size: 8px;
+    line-height: 1;
 }
 
 .base.empty {
@@ -1012,22 +1051,23 @@ body.pwa-mode {
     background: #007bff;
     border-color: #0056b3;
     color: #fff;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
 }
 
 .second-base {
-    margin-bottom: 0px;
+    margin-bottom: 2px;
     align-self: center;
+    /* Center the second base properly */
     margin-left: auto;
     margin-right: auto;
 }
 
 .first-base {
-    margin-right: 4px;
+    margin-right: 2px;
 }
 
 .third-base {
-    margin-left: 4px;
+    margin-left: 2px;
 }
 
 /* MLB bases container styling */
@@ -1041,6 +1081,9 @@ body.pwa-mode {
     min-width: 120px;
     /* Ensure it doesn't overflow on mobile */
     max-width: 100%;
+    /* Better centering and containment */
+    justify-content: center;
+    overflow: hidden;
 }
 
 .mlb-bases-container {
