@@ -63,35 +63,34 @@ body.pwa-mode {
     max-width: 1600px;
     margin: 0 auto;
     padding: 20px 0px;
+    margin-top: 80px;
 }
 
 /* Site header with title and live games indicator */
 .site-header {
     text-align: center;
     margin-bottom: 20px;
-    padding: 15px 0;
+    padding: 10px 0;
     background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
     border-radius: 0;
     border: none;
-    border-bottom: 1px solid var(--border-primary);
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
 }
 
 .site-header h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .site-header p {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     opacity: 0.9;
     margin-bottom: 0;
@@ -166,7 +165,7 @@ body.pwa-mode {
 .week-nav-btn {
     background: #1a1a1a;
     color: #ffffff;
-    border: 1px solid #333;
+    border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -223,7 +222,7 @@ body.pwa-mode {
 .week-btn {
     background: #1a1a1a;
     color: #ffffff;
-    border: 1px solid #333;
+    border: none;
     border-radius: 20px;
     padding: 8px 16px;
     cursor: pointer;
@@ -331,7 +330,7 @@ body.pwa-mode {
 .sport-btn {
     background: #1a1a1a;
     color: #ffffff;
-    border: 1px solid #333;
+    border: none;
     border-radius: 20px;
     padding: 6px 14px;
     cursor: pointer;
@@ -343,12 +342,10 @@ body.pwa-mode {
 
 .sport-btn:hover {
     background: #333;
-    border-color: #007bff;
 }
 
 .sport-btn.active {
     background: #007bff;
-    border-color: #007bff;
     color: #ffffff;
 }
 
@@ -376,7 +373,7 @@ body.pwa-mode {
     margin: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
-    border: 1px solid var(--border-primary);
+    border: none;
     position: relative;
     overflow: hidden;
 }
@@ -386,12 +383,10 @@ body.pwa-mode {
 .score-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
-    border-color: var(--border-secondary);
 }
 
 .score-card.score-changed {
     animation: scoreUpdate 2s ease-in-out;
-    border-color: #28a745;
     background: linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%);
 }
 
@@ -698,12 +693,8 @@ body.pwa-mode {
     }
     
     .site-header {
-        padding: 20px 15px;
+        padding: 20px 0;
         margin-bottom: 25px;
-        margin-left: -15px;
-        margin-right: -15px;
-        padding-left: 15px;
-        padding-right: 15px;
     }
     
     .site-header h1 {
