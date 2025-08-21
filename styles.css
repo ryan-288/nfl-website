@@ -5,8 +5,8 @@
     --bg-primary: #000000;
     --bg-secondary: #1a1a1a;
     --bg-tertiary: #2d2d2d;
-    --bg-card: #0a0a0a;
-    --bg-card-secondary: #1a1a1a;
+    --bg-card: #050505;
+    --bg-card-secondary: #0a0a0a;
     --border-primary: #333333;
     --border-secondary: #444444;
     --text-primary: #ffffff;
@@ -460,14 +460,14 @@ body.pwa-mode {
 .teams {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 12px;
     flex: 2;
 }
 
 /* Mobile-first approach - apply mobile styles by default */
 @media (max-width: 768px) {
     .teams {
-        gap: 2px !important;
+        gap: 8px !important;
         flex: 1.1 !important;
     }
 }
@@ -740,7 +740,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 2px;
+        gap: 8px;
         flex: 1.1;
     }
     
@@ -978,7 +978,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 1px;
+        gap: 6px;
     }
     
     .team {
