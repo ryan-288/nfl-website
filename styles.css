@@ -1375,15 +1375,15 @@ body.pwa-mode {
 /* Bases diamond visualization */
 .bases-diamond {
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     margin-top: 8px;
 }
 
 .bases-row {
     display: flex;
-    gap: 8px;
+        gap: 12px;
     align-items: center;
 }
 
@@ -1690,7 +1690,7 @@ body.pwa-mode {
 @media (max-width: 768px) {
 .bases-diamond {
     transform: scale(0.85) !important;
-    gap: 6px !important;
+    gap: 3px !important;
 }
 
 .bases-row {
@@ -1723,11 +1723,6 @@ body.pwa-mode {
     min-width: 15px !important;
 }
 
-/* Fix 2nd base positioning */
-.bases-diamond > .base:first-child {
-    margin-bottom: 0px !important;
-}
-
 /* Make dots much closer together */
 .balls-dots, .strikes-dots, .outs-dots {
     gap: 1px !important;
@@ -1737,11 +1732,11 @@ body.pwa-mode {
 @media (max-width: 480px) {
 .bases-diamond {
     transform: scale(0.9) !important;
-    gap: 4px !important;
+    gap: 3px !important;
 }
 
 .bases-row {
-    gap: 4px !important;
+    gap: 6px !important;
 }
 
 .base {
