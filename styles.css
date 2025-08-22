@@ -1685,3 +1685,55 @@ body.pwa-mode {
         height: 4px;
     }
 }
+
+/* Mobile-specific fixes for bases and count dots */
+@media (max-width: 768px) {
+    .bases-diamond {
+        transform: scale(0.85) !important;
+    }
+    
+    .bases-row {
+        gap: 6px !important;
+    }
+    
+    .base {
+        width: 14px !important;
+        height: 14px !important;
+        border-width: 1px !important;
+    }
+    
+    .count-dots-container {
+        transform: scale(0.8) !important;
+        gap: 3px !important;
+    }
+    
+    .count-dot {
+        width: 6px !important;
+        height: 6px !important;
+    }
+    
+    .count-label {
+        font-size: 0.5rem !important;
+        min-width: 15px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .bases-diamond {
+        transform: scale(0.9) !important;
+    }
+    
+    .base {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    
+    .count-dots-container {
+        transform: scale(0.85) !important;
+    }
+    
+    .count-dot {
+        width: 7px !important;
+        height: 7px !important;
+    }
+}
