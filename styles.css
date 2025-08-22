@@ -1059,60 +1059,68 @@ body.pwa-mode {
 }
 
 .sport-type {
-    background: #007bff;
-    color: #ffffff;
+    background: transparent;
+    color: #007bff;
     padding: 6px 12px;
-    border-radius: 15px;
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
 }
 
 .game-status {
+    background: transparent;
     padding: 6px 12px;
-    border-radius: 15px;
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
 }
 
 .game-status.live {
-    background: #dc3545;
-    color: #ffffff;
+    background: transparent;
+    color: #dc3545;
     animation: pulse 2s infinite;
+    text-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
 }
 
 .game-status.final {
-    background: #28a745;
-    color: #ffffff;
+    background: transparent;
+    color: #28a745;
+    text-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
 }
 
 .game-status.scheduled {
-    background: #6c757d;
-    color: #ffffff;
+    background: transparent;
+    color: #6c757d;
+    text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
 /* Inning display in header */
 .inning-display {
-    color: #ffffff;
+    background: transparent;
     padding: 4px 8px;
-    border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 600;
     margin-left: 8px;
 }
 
 .inning-display.live {
-    background: #dc3545;
+    background: transparent;
+    color: #dc3545;
+    text-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
 }
 
 .inning-display.final {
-    background: #28a745;
+    background: transparent;
+    color: #28a745;
+    text-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
 }
 
 .inning-display.scheduled {
-    background: #6c757d;
+    background: transparent;
+    color: #6c757d;
+    text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
 /* Game content container - horizontal layout for live games */
@@ -1369,23 +1377,31 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    margin-top: 4px;
+    gap: 4px;
+    margin-top: 8px;
 }
 
 .bases-row {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
 }
 
 .base {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--count-dot-border);
+    width: 16px;
+    height: 16px;
     background: var(--base-empty);
+    border: 2px solid var(--count-dot-border);
     transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    font-weight: bold;
+    /* Make bases diamond shaped */
+    transform: rotate(45deg);
 }
 
 .base.occupied {
@@ -1394,18 +1410,27 @@ body.pwa-mode {
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
 }
 
-/* Count dots visualization */
+.base span {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    /* Rotate the text back to normal */
+    transform: rotate(-45deg);
+}
+
+/* Count dots visualization - balls, strikes, outs in horizontal rows */
 .count-dots {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
     align-items: center;
+    margin-top: 4px;
 }
 
 .count-row {
     display: flex;
-    gap: 6px;
     align-items: center;
+    gap: 4px;
 }
 
 .count-dot {
@@ -1423,12 +1448,47 @@ body.pwa-mode {
     box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
 }
 
+/* Specific colors for different count types */
+.balls-dots .count-dot.active {
+    background: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+}
+
+.strikes-dots .count-dot.active {
+    background: #ffc107;
+    border-color: #ffc107;
+    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
+}
+
+.outs-dots .count-dot.active {
+    background: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+}
+
 .count-label {
     font-size: 0.6rem;
     color: var(--count-label);
     font-weight: 600;
     text-align: center;
-    margin-top: 2px;
+    margin-right: 6px;
+    min-width: 20px;
+}
+
+/* Count dots container */
+.count-dots-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+/* Specific styling for balls, strikes, outs rows - horizontal layout */
+.balls-dots, .strikes-dots, .outs-dots {
+    display: flex;
+    align-items: center;
+    gap: 3px;
 }
 
 /* Responsive design for dark theme */
