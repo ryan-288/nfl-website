@@ -1377,13 +1377,13 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     margin-top: 8px;
 }
 
 .bases-row {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
 }
 
@@ -1422,7 +1422,7 @@ body.pwa-mode {
 .count-dots {
     display: flex;
     flex-direction: row;
-    gap: 4px;
+        gap: 4px;
     align-items: center;
     margin-top: 4px;
 }
@@ -1430,9 +1430,9 @@ body.pwa-mode {
 .count-row {
     display: flex;
     align-items: center;
-    gap: 4px;
-}
-
+        gap: 4px;
+    }
+    
 .count-dot {
     width: 8px;
     height: 8px;
@@ -1480,7 +1480,7 @@ body.pwa-mode {
 .count-dots-container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+        gap: 4px;
     align-items: center;
 }
 
@@ -1688,70 +1688,84 @@ body.pwa-mode {
 
 /* Mobile-specific fixes for bases and count dots */
 @media (max-width: 768px) {
-    .bases-diamond {
-        transform: scale(0.85) !important;
-        gap: 2px !important;
-    }
-    
-    .bases-row {
-        gap: 6px !important;
-    }
-    
-    .base {
-        width: 14px !important;
-        height: 14px !important;
-        border-width: 1px !important;
-    }
-    
-    .count-dots-container {
-        transform: scale(0.8) !important;
-        gap: 2px !important;
-    }
-    
-    .count-dot {
-        width: 6px !important;
-        height: 6px !important;
-    }
-    
-    .count-label {
-        font-size: 0.5rem !important;
-        min-width: 15px !important;
-    }
-    
-    /* Fix 2nd base positioning */
-    .bases-diamond > .base:first-child {
-        margin-bottom: 2px !important;
-    }
-    
-    /* Make dots much closer together */
-    .balls-dots, .strikes-dots, .outs-dots {
-        gap: 1px !important;
-    }
+.bases-diamond {
+    transform: scale(0.85) !important;
+    gap: 6px !important;
+}
+
+.bases-row {
+    gap: 6px !important;
+}
+
+.base {
+    width: 14px !important;
+    height: 14px !important;
+    border-width: 1px !important;
+}
+
+/* Remove numbers from mobile bases */
+.base span {
+    display: none !important;
+}
+
+.count-dots-container {
+    transform: scale(0.8) !important;
+    gap: 1px !important;
+}
+
+.count-dot {
+    width: 6px !important;
+    height: 6px !important;
+}
+
+.count-label {
+    font-size: 0.5rem !important;
+    min-width: 15px !important;
+}
+
+/* Fix 2nd base positioning */
+.bases-diamond > .base:first-child {
+    margin-bottom: 0px !important;
+}
+
+/* Make dots much closer together */
+.balls-dots, .strikes-dots, .outs-dots {
+    gap: 1px !important;
+}
 }
 
 @media (max-width: 480px) {
-    .bases-diamond {
-        transform: scale(0.9) !important;
-        gap: 1px !important;
-    }
-    
-    .base {
-        width: 16px !important;
-        height: 16px !important;
-    }
-    
-    .count-dots-container {
-        transform: scale(0.85) !important;
-        gap: 1px !important;
-    }
-    
-    .count-dot {
-        width: 7px !important;
-        height: 7px !important;
-    }
-    
-    /* Even tighter dots on small mobile */
-    .balls-dots, .strikes-dots, .outs-dots {
-        gap: 0.5px !important;
-    }
+.bases-diamond {
+    transform: scale(0.9) !important;
+    gap: 4px !important;
+}
+
+.bases-row {
+    gap: 4px !important;
+}
+
+.base {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Remove numbers from small mobile bases */
+.base span {
+    display: none !important;
+}
+
+.count-dots-container {
+    transform: scale(0.85) !important;
+    gap: 0.5px !important;
+}
+
+.count-dot {
+    width: 7px !important;
+    height: 7px !important;
+}
+
+/* Even tighter dots on small mobile */
+.balls-dots, .strikes-dots, .outs-dots {
+    gap: 0.5px !important;
+}
 }
