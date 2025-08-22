@@ -97,6 +97,12 @@ body.pwa-mode {
     padding: 5px 15px;
 }
 
+.header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .site-header h1 {
     font-size: 1.5rem;
     font-weight: 700;
@@ -125,7 +131,7 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 0 auto;
+    margin-left: auto;
 }
 
 .live-games-indicator .count {
@@ -407,382 +413,6 @@ body.pwa-mode {
 /* Extra small mobile devices */
 @media (max-width: 480px) {
     .site-header {
-        padding: 2px 0 !important;
-        margin-bottom: 15px !important;
-        width: 100vw !important;
-        left: 0 !important;
-        right: 0 !important;
-        background: rgba(26, 26, 26, 0.8) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-    }
-    
-    .site-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .site-header p {
-        font-size: 0.7rem;
-    }
-    
-    .live-games-indicator {
-        padding: 4px 8px;
-        font-size: 0.7rem;
-    }
-}
-
-/* Score cards with dark theme and team logos */
-.score-card {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    position: relative;
-    overflow: hidden;
-}
-
-
-
-.score-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.score-card.score-changed {
-    animation: scoreUpdate 2s ease-in-out;
-    background: linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%);
-}
-
-@keyframes scoreUpdate {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    }
-    25% {
-        transform: scale(1.02);
-        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.3);
-    }
-    50% {
-        transform: scale(1.01);
-        box-shadow: 0 12px 35px rgba(40, 167, 69, 0.2);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    }
-}
-
-.game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.sport-type {
-    background: #007bff;
-    color: #ffffff;
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.game-status {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.game-status.live {
-    background: #dc3545;
-    color: #ffffff;
-    animation: pulse 2s infinite;
-}
-
-.game-status.final {
-    background: #28a745;
-    color: #ffffff;
-}
-
-.game-status.scheduled {
-    background: #6c757d;
-    color: #ffffff;
-}
-
-/* Inning display in header */
-.inning-display {
-    color: #ffffff;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 8px;
-}
-
-
-
-.inning-display.live {
-    background: #dc3545;
-}
-
-.inning-display.final {
-    background: #28a745;
-}
-
-.inning-display.scheduled {
-    background: #6c757d;
-}
-
-/* Game content container - horizontal layout for live games */
-.game-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-/* Mobile-first approach - apply mobile styles by default */
-@media (max-width: 768px) {
-    .game-content {
-        gap: 4px !important;
-        justify-content: space-between !important;
-    }
-}
-
-/* Teams section with logos */
-.teams {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex: 2;
-}
-
-/* Mobile-first approach - apply mobile styles by default */
-@media (max-width: 768px) {
-    .teams {
-        gap: 8px !important;
-        flex: 1.1 !important;
-    }
-}
-
-.team {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 5px;
-    border: 1px solid #444;
-    transition: all 0.3s ease;
-}
-
-.team:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #666;
-}
-
-.team-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Team logo styling */
-.team-logo {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #333;
-    border: 1px solid #444;
-    flex-shrink: 0;
-    margin-right: 6px;
-}
-
-.team-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 50%;
-}
-
-.team-logo .fallback-logo {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
-    text-align: center;
-    line-height: 1;
-}
-
-.team-name {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.team-score {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #007bff;
-    text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-}
-
-.game-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 15px;
-    border-top: 1px solid #444;
-    font-size: 0.9rem;
-    color: #cccccc;
-}
-
-.game-time, .game-date {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 10px;
-    border-radius: 15px;
-    border: 1px solid #444;
-}
-
-/* Game time styling */
-.game-time {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 5px;
-}
-
-/* Live game time styling */
-.game-time:contains('Q'), .game-time:contains('P'), .game-time:contains('T'), .game-time:contains('B'), .game-time:contains('H') {
-    color: #00ff88;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
-}
-
-/* Game date styling */
-.game-date {
-    font-size: 12px;
-    color: #888;
-    text-align: center;
-}
-
-/* Info and error messages with dark theme */
-.info, .error {
-    text-align: center;
-    padding: 40px;
-    color: #cccccc;
-    font-size: 1.1rem;
-    background: #1a1a1a;
-    border-radius: 15px;
-    border: 1px solid #333;
-}
-
-.error {
-    color: #ff6b6b;
-    border-color: #dc3545;
-}
-
-/* Winner highlighting */
-.team.winner {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    border: 2px solid #00ff88;
-    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-    transform: scale(1.02);
-    transition: all 0.3s ease;
-}
-
-.team.winner .team-name {
-    color: #00ff88;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
-}
-
-.team.winner .team-score {
-    color: #00ff88;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
-}
-
-.team.winner .team-logo {
-    border: 2px solid #00ff88;
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
-}
-
-/* Possession/At-bat highlighting */
-.team.possession .team-name,
-.team.at-bat .team-name {
-    color: #ffd700;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-}
-
-.team.possession .team-score,
-.team.at-bat .team-score {
-    color: #007bff;
-    font-weight: inherit;
-    text-shadow: none;
-}
-
-.team.possession .team-logo,
-.team.at-bat .team-logo {
-    border: none;
-    box-shadow: none;
-}
-
-/* Hover effect for winner teams */
-.team.winner:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
-}
-
-/* Responsive design for dark theme */
-@media (max-width: 768px) {
-    .container {
-        padding: 8px;
-    }
-    
-    /* PWA-specific mobile styles - only apply when app is installed */
-    body.pwa-mode {
-        /* Prevent address bar from showing/hiding */
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-    
-    body.pwa-mode .container {
-        height: 100vh;
-        overflow-y: auto;
-        /* Prevent pull-to-refresh */
-        overscroll-behavior: none;
-    }
-    
-    .header {
-        padding: 40px 20px;
-        margin-bottom: 40px;
-    }
-    
-    .site-header {
         padding: 2px 10px !important;
         margin-bottom: 15px !important;
         width: 100vw !important;
@@ -793,6 +423,11 @@ body.pwa-mode {
         -webkit-backdrop-filter: blur(20px) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .header-left {
+        flex-direction: row;
+        align-items: center;
     }
     
     .site-header h1 {
@@ -806,10 +441,9 @@ body.pwa-mode {
     }
     
     .live-games-indicator {
-        top: 3px;
-        right: 8px;
         padding: 4px 8px;
         font-size: 0.7rem;
+        margin-left: auto;
     }
     
     .header h1 {
@@ -1372,4 +1006,622 @@ body.pwa-mode {
 .strikes-dots .count-dot:last-child,
 .outs-dots .count-dot:last-child {
     margin-right: 0;
+}
+
+/* Score cards with dark theme and team logos */
+.score-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.score-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.score-card.score-changed {
+    animation: scoreUpdate 2s ease-in-out;
+    background: linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%);
+}
+
+@keyframes scoreUpdate {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    25% {
+        transform: scale(1.02);
+        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.3);
+    }
+    50% {
+        transform: scale(1.01);
+        box-shadow: 0 12px 35px rgba(40, 167, 69, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.sport-type {
+    background: #007bff;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.game-status {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.game-status.live {
+    background: #dc3545;
+    color: #ffffff;
+    animation: pulse 2s infinite;
+}
+
+.game-status.final {
+    background: #28a745;
+    color: #ffffff;
+}
+
+.game-status.scheduled {
+    background: #6c757d;
+    color: #ffffff;
+}
+
+/* Inning display in header */
+.inning-display {
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.inning-display.live {
+    background: #dc3545;
+}
+
+.inning-display.final {
+    background: #28a745;
+}
+
+.inning-display.scheduled {
+    background: #6c757d;
+}
+
+/* Game content container - horizontal layout for live games */
+.game-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Mobile-first approach - apply mobile styles by default */
+@media (max-width: 768px) {
+    .game-content {
+        gap: 4px !important;
+        justify-content: space-between !important;
+    }
+}
+
+/* Teams section with logos */
+.teams {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 2;
+}
+
+/* Mobile-first approach - apply mobile styles by default */
+@media (max-width: 768px) {
+    .teams {
+        gap: 8px !important;
+        flex: 1.1 !important;
+    }
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    border: 1px solid #444;
+    transition: all 0.3s ease;
+}
+
+.team:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #666;
+}
+
+.team-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Team logo styling */
+.team-logo {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #333;
+    border: 1px solid #444;
+    flex-shrink: 0;
+    margin-right: 6px;
+}
+
+.team-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.team-logo .fallback-logo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1;
+}
+
+.team-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.team-score {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #007bff;
+    text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #444;
+    font-size: 0.9rem;
+    color: #cccccc;
+}
+
+.game-time, .game-date {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 1px solid #444;
+}
+
+/* Game time styling */
+.game-time {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+/* Live game time styling */
+.game-time:contains('Q'), .game-time:contains('P'), .game-time:contains('T'), .game-time:contains('B'), .game-time:contains('H') {
+    color: #00ff88;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+}
+
+/* Game date styling */
+.game-date {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+}
+
+/* Info and error messages with dark theme */
+.info, .error {
+    text-align: center;
+    padding: 40px;
+    color: #cccccc;
+    font-size: 1.1rem;
+    background: #1a1a1a;
+    border-radius: 15px;
+    border: 1px solid #333;
+}
+
+.error {
+    color: #ff6b6b;
+    border-color: #dc3545;
+}
+
+/* Winner highlighting */
+.team.winner {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+}
+
+.team.winner .team-name {
+    color: #00ff88;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+}
+
+.team.winner .team-score {
+    color: #00ff88;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+}
+
+.team.winner .team-logo {
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+}
+
+/* Possession/At-bat highlighting */
+.team.possession .team-name,
+.team.at-bat .team-name {
+    color: #ffd700;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.team.possession .team-score,
+.team.at-bat .team-score {
+    color: #007bff;
+    font-weight: inherit;
+    text-shadow: none;
+}
+
+.team.possession .team-logo,
+.team.at-bat .team-logo {
+    border: none;
+    box-shadow: none;
+}
+
+/* Hover effect for winner teams */
+.team.winner:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+/* Pulse animation for live games */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+/* MLB game state styling */
+.mlb-game-state {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    min-width: 60px;
+    max-width: 80px;
+    flex-shrink: 0;
+}
+
+.mlb-bases-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.mlb-count-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Bases diamond visualization */
+.bases-diamond {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.bases-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.base {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--count-dot-border);
+    background: var(--base-empty);
+    transition: all 0.3s ease;
+}
+
+.base.occupied {
+    background: var(--base-occupied);
+    border-color: var(--base-occupied);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* Count dots visualization */
+.count-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+.count-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.count-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--count-dot-border);
+    background: var(--count-dot);
+    transition: all 0.3s ease;
+}
+
+.count-dot.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+.count-label {
+    font-size: 0.6rem;
+    color: var(--count-label);
+    font-weight: 600;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* Responsive design for dark theme */
+@media (max-width: 768px) {
+    .container {
+        padding: 8px;
+    }
+    
+    /* PWA-specific mobile styles - only apply when app is installed */
+    body.pwa-mode {
+        /* Prevent address bar from showing/hiding */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    body.pwa-mode .container {
+        height: 100vh;
+        overflow-y: auto;
+        /* Prevent pull-to-refresh */
+        overscroll-behavior: none;
+    }
+    
+    .header {
+        padding: 40px 20px;
+        margin-bottom: 40px;
+    }
+    
+    .header h1 {
+        font-size: 1.4rem;
+    }
+    
+    .header p {
+        font-size: 0.8rem;
+    }
+    
+    .date-navigation {
+        padding: 8px;
+    }
+    
+    .week-buttons {
+        gap: 4px;
+    }
+    
+    .week-btn {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+        min-width: 40px;
+    }
+    
+    .sport-filters {
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+    
+    .sport-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+    
+    .scores-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-top: 15px;
+    }
+    
+    /* MLB game state extra small mobile optimization */
+    .mlb-game-state {
+        min-width: 40px;
+        max-width: 50px;
+        gap: 1px;
+    }
+    
+    .bases-diamond {
+        margin-top: 0px;
+        transform: scale(0.75);
+        /* Better centering on extra small mobile */
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .bases-row {
+        gap: 3px;
+        justify-content: center;
+    }
+    
+    .base {
+        width: 6px;
+        height: 6px;
+        font-size: 0.2rem;
+        flex-shrink: 0;
+        border-width: 1px;
+    }
+    
+    .base span {
+        font-size: 0.15rem;
+        line-height: 1;
+    }
+    
+    .count-dots-container {
+        transform: scale(0.5);
+    }
+    
+    .count-dot {
+        width: 2px;
+        height: 2px;
+        font-size: 1px;
+    }
+    
+    .count-label {
+        font-size: 4px;
+        width: 8px;
+        height: 4px;
+    }
+    
+    .score-card {
+        padding: 6px;
+    }
+    
+    .game-header {
+        margin-bottom: 6px;
+    }
+    
+    .sport-type, .game-status, .inning-display {
+        padding: 3px 6px;
+        font-size: 0.65rem;
+    }
+    
+    .inning-display {
+        margin-left: 4px;
+    }
+    
+    .game-content {
+        gap: 2px;
+        /* Ensure proper spacing on extra small mobile */
+        justify-content: space-between;
+    }
+    
+    .teams {
+        gap: 6px;
+    }
+    
+    .team {
+        padding: 2px 4px;
+        gap: 2px;
+    }
+    
+    .team-logo {
+        width: 14px;
+        height: 14px;
+        margin-right: 1px;
+    }
+    
+    .team-name {
+        font-size: 0.6rem;
+    }
+    
+    .team-score {
+        font-size: 0.65rem;
+    }
+    
+    .game-info {
+        padding-top: 3px;
+        font-size: 0.65rem;
+    }
+    
+    .game-time, .game-date {
+        padding: 2px 4px;
+        font-size: 0.6rem;
+    }
+    
+    /* MLB game state extra small mobile */
+    .mlb-game-state {
+        min-width: 35px;
+        gap: 1px;
+    }
+    
+    .base {
+        width: 5px;
+        height: 5px;
+        font-size: 0.15rem;
+    }
+    
+    .count-dot {
+        width: 1.5px;
+        height: 1.5px;
+        font-size: 0.3px;
+    }
+    
+    .count-label {
+        font-size: 4px;
+        width: 8px;
+        height: 4px;
+    }
 }
