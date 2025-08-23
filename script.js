@@ -881,6 +881,9 @@ function parseESPNData(espnData, sportKey) {
         let atBatTeam = null;
         let awayTeamId = null;
         let homeTeamId = null;
+        let awayTeamRecord = null;
+        let homeTeamRecord = null;
+        let ballOn = null;
 
         if (sportKey === 'nfl' || sportKey === 'college-football') {
             // For football, check if there's possession data in the situation
@@ -888,6 +891,13 @@ function parseESPNData(espnData, sportKey) {
                 possessionTeam = competition.situation.possession;
                 console.log(`Football possession: ${possessionTeam}`);
             }
+            
+            // Extract ball location data
+            if (competition?.situation?.ballOn) {
+                ballOn = competition.situation.ballOn;
+                console.log(`Football ball location: ${ballOn}`);
+            }
+            
             // Extract team IDs for possession comparison
             if (competition?.competitors) {
                 const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
@@ -932,6 +942,50 @@ function parseESPNData(espnData, sportKey) {
             console.log(`MLB at bat: ${atBatTeam} (${topBottom} of inning)`);
         }
 
+        // Extract team records for all sports
+        if (competition?.competitors) {
+            const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+            const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+            
+            // Extract team records from various possible locations
+            if (awayTeam?.records && awayTeam.records.length > 0) {
+                // Look for overall record first
+                const overallRecord = awayTeam.records.find(r => r.type === 'overall' || r.type === 'total');
+                if (overallRecord) {
+                    awayTeamRecord = overallRecord.summary;
+                    console.log(`Away team record found: ${awayTeamRecord}`);
+                }
+            }
+            
+            if (homeTeam?.records && homeTeam.records.length > 0) {
+                // Look for overall record first
+                const overallRecord = homeTeam.records.find(r => r.type === 'overall' || r.type === 'total');
+                if (overallRecord) {
+                    homeTeamRecord = overallRecord.summary;
+                    console.log(`Home team record found: ${homeTeamRecord}`);
+                }
+            }
+            
+            // Fallback: try to get records from team stats if available
+            if (!awayTeamRecord && awayTeam?.statistics) {
+                const wins = awayTeam.statistics.find(s => s.name === 'wins')?.value;
+                const losses = awayTeam.statistics.find(s => s.name === 'losses')?.value;
+                if (wins !== undefined && losses !== undefined) {
+                    awayTeamRecord = `${wins}-${losses}`;
+                    console.log(`Away team record from stats: ${awayTeamRecord}`);
+                }
+            }
+            
+            if (!homeTeamRecord && homeTeam?.statistics) {
+                const wins = homeTeam.statistics.find(s => s.name === 'wins')?.value;
+                const losses = homeTeam.statistics.find(s => s.name === 'losses')?.value;
+                if (wins !== undefined && losses !== undefined) {
+                    homeTeamRecord = `${wins}-${losses}`;
+                    console.log(`Home team record from stats: ${homeTeamRecord}`);
+                }
+            }
+        }
+
         const parsedGame = {
             id: event.id,
             sport: sportKey,
@@ -953,11 +1007,14 @@ function parseESPNData(espnData, sportKey) {
             atBatTeam: atBatTeam,
             awayTeamId: awayTeamId,
             homeTeamId: homeTeamId,
+            awayTeamRecord: awayTeamRecord,
+            homeTeamRecord: homeTeamRecord,
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
             fullDateTime: event.date,
-            gameDate: event.date
+            gameDate: event.date,
+            ballOn: ballOn
         };
         
         console.log('Parsed game:', parsedGame);
@@ -1209,6 +1266,9 @@ function displayScores(scores) {
                     ${game.sport === 'mlb' && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'live' && game.period ? `<span class="inning-display live">${getFootballDisplay(game)}</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${(game.sport === 'nhl') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${(game.sport === 'soccer') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${game.status === 'scheduled' ? `<span class="inning-display scheduled">${game.displayTime || game.time || 'TBD'}</span>` : ''}
                 </div>
                 <div class="game-content">
@@ -1218,20 +1278,32 @@ function displayScores(scores) {
                                 <div class="team-logo">
                                     ${awayLogo}
                                 </div>
-                                <span class="team-name">${game.awayTeam}</span>
+                                <div class="team-details">
+                                    <span class="team-name">${game.awayTeam}</span>
+                                    ${game.awayTeamRecord ? `<span class="team-record">${game.awayTeamRecord}</span>` : ''}
+                                </div>
                             </div>
-                            <span class="team-score">${game.status === 'scheduled' ? '' : game.awayScore}</span>
+                            <span class="team-score">
+                                ${game.awayScore}
+                            </span>
                         </div>
                         <div class="team ${getWinner(game) === 'home' ? 'winner' : ''} ${getTeamHighlightClass(game, 'home')}">
                             <div class="team-info">
                                 <div class="team-logo">
                                     ${homeLogo}
                                 </div>
-                                <span class="team-name">${game.homeTeam}</span>
+                                <div class="team-details">
+                                    <span class="team-name">${game.homeTeam}</span>
+                                    ${game.homeTeamRecord ? `<span class="team-record">${game.homeTeamRecord}</span>` : ''}
+                                </div>
                             </div>
-                            <span class="team-score">${game.status === 'scheduled' ? '' : game.homeScore}</span>
+                            <span class="team-score">
+                                ${game.homeScore}
+                            </span>
                         </div>
                     </div>
+                    
+                    ${game.sport === 'nfl' && game.status === 'live' ? '' : ''}
                     
                     ${game.sport === 'mlb' && game.status === 'live' ? `<div class="mlb-game-state">
                         <div class="mlb-bases-container">
@@ -2542,15 +2614,15 @@ function getBasesVisual(bases) {
     
     // Second base (top)
     const secondBase = (bases === '2nd' || bases === '1st & 2nd' || bases === '2nd & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
-    html += `<div class="base second-base ${secondBase}"><span>2</span></div>`;
+    html += `<div class="base second-base ${secondBase}"></div>`;
     
     // Third base (left) and first base (right)
     html += '<div class="bases-row">';
     const firstBase = (bases === '1st' || bases === '1st & 2nd' || bases === '1st & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
     const thirdBase = (bases === '3rd' || bases === '1st & 3rd' || bases === '2nd & 3rd' || bases === 'loaded') ? 'occupied' : 'empty';
     
-    html += `<div class="base third-base ${thirdBase}"><span>3</span></div>`;
-    html += `<div class="base first-base ${firstBase}"><span>1</span></div>`;
+    html += `<div class="base third-base ${thirdBase}"></div>`;
+    html += `<div class="base first-base ${firstBase}"></div>`;
     html += '</div>';
     
     html += '</div>';
@@ -2579,7 +2651,7 @@ function getCountDotsVisual(game) {
         html += '<div class="count-dots strikes-dots">';
         html += '<span class="count-label">S</span>';
         for (let i = 0; i < 2; i++) {
-            html += `<span class="count-dot ${i < game.strikes ? 'active' : ''}">●</span>`;
+            html += `<span class="count-dot ${i < game.balls ? 'active' : ''}">●</span>`;
         }
         html += '</div>';
     }
@@ -3375,4 +3447,9 @@ function logMLBGameData(mlbScores) {
 }
 
 // Enhanced MLB status detection
+
+// Get visual representation of NFL field for live games
+function getNFLFieldVisual(game) {
+    return '';
+}
 

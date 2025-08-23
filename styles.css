@@ -1113,8 +1113,9 @@ body.pwa-mode {
 
 .inning-display.final {
     background: transparent;
-    color: #28a745;
-    text-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
+    color: #00ff88;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+    font-weight: 600;
 }
 
 .inning-display.scheduled {
@@ -1123,18 +1124,54 @@ body.pwa-mode {
     text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
-/* Game content container - horizontal layout for live games */
+/* Game content container - mixed layout for different sports */
 .game-content {
     display: flex;
     align-items: flex-start;
     gap: 20px;
 }
 
+/* NFL field should be full width below scores */
+.nfl-game-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
+    order: 2; /* Force it to appear after teams */
+}
+
+/* MLB game state should stay on the right */
+.mlb-game-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 60px;
+    max-width: 80px;
+    flex-shrink: 0;
+    order: 1; /* Keep it in original position */
+}
+
 /* Mobile-first approach - apply mobile styles by default */
 @media (max-width: 768px) {
     .game-content {
-        gap: 4px !important;
-        justify-content: space-between !important;
+        gap: 8px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    /* On mobile, NFL field still goes below, but MLB can stay compact */
+    .nfl-game-state {
+        order: 2 !important;
+        width: 100% !important;
+    }
+    
+    .mlb-game-state {
+        order: 1 !important;
+        align-self: flex-end !important;
+        min-width: 40px !important;
+        max-width: 50px !important;
     }
 }
 
@@ -1173,29 +1210,40 @@ body.pwa-mode {
 .team-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    flex: 1;
+}
+
+.team-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.team-record {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    opacity: 0.8;
 }
 
 /* Team logo styling */
 .team-logo {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    overflow: hidden;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #333;
-    border: 1px solid #444;
     flex-shrink: 0;
-    margin-right: 6px;
+    overflow: hidden;
 }
 
 .team-logo img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    border-radius: 50%;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .team-logo .fallback-logo {
@@ -1283,28 +1331,24 @@ body.pwa-mode {
 
 /* Winner highlighting */
 .team.winner {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    border: 2px solid #00ff88;
-    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-    transform: scale(1.02);
-    transition: all 0.3s ease;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    padding: 4px;
 }
 
 .team.winner .team-name {
-    color: #00ff88;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+    color: var(--accent-success);
+    font-weight: 600;
 }
 
 .team.winner .team-score {
-    color: #00ff88;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+    color: var(--accent-success);
+    font-weight: 700;
 }
 
 .team.winner .team-logo {
-    border: 2px solid #00ff88;
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+    border: none;
+    box-shadow: none;
 }
 
 /* Possession/At-bat highlighting */
@@ -1330,8 +1374,7 @@ body.pwa-mode {
 
 /* Hover effect for winner teams */
 .team.winner:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    background: rgba(76, 175, 80, 0.15);
 }
 
 /* Pulse animation for live games */
@@ -1358,6 +1401,124 @@ body.pwa-mode {
     flex-shrink: 0;
 }
 
+/* NFL field visualization */
+.nfl-game-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+    max-width: 80px;
+    flex-shrink: 0;
+    order: 1; /* Keep it in original position on the right */
+}
+
+.nfl-field-container {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+}
+
+.field-tick-marks {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 25px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+}
+
+.field-tick {
+    position: absolute;
+    right: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.field-tick.goal-line {
+    height: 4px;
+    background: rgba(255, 255, 255, 1);
+    width: 100%;
+    border-radius: 2px;
+}
+
+.field-tick.ten-yard-line {
+    height: 2px;
+    background: rgba(255, 255, 255, 0.8);
+    width: 100%;
+}
+
+.field-tick.five-yard-line {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.4);
+    width: 60%;
+}
+
+.yard-number {
+    position: absolute;
+    right: 30px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 4px;
+    border-radius: 3px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.ball-position {
+    position: absolute;
+    display: flex;
+        flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.team-logo-small {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.field-logo {
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.team-logo-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.team-logo-small .fallback-logo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 10px;
+}
+
 .mlb-bases-container {
     display: flex;
     flex-direction: column;
@@ -1377,7 +1538,7 @@ body.pwa-mode {
     display: flex;
         flex-direction: column;
     align-items: center;
-    gap: 4px;
+        gap: 4px;
     margin-top: 8px;
 }
 
@@ -1388,8 +1549,8 @@ body.pwa-mode {
 }
 
 .base {
-    width: 16px;
-    height: 16px;
+        width: 16px;
+        height: 16px;
     background: var(--base-empty);
     border: 2px solid var(--count-dot-border);
     transition: all 0.3s ease;
@@ -1727,6 +1888,36 @@ body.pwa-mode {
 .balls-dots, .strikes-dots, .outs-dots {
     gap: 1px !important;
 }
+
+/* NFL field mobile optimization */
+.nfl-game-state {
+    min-width: 50px !important;
+    max-width: 70px !important;
+}
+
+.nfl-field-container {
+    height: 80px !important;
+}
+
+.field-tick-marks {
+    width: 20px !important;
+}
+
+.yard-number {
+    font-size: 9px !important;
+    right: 25px !important;
+    padding: 1px 3px !important;
+    min-width: 16px !important;
+}
+
+.ball-position {
+    bottom: 25px !important;
+}
+
+.team-logo-small {
+    width: 16px !important;
+    height: 16px !important;
+}
 }
 
 @media (max-width: 480px) {
@@ -1763,4 +1954,72 @@ body.pwa-mode {
 .balls-dots, .strikes-dots, .outs-dots {
     gap: 0.5px !important;
 }
+}
+
+/* Mobile optimization for team records */
+@media (max-width: 768px) {
+    .team-record {
+        font-size: 10px !important;
+    }
+    
+    .team-info {
+        gap: 8px !important;
+    }
+    
+    .team-details {
+        gap: 1px !important;
+    }
+    
+    .ball-position {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    .field-logo {
+        margin-right: 6px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .team-record {
+        font-size: 9px !important;
+    }
+    
+    .team-info {
+        gap: 6px !important;
+    }
+    
+    .ball-position {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    .field-logo {
+        margin-right: 4px !important;
+    }
+}
+
+/* Mobile optimization for team logos */
+@media (max-width: 768px) {
+    .team-logo {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    .team-logo-small {
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .team-logo {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    .team-logo-small {
+        width: 12px !important;
+        height: 12px !important;
+    }
 }
