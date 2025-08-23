@@ -1848,7 +1848,7 @@ body.pwa-mode {
     
     .bases-diamond {
         transform: none !important;
-        gap: 3px !important;
+        gap: 1px !important;
     }
     
     .base {
@@ -1859,7 +1859,7 @@ body.pwa-mode {
     
     .count-dots-container {
         transform: none !important;
-        gap: 1px !important;
+        gap: 0.5px !important;
     }
     
     .count-dot {
