@@ -929,20 +929,18 @@ body.pwa-mode {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    align-items: center;
-    margin-top: 8px;
+    align-items: flex-start;
+    /* Make count dots more compact by default */
+    transform: scale(0.9);
+    transform-origin: left center;
 }
 
 .count-dots {
     display: flex;
-    flex-direction: row;
-    gap: 1px;
-    margin-top: 2px;
-}
-
-.count-row {
-    display: flex;
-    gap: 1px;
+    align-items: center;
+    gap: 2px;
+    min-height: 10px;
+    width: 100%;
 }
 
 .count-dot {
@@ -1527,67 +1525,33 @@ body.pwa-mode {
 /* Bases diamond visualization */
 .bases-diamond {
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     align-items: center;
-    gap: 2px;
+        gap: 4px;
     margin-top: 8px;
-    position: relative;
-    width: 40px;
-    height: 40px;
 }
 
 .bases-row {
     display: flex;
-    gap: 2px;
-}
-
-.bases-row:nth-child(1) {
-    /* Top base (3rd base) */
-    justify-content: center;
-}
-
-.bases-row:nth-child(2) {
-    /* Middle row (2nd base) */
-    justify-content: center;
-}
-
-.bases-row:nth-child(3) {
-    /* Bottom base (1st base) */
-    justify-content: center;
+        gap: 12px;
+    align-items: center;
 }
 
 .base {
-    width: 12px;
-    height: 12px;
+        width: 16px;
+        height: 16px;
     background: var(--base-empty);
     border: 2px solid var(--count-dot-border);
-    transform: rotate(45deg);
+    transition: all 0.3s ease;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Position bases to form diamond */
-.bases-row:nth-child(1) .base {
-    /* 3rd base - top */
-}
-
-.bases-row:nth-child(2) .base:nth-child(1) {
-    /* 2nd base - left */
-    margin-right: 8px;
-}
-
-.bases-row:nth-child(2) .base:nth-child(2) {
-    /* 2nd base - center */
-}
-
-.bases-row:nth-child(2) .base:nth-child(3) {
-    /* 2nd base - right */
-    margin-left: 8px;
-}
-
-.bases-row:nth-child(3) .base {
-    /* 1st base - bottom */
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    font-weight: bold;
+    /* Make bases diamond shaped */
+    transform: rotate(45deg);
 }
 
 .base.occupied {
