@@ -1836,4 +1836,46 @@ body.pwa-mode {
     }
 }
 
+/* Mobile: Make bases look like desktop and smaller banner text */
+@media (max-width: 768px) {
+    .site-header h1 {
+        font-size: 1.2rem !important;
+    }
+    
+    .site-header p {
+        font-size: 0.7rem !important;
+    }
+    
+    .bases-diamond {
+        transform: none !important;
+        gap: 4px !important;
+    }
+    
+    .base {
+        width: 16px !important;
+        height: 16px !important;
+        border-width: 2px !important;
+    }
+    
+    .count-dots-container {
+        transform: none !important;
+        gap: 2px !important;
+    }
+    
+    .count-dot {
+        width: 8px !important;
+        height: 8px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-header h1 {
+        font-size: 1rem !important;
+    }
+    
+    .site-header p {
+        font-size: 0.6rem !important;
+    }
+}
+
 
