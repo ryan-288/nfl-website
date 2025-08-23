@@ -1836,12 +1836,4 @@ body.pwa-mode {
     }
 }
 
-/* Mobile: One card per row */
-@media (max-width: 768px) {
-    .score-card {
-        width: 100% !important;
-        margin-bottom: 15px;
-    }
-}
-
 
