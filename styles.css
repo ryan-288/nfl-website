@@ -1846,6 +1846,23 @@ body.pwa-mode {
         font-size: 0.7rem !important;
     }
     
+    .score-card {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 12px !important;
+    }
+    
+    .teams {
+        flex: 1 !important;
+    }
+    
+    .mlb-game-state {
+        order: 1 !important;
+        align-self: flex-end !important;
+        flex-shrink: 0 !important;
+        min-width: 60px !important;
+    }
+    
     .bases-diamond {
         transform: none !important;
         gap: 1px !important;
@@ -1865,11 +1882,6 @@ body.pwa-mode {
     .count-dot {
         width: 6px !important;
         height: 6px !important;
-    }
-    
-    .mlb-game-state {
-        order: 1 !important;
-        align-self: flex-end !important;
     }
 }
 
