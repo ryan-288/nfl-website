@@ -48,18 +48,7 @@ body {
     padding-top: 30px;
 }
 
-/* Mobile: Reduce top padding for smaller header */
-@media (max-width: 768px) {
-    body {
-        padding-top: 35px;
-    }
-}
 
-@media (max-width: 480px) {
-    body {
-        padding-top: 30px;
-    }
-}
 
 /* PWA-specific styles - only apply when app is installed */
 body.pwa-mode {
@@ -1847,27 +1836,4 @@ body.pwa-mode {
     }
 }
 
-/* Mobile optimization for team records */
-@media (max-width: 768px) {
-    .team-record {
-        font-size: 10px !important;
-    }
-    
-    .team-info {
-        gap: 8px !important;
-    }
-    
-    .team-details {
-        gap: 1px !important;
-    }
-}
 
-@media (max-width: 480px) {
-    .team-record {
-        font-size: 9px !important;
-    }
-    
-    .team-info {
-        gap: 6px !important;
-    }
-}
