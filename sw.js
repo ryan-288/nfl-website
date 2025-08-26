@@ -1,8 +1,8 @@
-const CACHE_NAME = 'sports-scores-v7';
+const CACHE_NAME = 'sports-scores-v8';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/styles.css?v=20250821&t=202508212100',
+  '/styles.css',
   '/script.js',
   '/manifest.json'
 ];
@@ -18,8 +18,14 @@ self.addEventListener('install', event => {
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - serve from cache when offline, but always fetch fresh CSS
 self.addEventListener('fetch', event => {
+  // Don't cache CSS files to ensure fresh styles
+  if (event.request.url.includes('styles.css')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => {

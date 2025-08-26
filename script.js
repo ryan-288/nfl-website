@@ -1365,7 +1365,21 @@ function forceCSSReload() {
         cssLink.href = newHref;
         console.log('Forced CSS reload with timestamp:', timestamp);
     }
+    
+    // Also clear service worker caches if available
+    if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+                if (cacheName.includes('sports-scores')) {
+                    caches.delete(cacheName);
+                    console.log('Cleared cache:', cacheName);
+                }
+            });
+        });
+    }
 }
+
+
 
 // Check if a game's score has changed
 function checkScoreChange(newGame) {
