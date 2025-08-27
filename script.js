@@ -1378,8 +1378,8 @@ function displayScores(scores) {
                                     ${game.awayTeamRecord ? `<span class="team-record">${game.awayTeamRecord}</span>` : ''}
                                 </div>
                             </div>
-                            <span class="team-score">
-                                ${game.awayScore}
+                            <span class="team-score ${game.status === 'scheduled' ? 'scheduled' : ''}">
+                                ${game.status === 'scheduled' ? '' : game.awayScore}
                             </span>
                         </div>
                         <div class="team ${getWinner(game) === 'home' ? 'winner' : ''} ${getTeamHighlightClass(game, 'home')}">
@@ -1392,8 +1392,8 @@ function displayScores(scores) {
                                     ${game.homeTeamRecord ? `<span class="team-record">${game.homeTeamRecord}</span>` : ''}
                                 </div>
                             </div>
-                            <span class="team-score">
-                                ${game.homeScore}
+                            <span class="team-score ${game.status === 'scheduled' ? 'scheduled' : ''}">
+                                ${game.status === 'scheduled' ? '' : game.homeScore}
                             </span>
                         </div>
                     </div>

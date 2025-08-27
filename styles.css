@@ -1355,6 +1355,13 @@ body.pwa-mode {
     text-shadow: none;
 }
 
+/* Scheduled game score styling */
+.team-score.scheduled {
+    color: var(--text-muted);
+    font-style: italic;
+    font-weight: 500;
+}
+
 .team.possession .team-logo,
 .team.at-bat .team-logo {
     border: none;
