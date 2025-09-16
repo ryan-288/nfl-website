@@ -601,8 +601,8 @@ body.pwa-mode {
     }
     
     .count-dots {
-        gap: 0px;
-        min-height: 2px;
+        gap: 0px !important;
+        min-height: 2px !important;
     }
     
     .count-dot {
@@ -612,10 +612,10 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px;
-        width: 8px;
-        height: 4px;
-        margin-right: 0px;
+        font-size: 4px !important;
+        width: 8px !important;
+        height: 4px !important;
+        margin-right: 0px !important;
     }
 }
 
