@@ -7,6 +7,7 @@ let selectedSport = 'all';
 let autoUpdateInterval;
 let lastScoreHash = ''; // Track if scores actually changed
 let hasLiveGames = false; // Track if there are live games
+let logoCache = new Map(); // Cache for logo attempts (URL or 'FAILED')
 
 // Debug function to log raw ESPN data for a specific game
 function debugESPNData(gameIndex = 0) {
@@ -287,7 +288,9 @@ async function loadAllScores(silent = false) {
         // Fetch scores from all sports concurrently
         const promises = Object.entries(ESPN_APIS).map(async ([sport, apiUrl]) => {
             try {
+                console.log(`Fetching scores for sport: ${sport} from URL: ${apiUrl}`);
                 const sportScores = await fetchScores(sport, sport);
+                console.log(`Fetched ${sportScores.length} games for ${sport}`);
                 return sportScores;
             } catch (error) {
                 console.error(`Error fetching ${sport} scores:`, error);
@@ -306,13 +309,48 @@ async function loadAllScores(silent = false) {
         
         console.log('Total scores fetched:', scores.length);
         
+        // Fetch pitcher information for scheduled MLB games
+        const scheduledMLBGames = scores.filter(game => game.sport === 'mlb' && game.status === 'scheduled');
+        if (scheduledMLBGames.length > 0) {
+            console.log(`Fetching pitcher info for ${scheduledMLBGames.length} scheduled MLB games`);
+            
+            // Fetch pitcher info for each scheduled MLB game
+            const pitcherPromises = scheduledMLBGames.map(async (game) => {
+                const pitcherInfo = await fetchMLBPitcherInfo(game.id);
+                return { gameId: game.id, ...pitcherInfo };
+            });
+            
+            const pitcherResults = await Promise.allSettled(pitcherPromises);
+            
+            // Update the scores with pitcher information
+            pitcherResults.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value) {
+                    const gameIndex = scores.findIndex(game => game.id === scheduledMLBGames[index].id);
+                    if (gameIndex !== -1) {
+                        scores[gameIndex].awayPitcher = result.value.awayPitcher;
+                        scores[gameIndex].homePitcher = result.value.homePitcher;
+                        console.log(`Updated pitcher info for game ${result.value.gameId}:`, result.value);
+                    }
+                }
+            });
+        }
+        
         // Store the scores in the global variable
         allScores = scores;
+        
+        // Debug: Log all sports being processed
+        const sportsCount = {};
+        allScores.forEach(game => {
+            sportsCount[game.sport] = (sportsCount[game.sport] || 0) + 1;
+        });
+        console.log('Sports breakdown:', sportsCount);
         
         // If no scores were fetched, show sample data for testing
         if (allScores.length === 0) {
             console.log('No scores fetched from APIs, showing sample data');
             allScores = getSampleData();
+        } else {
+            console.log('✅ Real scores fetched from ESPN APIs');
         }
         
         // After fetching all scores, apply the filter and update display
@@ -383,8 +421,44 @@ function getSampleData() {
             displayTime: '7:05 PM',
             fullDateTime: new Date(Date.now() + 86400000).toISOString(),
             gameDate: new Date(Date.now() + 86400000).toISOString()
-        }
+        },
     ];
+}
+
+// Fetch pitcher information for a specific MLB game
+async function fetchMLBPitcherInfo(gameId) {
+    try {
+        const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event=${gameId}`;
+        console.log(`Fetching pitcher info from: ${apiUrl}`);
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json();
+        console.log(`Pitcher API response for game ${gameId}:`, data);
+        
+        // Extract pitcher information from the game summary
+        let awayPitcher = null;
+        let homePitcher = null;
+        
+        if (data.boxscore && data.boxscore.teams) {
+            const awayTeam = data.boxscore.teams.find(team => team.teamId === data.boxscore.teams[0].teamId);
+            const homeTeam = data.boxscore.teams.find(team => team.teamId === data.boxscore.teams[1].teamId);
+            
+            // Look for probable pitchers in various locations
+            if (awayTeam?.probablePitcher) {
+                awayPitcher = awayTeam.probablePitcher.displayName || awayTeam.probablePitcher.name;
+            }
+            if (homeTeam?.probablePitcher) {
+                homePitcher = homeTeam.probablePitcher.displayName || homeTeam.probablePitcher.name;
+            }
+        }
+        
+        return { awayPitcher, homePitcher };
+    } catch (error) {
+        console.error(`Error fetching pitcher info for game ${gameId}:`, error);
+        return { awayPitcher: null, homePitcher: null };
+    }
 }
 
 // Fetch scores from a specific sport API for the current date
@@ -585,6 +659,46 @@ function parseESPNData(espnData, sportKey) {
                 console.log('situation.half:', situation.half);
                 console.log('=== END COMPETITION SITUATION DETAILS ===');
             }
+            
+            // Log pitcher information for MLB games
+            console.log('=== MLB PITCHER INFORMATION DEBUG ===');
+            console.log('Full competition object keys:', Object.keys(competition || {}));
+            console.log('Full event object keys:', Object.keys(event || {}));
+            
+            if (competition?.competitors) {
+                competition.competitors.forEach((comp, index) => {
+                    console.log(`Competitor ${index + 1} (${comp.homeAway}):`, {
+                        teamName: comp.team?.name || comp.team?.displayName,
+                        teamShortName: comp.team?.shortDisplayName,
+                        probablePitcher: comp.probablePitcher,
+                        pitcher: comp.pitcher,
+                        starter: comp.starter,
+                        allKeys: Object.keys(comp),
+                        statistics: comp.statistics,
+                        fullCompetitorObject: comp
+                    });
+                    
+                    // Check for pitcher info in statistics
+                    if (comp.statistics) {
+                        const pitcherStats = comp.statistics.find(stat => 
+                            stat.name?.toLowerCase().includes('pitcher') || 
+                            stat.name?.toLowerCase().includes('starter')
+                        );
+                        if (pitcherStats) {
+                            console.log(`Found pitcher stats:`, pitcherStats);
+                        }
+                    }
+                });
+            }
+            
+            // Check if pitcher info is in the event object itself
+            console.log('Event keys that might contain pitcher info:', Object.keys(event).filter(key => 
+                key.toLowerCase().includes('pitcher') || 
+                key.toLowerCase().includes('starter') ||
+                key.toLowerCase().includes('probable')
+            ));
+            
+            console.log('=== END MLB PITCHER DEBUG ===');
             
             console.log('Raw event data:', event);
             console.log('Fetch timestamp:', new Date().toISOString());
@@ -1071,11 +1185,98 @@ function parseESPNData(espnData, sportKey) {
             }
         }
 
+        // Extract starting pitcher information for MLB games
+        let awayPitcher = null;
+        let homePitcher = null;
+        
+        if (sportKey === 'mlb' && competition?.competitors) {
+            const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+            const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+            
+            // Try multiple possible locations for pitcher information
+            if (awayTeam) {
+                awayPitcher = awayTeam.probablePitcher?.displayName || 
+                             awayTeam.probablePitcher?.name ||
+                             awayTeam.pitcher?.displayName ||
+                             awayTeam.pitcher?.name ||
+                             awayTeam.starter?.displayName ||
+                             awayTeam.starter?.name;
+                
+                if (awayPitcher) {
+                    console.log(`Away team pitcher found: ${awayPitcher}`);
+                } else {
+                    console.log('No away team pitcher found in API response');
+                }
+            }
+            
+            if (homeTeam) {
+                homePitcher = homeTeam.probablePitcher?.displayName || 
+                             homeTeam.probablePitcher?.name ||
+                             homeTeam.pitcher?.displayName ||
+                             homeTeam.pitcher?.name ||
+                             homeTeam.starter?.displayName ||
+                             homeTeam.starter?.name;
+                
+                if (homePitcher) {
+                    console.log(`Home team pitcher found: ${homePitcher}`);
+                } else {
+                    console.log('No home team pitcher found in API response');
+                }
+            }
+            
+            // Note: ESPN API scoreboard endpoint doesn't include pitcher information
+            // This would need to be fetched from a different API endpoint or data source
+        }
+
+        // Extract team names and clean them for display
+        // Use shortDisplayName for all sports to show shorter team names
+        let awayTeamName = awayTeam.team?.shortDisplayName || awayTeam.team?.name || awayTeam.team?.displayName || 'TBD';
+        let homeTeamName = homeTeam.team?.shortDisplayName || homeTeam.team?.name || homeTeam.team?.displayName || 'TBD';
+        
+        // Debug: Log what we're getting from the API
+        if (sportKey === 'college-football') {
+            console.log(`🔍 Raw API data for team names:`);
+            console.log(`  Away - name: "${awayTeam.team?.name}", displayName: "${awayTeam.team?.displayName}", shortDisplayName: "${awayTeam.team?.shortDisplayName}", abbreviation: "${awayTeam.team?.abbreviation}"`);
+            console.log(`  Home - name: "${homeTeam.team?.name}", displayName: "${homeTeam.team?.displayName}", shortDisplayName: "${homeTeam.team?.shortDisplayName}", abbreviation: "${homeTeam.team?.abbreviation}"`);
+            console.log(`  Full away team object:`, JSON.stringify(awayTeam.team, null, 2));
+            console.log(`  Full home team object:`, JSON.stringify(homeTeam.team, null, 2));
+        }
+        
+        // Clean team names for college football to show just the school name
+        if (sportKey === 'college-football') {
+            console.log(`🧹 Cleaning team names:`);
+            console.log(`  Away: "${awayTeamName}" -> "${cleanCollegeFootballTeamName(awayTeamName)}"`);
+            console.log(`  Home: "${homeTeamName}" -> "${cleanCollegeFootballTeamName(homeTeamName)}"`);
+            const originalAway = awayTeamName;
+            const originalHome = homeTeamName;
+            awayTeamName = cleanCollegeFootballTeamName(awayTeamName);
+            homeTeamName = cleanCollegeFootballTeamName(homeTeamName);
+            
+            // Debug: Check if cleaning changed the names
+            if (originalAway !== awayTeamName) {
+                console.log(`🔄 Away team name changed: "${originalAway}" -> "${awayTeamName}"`);
+            }
+            if (originalHome !== homeTeamName) {
+                console.log(`🔄 Home team name changed: "${originalHome}" -> "${homeTeamName}"`);
+            }
+        }
+        
+        // Debug: Log team names for college football
+        if (sportKey === 'college-football') {
+            console.log(`🏈 College Football game found:`);
+            console.log(`  Away: "${awayTeamName}" (raw name: ${awayTeam.team?.name || 'undefined'}, displayName: ${awayTeam.team?.displayName || 'undefined'}, shortDisplayName: ${awayTeam.team?.shortDisplayName || 'undefined'})`);
+            console.log(`  Home: "${homeTeamName}" (raw name: ${homeTeam.team?.name || 'undefined'}, displayName: ${homeTeam.team?.displayName || 'undefined'}, shortDisplayName: ${homeTeam.team?.shortDisplayName || 'undefined'})`);
+            console.log(`  Away team object:`, awayTeam.team);
+            console.log(`  Home team object:`, homeTeam.team);
+            console.log(`  Away team abbreviation:`, awayTeam.team?.abbreviation);
+            console.log(`  Home team abbreviation:`, homeTeam.team?.abbreviation);
+        }
+        
         const parsedGame = {
             id: event.id,
             sport: sportKey,
-            awayTeam: awayTeam.team?.name || awayTeam.team?.displayName || 'TBD',
-            homeTeam: homeTeam.team?.name || homeTeam.team?.displayName || 'TBD',
+            awayTeam: awayTeamName,
+            homeTeam: homeTeamName,
             awayScore: awayTeam.score || '0',
             homeScore: homeTeam.score || '0',
             status: status,
@@ -1094,6 +1295,8 @@ function parseESPNData(espnData, sportKey) {
             homeTeamId: homeTeamId,
             awayTeamRecord: awayTeamRecord,
             homeTeamRecord: homeTeamRecord,
+            awayPitcher: awayPitcher,
+            homePitcher: homePitcher,
             time: getLiveGameTime(event),
             displayDate: displayDateTime.date,
             displayTime: displayDateTime.time,
@@ -1349,9 +1552,28 @@ function displayScores(scores) {
         const scoreChanged = checkScoreChange(game);
         const changeClass = scoreChanged ? 'score-changed' : '';
         
+        // Debug pitcher information for scheduled MLB games
+        if (game.sport === 'mlb' && game.status === 'scheduled') {
+            console.log(`MLB scheduled game: ${game.awayTeam} vs ${game.homeTeam}`);
+            console.log(`Away pitcher: ${game.awayPitcher || 'Not available'}, Home pitcher: ${game.homePitcher || 'Not available'}`);
+        }
+        
         // Get team logos
-        const awayLogo = getTeamLogo(game.awayTeam, game.sport);
-        const homeLogo = getTeamLogo(game.homeTeam, game.sport);
+    if (game.sport === 'college-football') {
+        console.log(`🎯 Getting logos for real college football game:`);
+        console.log(`  Away team: "${game.awayTeam}"`);
+        console.log(`  Home team: "${game.homeTeam}"`);
+    }
+    
+    const awayLogo = getTeamLogo(game.awayTeam, game.sport);
+    const homeLogo = getTeamLogo(game.homeTeam, game.sport);
+    
+    // Debug cache after getting logos
+    if (game.sport === 'college-football') {
+        console.log(`Cache status after getting logos:`);
+        console.log(`  Away: ${logoCache.has(`${game.sport}-${game.awayTeam}`) ? 'cached' : 'not cached'}`);
+        console.log(`  Home: ${logoCache.has(`${game.sport}-${game.homeTeam}`) ? 'cached' : 'not cached'}`);
+    }
         
         return `
             <div class="score-card ${changeClass}" data-game-id="${game.sport}-${game.awayTeam}-${game.homeTeam}">
@@ -1376,6 +1598,7 @@ function displayScores(scores) {
                                 <div class="team-details">
                                     <span class="team-name">${game.awayTeam}</span>
                                     ${game.awayTeamRecord ? `<span class="team-record">${game.awayTeamRecord}</span>` : ''}
+                                    ${game.sport === 'mlb' && game.status === 'scheduled' && game.awayPitcher ? `<span class="pitcher-info">${game.awayPitcher}</span>` : ''}
                                 </div>
                             </div>
                             <span class="team-score ${game.status === 'scheduled' ? 'scheduled' : ''}">
@@ -1390,6 +1613,7 @@ function displayScores(scores) {
                                 <div class="team-details">
                                     <span class="team-name">${game.homeTeam}</span>
                                     ${game.homeTeamRecord ? `<span class="team-record">${game.homeTeamRecord}</span>` : ''}
+                                    ${game.sport === 'mlb' && game.status === 'scheduled' && game.homePitcher ? `<span class="pitcher-info">${game.homePitcher}</span>` : ''}
                                 </div>
                             </div>
                             <span class="team-score ${game.status === 'scheduled' ? 'scheduled' : ''}">
@@ -1950,27 +2174,153 @@ window.addEventListener('offline', function() {
 // Get team logo from working sports logo APIs
 function getTeamLogo(teamName, sport) {
     console.log(`Getting logo for: ${teamName} (${sport})`);
+    console.log(`Sport type check - is college-football? ${sport === 'college-football'}`);
+    
+    // Check cache first
+    const cacheKey = `${sport}-${teamName}`;
+    if (logoCache.has(cacheKey)) {
+        const cachedResult = logoCache.get(cacheKey);
+        console.log(`Using cached logo result for ${teamName}: ${cachedResult === 'FAILED' ? 'Failed' : 'URL found'}`);
+        if (cachedResult && cachedResult !== 'FAILED') {
+            return createLogoHTML(teamName, sport, cachedResult);
+        } else {
+            return createFallbackLogo(teamName, sport);
+        }
+    }
     
     // Try to get logo from working sources
     const logoUrl = getWorkingLogoUrl(teamName, sport);
     console.log(`Logo URL generated: ${logoUrl}`);
     
     if (logoUrl) {
-        // Return an img tag with the real logo and hidden fallback
-        const logoHTML = `
-            <img src="${logoUrl}" alt="${teamName}" 
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
-                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; display: block;" />
-            <div class="fallback-logo" style="display: none; background: ${getFallbackColor(sport)}; width: 100%; height: 100%; border-radius: 50%; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">${getTeamInitials(teamName)}</div>
-        `;
-        console.log(`Logo HTML generated for ${teamName}:`, logoHTML);
-        return logoHTML;
+        console.log(`Logo HTML generated for ${teamName}`);
+        return createLogoHTML(teamName, sport, logoUrl);
+    } else {
+        // Cache the failure
+        logoCache.set(cacheKey, 'FAILED');
+        console.log(`No logo URL found for ${teamName}, using fallback`);
+        return createFallbackLogo(teamName, sport);
     }
+}
+
+// Create logo HTML with proper error handling
+function createLogoHTML(teamName, sport, logoUrl) {
+    const cacheKey = `${sport}-${teamName}`;
     
-    // If no working URL, just show fallback
-    console.log(`No logo URL found for ${teamName}, using fallback`);
+    return `
+        <img src="${logoUrl}" alt="${teamName}" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; logoCache.set('${cacheKey}', 'FAILED'); this.onerror=null;" 
+             onload="this.style.display='block'; this.nextElementSibling.style.display='none'; logoCache.set('${cacheKey}', '${logoUrl}');"
+             style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; display: block;" />
+        <div class="fallback-logo" style="display: none; background: ${getFallbackColor(sport)}; width: 100%; height: 100%; border-radius: 50%; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">${getTeamInitials(teamName)}</div>
+    `;
+}
+
+// Create fallback logo
+function createFallbackLogo(teamName, sport) {
     return `<div class="fallback-logo" style="background: ${getFallbackColor(sport)}; width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">${getTeamInitials(teamName)}</div>`;
 }
+
+// Check if a logo URL is from a known working source
+function isKnownWorkingLogoUrl(url) {
+    if (!url) return false;
+    
+    // ESPN URLs are generally reliable
+    if (url.includes('espncdn.com')) return true;
+    
+    // Other known working patterns
+    if (url.includes('sportslogos.net')) return true;
+    if (url.includes('logos-world.net')) return true;
+    if (url.includes('teamlogos.net')) return true;
+    if (url.includes('cdn.sportlogos.net')) return true;
+    
+    // Allow any URL that looks like a valid image URL
+    if (url.startsWith('http') && (url.includes('.png') || url.includes('.jpg') || url.includes('.jpeg') || url.includes('.svg'))) {
+        return true;
+    }
+    
+    // If it's not a known pattern, be conservative and cache as failed
+    return false;
+}
+
+// Clear logo cache (useful for debugging)
+function clearLogoCache() {
+    logoCache.clear();
+    console.log('Logo cache cleared');
+}
+
+// Get logo cache stats
+function getLogoCacheStats() {
+    const stats = {
+        total: logoCache.size,
+        successful: 0,
+        failed: 0
+    };
+    
+    for (const [key, value] of logoCache.entries()) {
+        if (value === 'FAILED') {
+            stats.failed++;
+        } else {
+            stats.successful++;
+        }
+    }
+    
+    console.log('Logo Cache Stats:', stats);
+    return stats;
+}
+
+// Make cache accessible for debugging
+window.logoCache = logoCache;
+window.clearLogoCache = clearLogoCache;
+window.getLogoCacheStats = getLogoCacheStats;
+
+// Function to test ESPN API response structure
+window.testESPNResponse = async function() {
+    try {
+        const year = new Date().getFullYear();
+        const month = String(new Date().getMonth() + 1).padStart(2, '0');
+        const day = String(new Date().getDate()).padStart(2, '0');
+        const dateParam = `${year}${month}${day}`;
+        const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=${dateParam}`;
+        
+        console.log('Testing ESPN API response structure...');
+        console.log('URL:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        console.log('=== ESPN API RESPONSE STRUCTURE ===');
+        console.log('Total events:', data.events?.length || 0);
+        
+        if (data.events && data.events.length > 0) {
+            const firstEvent = data.events[0];
+            console.log('First event structure:', firstEvent);
+            
+            if (firstEvent.competitions && firstEvent.competitions[0] && firstEvent.competitions[0].competitors) {
+                const competitors = firstEvent.competitions[0].competitors;
+                console.log('Competitors structure:', competitors);
+                
+                competitors.forEach((comp, index) => {
+                    console.log(`Competitor ${index}:`, comp);
+                    console.log(`  Team object:`, comp.team);
+                    console.log(`  Team name:`, comp.team?.name);
+                    console.log(`  Team displayName:`, comp.team?.displayName);
+                    console.log(`  Team shortDisplayName:`, comp.team?.shortDisplayName);
+                    console.log(`  Team abbreviation:`, comp.team?.abbreviation);
+                    console.log(`  Home/Away:`, comp.homeAway);
+                });
+            }
+        }
+        console.log('=== END ESPN API RESPONSE STRUCTURE ===');
+        
+        return data;
+    } catch (error) {
+        console.error('Error testing ESPN API:', error);
+    }
+};
+
+// Clear cache on page load to start fresh
+clearLogoCache();
 
 // Get fallback color for different sports
 function getFallbackColor(sport) {
@@ -2027,6 +2377,18 @@ function getWorkingLogoUrl(teamName, sport) {
         const soccerUrl = getSoccerLogoUrl(teamName);
         console.log(`Soccer URL result: ${soccerUrl}`);
         return soccerUrl;
+    } else if (sport === 'college-football') {
+        console.log(`College Football logo lookup for: ${teamName}`);
+        console.log(`🔍 Looking up logo for cleaned team name: "${teamName}"`);
+        const collegeFootballUrl = getCollegeFootballLogoUrl(teamName);
+        console.log(`College Football URL result: ${collegeFootballUrl}`);
+        if (collegeFootballUrl) {
+            console.log(`✅ College Football logo found for ${teamName}: ${collegeFootballUrl}`);
+        } else {
+            console.log(`❌ No College Football logo found for ${teamName}`);
+            console.log(`🔍 Team name "${teamName}" not found in logo database`);
+        }
+        return collegeFootballUrl;
     }
     
     console.log(`No specific sport handler for: ${sport}, using generic fallback`);
@@ -2574,6 +2936,913 @@ function getSoccerLogoUrl(teamName) {
     
     console.log(`No Soccer logo found for: ${teamName}`);
     return null;
+}
+
+// Get College Football logo URLs with comprehensive team database
+function getCollegeFootballLogoUrl(teamName) {
+    console.log(`🔍 College Football logo search for: "${teamName}"`);
+    console.log(`🔍 Team name type: ${typeof teamName}, length: ${teamName?.length}`);
+    
+    const collegeFootballLogos = {
+        // Power 5 Conferences - SEC
+        'Alabama': 'https://a.espncdn.com/i/teamlogos/ncaa/500/333.png',
+        'Auburn': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2.png',
+        'Florida': 'https://a.espncdn.com/i/teamlogos/ncaa/500/57.png',
+        'Georgia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png',
+        'Kentucky': 'https://a.espncdn.com/i/teamlogos/ncaa/500/96.png',
+        'LSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/99.png',
+        'Mississippi State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/344.png',
+        'Missouri': 'https://a.espncdn.com/i/teamlogos/ncaa/500/142.png',
+        'Ole Miss': 'https://a.espncdn.com/i/teamlogos/ncaa/500/145.png',
+        'South Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2579.png',
+        'Tennessee': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png',
+        'Texas A&M': 'https://a.espncdn.com/i/teamlogos/ncaa/500/245.png',
+        'Vanderbilt': 'https://a.espncdn.com/i/teamlogos/ncaa/500/238.png',
+        'Arkansas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/8.png',
+        
+        // Power 5 Conferences - Big Ten
+        'Ohio State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/194.png',
+        'Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/130.png',
+        'Penn State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/213.png',
+        'Wisconsin': 'https://a.espncdn.com/i/teamlogos/ncaa/500/275.png',
+        'Iowa': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png',
+        'Michigan State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png',
+        'Nebraska': 'https://a.espncdn.com/i/teamlogos/ncaa/500/158.png',
+        'Minnesota': 'https://a.espncdn.com/i/teamlogos/ncaa/500/135.png',
+        'Northwestern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/77.png',
+        'Purdue': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2509.png',
+        'Indiana': 'https://a.espncdn.com/i/teamlogos/ncaa/500/84.png',
+        'Illinois': 'https://a.espncdn.com/i/teamlogos/ncaa/500/356.png',
+        'Maryland': 'https://a.espncdn.com/i/teamlogos/ncaa/500/120.png',
+        'Rutgers': 'https://a.espncdn.com/i/teamlogos/ncaa/500/164.png',
+        
+        // Power 5 Conferences - ACC
+        'Clemson': 'https://a.espncdn.com/i/teamlogos/ncaa/500/228.png',
+        'Florida State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/52.png',
+        'Miami': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png',
+        'Virginia Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/259.png',
+        'North Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/153.png',
+        'NC State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/152.png',
+        'Duke': 'https://a.espncdn.com/i/teamlogos/ncaa/500/150.png',
+        'Wake Forest': 'https://a.espncdn.com/i/teamlogos/ncaa/500/154.png',
+        'Boston College': 'https://a.espncdn.com/i/teamlogos/ncaa/500/103.png',
+        'Louisville': 'https://a.espncdn.com/i/teamlogos/ncaa/500/97.png',
+        'Pittsburgh': 'https://a.espncdn.com/i/teamlogos/ncaa/500/221.png',
+        'Syracuse': 'https://a.espncdn.com/i/teamlogos/ncaa/500/183.png',
+        'Virginia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/258.png',
+        'Georgia Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/59.png',
+        
+        // Power 5 Conferences - Big 12
+        'Texas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/251.png',
+        'Oklahoma': 'https://a.espncdn.com/i/teamlogos/ncaa/500/201.png',
+        'Oklahoma State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/197.png',
+        'TCU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2628.png',
+        'Baylor': 'https://a.espncdn.com/i/teamlogos/ncaa/500/239.png',
+        'Kansas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2306.png',
+        'Iowa State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/66.png',
+        'Kansas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png',
+        'West Virginia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/277.png',
+        'Texas Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png',
+        'BYU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/252.png',
+        'Cincinnati': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2132.png',
+        'Houston': 'https://a.espncdn.com/i/teamlogos/ncaa/500/248.png',
+        'UCF': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2116.png',
+        
+        // Power 5 Conferences - Pac-12
+        'USC': 'https://a.espncdn.com/i/teamlogos/ncaa/500/30.png',
+        'UCLA': 'https://a.espncdn.com/i/teamlogos/ncaa/500/26.png',
+        'Oregon': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png',
+        'Washington': 'https://a.espncdn.com/i/teamlogos/ncaa/500/264.png',
+        'Stanford': 'https://a.espncdn.com/i/teamlogos/ncaa/500/24.png',
+        'California': 'https://a.espncdn.com/i/teamlogos/ncaa/500/25.png',
+        'Arizona': 'https://a.espncdn.com/i/teamlogos/ncaa/500/12.png',
+        'Arizona State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/9.png',
+        'Utah': 'https://a.espncdn.com/i/teamlogos/ncaa/500/254.png',
+        'Colorado': 'https://a.espncdn.com/i/teamlogos/ncaa/500/38.png',
+        'Oregon State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/204.png',
+        'Washington State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png',
+        
+        // Other Notable Programs
+        'Notre Dame': 'https://a.espncdn.com/i/teamlogos/ncaa/500/87.png',
+        'Army': 'https://a.espncdn.com/i/teamlogos/ncaa/500/349.png',
+        'Navy': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2426.png',
+        'Air Force': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Boise State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/68.png',
+        'Memphis': 'https://a.espncdn.com/i/teamlogos/ncaa/500/235.png',
+        'SMU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png',
+        'Tulane': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2655.png',
+        'Liberty': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2335.png',
+        'Appalachian State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png',
+        'Coastal Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/324.png',
+        'Marshall': 'https://a.espncdn.com/i/teamlogos/ncaa/500/276.png',
+        'Western Kentucky': 'https://a.espncdn.com/i/teamlogos/ncaa/500/98.png',
+        'Troy': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2653.png',
+        'South Alabama': 'https://a.espncdn.com/i/teamlogos/ncaa/500/6.png',
+        'Louisiana': 'https://a.espncdn.com/i/teamlogos/ncaa/500/309.png',
+        'Louisiana Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2348.png',
+        'Southern Miss': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png',
+        'Arkansas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png',
+        'Texas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/326.png',
+        'UTSA': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2636.png',
+        'North Texas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/249.png',
+        'Rice': 'https://a.espncdn.com/i/teamlogos/ncaa/500/242.png',
+        'Charlotte': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2429.png',
+        'Florida Atlantic': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png',
+        'FIU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png',
+        'Middle Tennessee': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png',
+        'Old Dominion': 'https://a.espncdn.com/i/teamlogos/ncaa/500/295.png',
+        'James Madison': 'https://a.espncdn.com/i/teamlogos/ncaa/500/256.png',
+        'Georgia State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png',
+        'Georgia Southern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2240.png',
+        'Temple': 'https://a.espncdn.com/i/teamlogos/ncaa/500/218.png',
+        'East Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/151.png',
+        'Tulsa': 'https://a.espncdn.com/i/teamlogos/ncaa/500/202.png',
+        'Nevada': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png',
+        'UNLV': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png',
+        'San Diego State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/21.png',
+        'Fresno State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/278.png',
+        'Hawaii': 'https://a.espncdn.com/i/teamlogos/ncaa/500/62.png',
+        'Wyoming': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png',
+        'Utah State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/328.png',
+        'Colorado State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/36.png',
+        'New Mexico': 'https://a.espncdn.com/i/teamlogos/ncaa/500/167.png',
+        'Air Force': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'San Jose State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/23.png',
+        'Toledo': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2649.png',
+        'Northern Illinois': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2459.png',
+        'Central Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png',
+        'Western Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2711.png',
+        'Eastern Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png',
+        'Ball State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2050.png',
+        'Miami (OH)': 'https://a.espncdn.com/i/teamlogos/ncaa/500/193.png',
+        'Ohio': 'https://a.espncdn.com/i/teamlogos/ncaa/500/195.png',
+        'Akron': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png',
+        'Kent State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2309.png',
+        'Buffalo': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2084.png',
+        'Bowling Green': 'https://a.espncdn.com/i/teamlogos/ncaa/500/189.png',
+        'Miami (OH)': 'https://a.espncdn.com/i/teamlogos/ncaa/500/193.png',
+        'Ohio': 'https://a.espncdn.com/i/teamlogos/ncaa/500/195.png',
+        'Akron': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png',
+        'Kent State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2309.png',
+        'Buffalo': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2084.png',
+        'Bowling Green': 'https://a.espncdn.com/i/teamlogos/ncaa/500/189.png',
+        
+        // Missing important FBS teams
+        'Connecticut': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
+        'UMass': 'https://a.espncdn.com/i/teamlogos/ncaa/500/113.png',
+        'New Mexico State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/166.png',
+        'Sam Houston': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2383.png',
+        'Jacksonville State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2290.png',
+        'Kennesaw State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2302.png',
+        'Delaware': 'https://a.espncdn.com/i/teamlogos/ncaa/500/45.png',
+        'Tarleton State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2643.png',
+        'Utah Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/328.png',
+        
+        // Additional important FBS teams
+        'USF': 'https://a.espncdn.com/i/teamlogos/ncaa/500/58.png',
+        'South Florida': 'https://a.espncdn.com/i/teamlogos/ncaa/500/58.png',
+        
+        // Common ESPN API variations that might not match exactly
+        'Florida Atlantic': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png',
+        'Florida International': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png',
+        'FIU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png',
+        'FAU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png',
+        'Middle Tennessee State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png',
+        'MTSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png',
+        'Old Dominion': 'https://a.espncdn.com/i/teamlogos/ncaa/500/295.png',
+        'ODU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/295.png',
+        'James Madison': 'https://a.espncdn.com/i/teamlogos/ncaa/500/256.png',
+        'JMU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/256.png',
+        'Georgia State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png',
+        'Georgia Southern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2240.png',
+        'Temple': 'https://a.espncdn.com/i/teamlogos/ncaa/500/218.png',
+        'East Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/151.png',
+        'ECU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/151.png',
+        'Tulsa': 'https://a.espncdn.com/i/teamlogos/ncaa/500/202.png',
+        'Nevada': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png',
+        'UNLV': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png',
+        'San Diego State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/21.png',
+        'SDSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/21.png',
+        'Fresno State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/278.png',
+        'Hawaii': 'https://a.espncdn.com/i/teamlogos/ncaa/500/62.png',
+        'Wyoming': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png',
+        'Utah State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/328.png',
+        'Colorado State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/36.png',
+        'CSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/36.png',
+        'New Mexico': 'https://a.espncdn.com/i/teamlogos/ncaa/500/167.png',
+        'San Jose State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/23.png',
+        'SJSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/23.png',
+        
+        // Fix teams showing fallback logos - add ESPN API variations
+        'Abilene Chrstn': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Abilene Christian': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Akron': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png',
+        'UAB': 'https://a.espncdn.com/i/teamlogos/ncaa/500/5.png',
+        'Alabama-Birmingham': 'https://a.espncdn.com/i/teamlogos/ncaa/500/5.png',
+        'Air Force': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Southern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png',
+        'Southern Miss': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png',
+        'Fresno St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/278.png',
+        'Fresno State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/278.png',
+        'Texas St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/326.png',
+        'Texas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/326.png',
+        'Arizona St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/9.png',
+        'Arizona State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/9.png',
+        'Portland St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png',
+        'Portland State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png',
+        'Hawai\'i': 'https://a.espncdn.com/i/teamlogos/ncaa/500/62.png',
+        'Hawaii': 'https://a.espncdn.com/i/teamlogos/ncaa/500/62.png',
+        
+        // More ESPN API variations for teams showing fallback logos
+        'W Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2711.png',
+        'Western Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2711.png',
+        'Arkansas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/8.png',
+        'Ole Miss': 'https://a.espncdn.com/i/teamlogos/ncaa/500/145.png',
+        'Jax State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2290.png',
+        'Jacksonville State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2290.png',
+        'GA Southern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2240.png',
+        'Georgia Southern': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2240.png',
+        'Murray St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2399.png',
+        'Murray State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2399.png',
+        'Georgia St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png',
+        'Georgia State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png',
+        'App State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png',
+        'Appalachian State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png',
+        'Southern Miss': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png',
+        'Prairie View': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2220.png',
+        'Prairie View A&M': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2220.png',
+        'E Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png',
+        'Eastern Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png',
+        'UMass': 'https://a.espncdn.com/i/teamlogos/ncaa/500/113.png',
+        'New Mexico St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/166.png',
+        'New Mexico State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/166.png',
+        'Louisiana Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2348.png',
+        'East Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/151.png',
+        'ECU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/151.png',
+        'Coastal': 'https://a.espncdn.com/i/teamlogos/ncaa/500/324.png',
+        'Coastal Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/324.png',
+        
+        // All the teams still showing fallback logos from the screenshot
+        'C Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png',
+        'Central Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png',
+        'Hou Christian': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2264.png',
+        'Houston Christian': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2264.png',
+        'Towson': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2636.png',
+        'Maryland': 'https://a.espncdn.com/i/teamlogos/ncaa/500/120.png',
+        'William & Mary': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2765.png',
+        'Virginia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/258.png',
+        'Samford': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2549.png',
+        'Baylor': 'https://a.espncdn.com/i/teamlogos/ncaa/500/239.png',
+        'New Hampshire': 'https://a.espncdn.com/i/teamlogos/ncaa/500/164.png',
+        'Ball State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2050.png',
+        'Villanova': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2785.png',
+        'Penn State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/213.png',
+        'Georgia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png',
+        'Tennessee': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png',
+        'Oregon St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/204.png',
+        'Oregon State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/204.png',
+        'Texas Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png',
+        'Norfolk St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2458.png',
+        'Norfolk State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2458.png',
+        'Rutgers': 'https://a.espncdn.com/i/teamlogos/ncaa/500/164.png',
+        'Youngstown St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2786.png',
+        'Youngstown State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2786.png',
+        'Washington St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png',
+        'Washington State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/265.png',
+        'North Texas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/249.png',
+        'SMU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png',
+        'Missouri St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2438.png',
+        'Missouri State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2438.png',
+        'Pitt': 'https://a.espncdn.com/i/teamlogos/ncaa/500/221.png',
+        'Pittsburgh': 'https://a.espncdn.com/i/teamlogos/ncaa/500/221.png',
+        'West Virginia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/277.png',
+        'Richmond': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2508.png',
+        'North Carolina': 'https://a.espncdn.com/i/teamlogos/ncaa/500/153.png',
+        'N\'Western St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2460.png',
+        'Northwestern State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2460.png',
+        'Cincinnati': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2132.png',
+        'Incarnate Word': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2271.png',
+        'UTSA': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png',
+        'Morgan St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2434.png',
+        'Morgan State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2434.png',
+        'Toledo': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2649.png',
+        'Iowa State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/66.png',
+        'Arkansas St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2037.png',
+        'Arkansas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2037.png',
+        'UTEP': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2639.png',
+        'Texas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/251.png',
+        'South Florida': 'https://a.espncdn.com/i/teamlogos/ncaa/500/58.png',
+        'USF': 'https://a.espncdn.com/i/teamlogos/ncaa/500/58.png',
+        'Miami': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png',
+        'Liberty': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2335.png',
+        'Bowling Green': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2085.png',
+        'MTSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2393.png',
+        'Nevada': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png',
+        'Alcorn St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Alcorn State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png',
+        'Mississippi St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/142.png',
+        'Mississippi State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/142.png',
+        'Merrimack': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2425.png',
+        'Kennesaw St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png',
+        'Kennesaw State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png',
+        'E Kentucky': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2185.png',
+        'Eastern Kentucky': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2185.png',
+        'Marshall': 'https://a.espncdn.com/i/teamlogos/ncaa/500/276.png',
+        'Monmouth': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2435.png',
+        'Charlotte': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2429.png',
+        'USC': 'https://a.espncdn.com/i/teamlogos/ncaa/500/30.png',
+        'Purdue': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2509.png',
+        'Ohio': 'https://a.espncdn.com/i/teamlogos/ncaa/500/195.png',
+        'Ohio State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/194.png',
+        'Illinois': 'https://a.espncdn.com/i/teamlogos/ncaa/500/356.png',
+        'Old Dominion': 'https://a.espncdn.com/i/teamlogos/ncaa/500/295.png',
+        'Virginia Tech': 'https://a.espncdn.com/i/teamlogos/ncaa/500/259.png',
+        'Florida': 'https://a.espncdn.com/i/teamlogos/ncaa/500/57.png',
+        'LSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/99.png',
+        'Texas A&M': 'https://a.espncdn.com/i/teamlogos/ncaa/500/245.png',
+        'Notre Dame': 'https://a.espncdn.com/i/teamlogos/ncaa/500/87.png',
+        'Rice': 'https://a.espncdn.com/i/teamlogos/ncaa/500/242.png',
+        
+        // Additional missing teams
+        'UConn': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
+        'Connecticut': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
+        'Michigan St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png',
+        'Michigan State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png'
+    };
+    
+    // Try exact match first
+    console.log(`🔍 Trying exact match for: "${teamName}"`);
+    console.log(`🔍 Team name length: ${teamName?.length}, type: ${typeof teamName}`);
+    console.log(`🔍 First 10 available keys:`, Object.keys(collegeFootballLogos).slice(0, 10));
+    
+    if (collegeFootballLogos[teamName]) {
+        console.log(`✅ Exact match found for "${teamName}": ${collegeFootballLogos[teamName]}`);
+        return collegeFootballLogos[teamName];
+    } else {
+        console.log(`❌ No exact match for: "${teamName}"`);
+        console.log(`🔍 Checking if similar keys exist:`);
+        const similarKeys = Object.keys(collegeFootballLogos).filter(key => 
+            key.toLowerCase().includes(teamName.toLowerCase()) || 
+            teamName.toLowerCase().includes(key.toLowerCase())
+        );
+        console.log(`🔍 Similar keys found:`, similarKeys);
+    }
+    
+    // Try flexible matching for common variations
+    const teamVariations = {
+        // Common abbreviations and variations
+        'Ohio St': 'Ohio State',
+        'Ohio St.': 'Ohio State',
+        'Mich St': 'Michigan State',
+        'Mich St.': 'Michigan State',
+        'Penn St': 'Penn State',
+        'Penn St.': 'Penn State',
+        
+        // ESPN API common variations (full team names with mascots)
+        'Alabama Crimson Tide': 'Alabama',
+        'Georgia Bulldogs': 'Georgia',
+        'Ohio State Buckeyes': 'Ohio State',
+        'Michigan Wolverines': 'Michigan',
+        'LSU Tigers': 'LSU',
+        'Florida Gators': 'Florida',
+        'Auburn Tigers': 'Auburn',
+        'Tennessee Volunteers': 'Tennessee',
+        'Texas A&M Aggies': 'Texas A&M',
+        'Oklahoma Sooners': 'Oklahoma',
+        'Texas Longhorns': 'Texas',
+        'USC Trojans': 'USC',
+        'UCLA Bruins': 'UCLA',
+        'Oregon Ducks': 'Oregon',
+        'Washington Huskies': 'Washington',
+        'Notre Dame Fighting Irish': 'Notre Dame',
+        'Clemson Tigers': 'Clemson',
+        'Florida State Seminoles': 'Florida State',
+        'Miami Hurricanes': 'Miami',
+        'Virginia Tech Hokies': 'Virginia Tech',
+        'North Carolina Tar Heels': 'North Carolina',
+        'Duke Blue Devils': 'Duke',
+        'Wake Forest Demon Deacons': 'Wake Forest',
+        'Boston College Eagles': 'Boston College',
+        'Louisville Cardinals': 'Louisville',
+        'Pittsburgh Panthers': 'Pittsburgh',
+        'Syracuse Orange': 'Syracuse',
+        'Virginia Cavaliers': 'Virginia',
+        'Georgia Tech Yellow Jackets': 'Georgia Tech',
+        
+        'NC State': 'NC State',
+        'N.C. State': 'NC State',
+        'North Carolina State': 'NC State',
+        'Florida St': 'Florida State',
+        'Florida St.': 'Florida State',
+        'FSU': 'Florida State',
+        'Miami (FL)': 'Miami',
+        'Miami FL': 'Miami',
+        'Miami (Fla.)': 'Miami',
+        'Virginia Tech': 'Virginia Tech',
+        'Va Tech': 'Virginia Tech',
+        'VT': 'Virginia Tech',
+        'North Carolina': 'North Carolina',
+        'UNC': 'North Carolina',
+        'N.C.': 'North Carolina',
+        'Duke': 'Duke',
+        'Wake Forest': 'Wake Forest',
+        'Boston College': 'Boston College',
+        'BC': 'Boston College',
+        'Louisville': 'Louisville',
+        'Pittsburgh': 'Pittsburgh',
+        'Pitt': 'Pittsburgh',
+        'Syracuse': 'Syracuse',
+        'Virginia': 'Virginia',
+        'Georgia Tech': 'Georgia Tech',
+        'GT': 'Georgia Tech',
+        'Texas': 'Texas',
+        'Oklahoma': 'Oklahoma',
+        'OU': 'Oklahoma',
+        'Oklahoma St': 'Oklahoma State',
+        'Oklahoma St.': 'Oklahoma State',
+        'Okla St': 'Oklahoma State',
+        'Okla St.': 'Oklahoma State',
+        'TCU': 'TCU',
+        'Baylor': 'Baylor',
+        'Kansas St': 'Kansas State',
+        'Kansas St.': 'Kansas State',
+        'K-State': 'Kansas State',
+        'Iowa St': 'Iowa State',
+        'Iowa St.': 'Iowa State',
+        'Kansas': 'Kansas',
+        'West Virginia': 'West Virginia',
+        'WVU': 'West Virginia',
+        'Texas Tech': 'Texas Tech',
+        'Texas A&M': 'Texas A&M',
+        'A&M': 'Texas A&M',
+        'BYU': 'BYU',
+        'Cincinnati': 'Cincinnati',
+        'Houston': 'Houston',
+        'UCF': 'UCF',
+        'Central Florida': 'UCF',
+        'USC': 'USC',
+        'Southern Cal': 'USC',
+        'UCLA': 'UCLA',
+        'Oregon': 'Oregon',
+        'Washington': 'Washington',
+        'Stanford': 'Stanford',
+        'California': 'California',
+        'Cal': 'California',
+        'Arizona': 'Arizona',
+        'Arizona St': 'Arizona State',
+        'Arizona St.': 'Arizona State',
+        'Arizona State': 'Arizona State',
+        'Utah': 'Utah',
+        'Colorado': 'Colorado',
+        'Oregon St': 'Oregon State',
+        'Oregon St.': 'Oregon State',
+        'Washington St': 'Washington State',
+        'Washington St.': 'Washington State',
+        'WSU': 'Washington State',
+        'Notre Dame': 'Notre Dame',
+        'Army': 'Army',
+        'Navy': 'Navy',
+        'Air Force': 'Air Force',
+        'Boise St': 'Boise State',
+        'Boise St.': 'Boise State',
+        'Memphis': 'Memphis',
+        'SMU': 'SMU',
+        'Tulane': 'Tulane',
+        'Liberty': 'Liberty',
+        'App St': 'Appalachian State',
+        'App St.': 'Appalachian State',
+        'Appalachian St': 'Appalachian State',
+        'Appalachian St.': 'Appalachian State',
+        'Coastal Carolina': 'Coastal Carolina',
+        'Marshall': 'Marshall',
+        'Western Kentucky': 'Western Kentucky',
+        'WKU': 'Western Kentucky',
+        'Troy': 'Troy',
+        'South Alabama': 'South Alabama',
+        'Louisiana': 'Louisiana',
+        'Louisiana-Lafayette': 'Louisiana',
+        'UL Lafayette': 'Louisiana',
+        'Louisiana Tech': 'Louisiana Tech',
+        'La Tech': 'Louisiana Tech',
+        'Southern Miss': 'Southern Miss',
+        'Southern Mississippi': 'Southern Miss',
+        'Arkansas St': 'Arkansas State',
+        'Arkansas St.': 'Arkansas State',
+        'Texas St': 'Texas State',
+        'Texas St.': 'Texas State',
+        'UTSA': 'UTSA',
+        'North Texas': 'North Texas',
+        'Rice': 'Rice',
+        'Charlotte': 'Charlotte',
+        'Florida Atlantic': 'Florida Atlantic',
+        'FAU': 'Florida Atlantic',
+        'FIU': 'FIU',
+        'Florida International': 'FIU',
+        'Middle Tennessee': 'Middle Tennessee',
+        'MTSU': 'Middle Tennessee',
+        'Old Dominion': 'Old Dominion',
+        'ODU': 'Old Dominion',
+        'James Madison': 'James Madison',
+        'JMU': 'James Madison',
+        'Georgia State': 'Georgia State',
+        'Georgia Southern': 'Georgia Southern',
+        'Temple': 'Temple',
+        'East Carolina': 'East Carolina',
+        'ECU': 'East Carolina',
+        'Tulsa': 'Tulsa',
+        'Nevada': 'Nevada',
+        'UNLV': 'UNLV',
+        'San Diego St': 'San Diego State',
+        'San Diego St.': 'San Diego State',
+        'Fresno St': 'Fresno State',
+        'Fresno St.': 'Fresno State',
+        'Hawaii': 'Hawaii',
+        'Wyoming': 'Wyoming',
+        'Utah St': 'Utah State',
+        'Utah St.': 'Utah State',
+        'Colorado St': 'Colorado State',
+        'Colorado St.': 'Colorado State',
+        'New Mexico': 'New Mexico',
+        'San Jose St': 'San Jose State',
+        'San Jose St.': 'San Jose State',
+        'Toledo': 'Toledo',
+        'Northern Illinois': 'Northern Illinois',
+        'NIU': 'Northern Illinois',
+        'Central Michigan': 'Central Michigan',
+        'CMU': 'Central Michigan',
+        'Western Michigan': 'Western Michigan',
+        'WMU': 'Western Michigan',
+        'Eastern Michigan': 'Eastern Michigan',
+        'EMU': 'Eastern Michigan',
+        'Ball State': 'Ball State',
+        'Miami (OH)': 'Miami (OH)',
+        'Miami OH': 'Miami (OH)',
+        'Ohio': 'Ohio',
+        'Akron': 'Akron',
+        'Kent St': 'Kent State',
+        'Kent St.': 'Kent State',
+        'Buffalo': 'Buffalo',
+        'Bowling Green': 'Bowling Green',
+        'BGSU': 'Bowling Green'
+    };
+    
+    console.log(`🔍 Available logo keys (first 10):`, Object.keys(collegeFootballLogos).slice(0, 10));
+    
+    // ONLY use exact matches - no partial matching at all
+    if (collegeFootballLogos[teamName]) {
+        console.log(`✅ Exact match found for "${teamName}"`);
+        return collegeFootballLogos[teamName];
+    }
+    
+    // Try case-insensitive exact match as fallback
+    const teamNameLower = teamName.toLowerCase();
+    for (const [key, logoUrl] of Object.entries(collegeFootballLogos)) {
+        if (key.toLowerCase() === teamNameLower) {
+            console.log(`✅ Case-insensitive exact match found: "${teamName}" -> "${key}"`);
+            return logoUrl;
+        }
+    }
+    
+    console.log(`No College Football logo found for: ${teamName}`);
+    return null;
+}
+
+// Clean college football team names to show just the school name
+function cleanCollegeFootballTeamName(teamName) {
+    const teamNameMappings = {
+        // SEC
+        'Alabama Crimson Tide': 'Alabama',
+        'Auburn Tigers': 'Auburn',
+        'Florida Gators': 'Florida',
+        'Georgia Bulldogs': 'Georgia',
+        'Kentucky Wildcats': 'Kentucky',
+        'LSU Tigers': 'LSU',
+        'Mississippi State Bulldogs': 'Mississippi State',
+        'Missouri Tigers': 'Missouri',
+        'Ole Miss Rebels': 'Ole Miss',
+        'South Carolina Gamecocks': 'South Carolina',
+        'Tennessee Volunteers': 'Tennessee',
+        'Texas A&M Aggies': 'Texas A&M',
+        'Vanderbilt Commodores': 'Vanderbilt',
+        'Arkansas Razorbacks': 'Arkansas',
+        
+        // Big Ten
+        'Ohio State Buckeyes': 'Ohio State',
+        'Michigan Wolverines': 'Michigan',
+        'Penn State Nittany Lions': 'Penn State',
+        'Wisconsin Badgers': 'Wisconsin',
+        'Iowa Hawkeyes': 'Iowa',
+        'Michigan State Spartans': 'Michigan State',
+        'Nebraska Cornhuskers': 'Nebraska',
+        'Minnesota Golden Gophers': 'Minnesota',
+        'Northwestern Wildcats': 'Northwestern',
+        'Purdue Boilermakers': 'Purdue',
+        'Indiana Hoosiers': 'Indiana',
+        'Illinois Fighting Illini': 'Illinois',
+        'Maryland Terrapins': 'Maryland',
+        'Rutgers Scarlet Knights': 'Rutgers',
+        
+        // ACC
+        'Clemson Tigers': 'Clemson',
+        'Florida State Seminoles': 'Florida State',
+        'Miami Hurricanes': 'Miami',
+        'Virginia Tech Hokies': 'Virginia Tech',
+        'North Carolina Tar Heels': 'North Carolina',
+        'NC State Wolfpack': 'NC State',
+        'Duke Blue Devils': 'Duke',
+        'Wake Forest Demon Deacons': 'Wake Forest',
+        'Boston College Eagles': 'Boston College',
+        'Louisville Cardinals': 'Louisville',
+        'Pittsburgh Panthers': 'Pittsburgh',
+        'Syracuse Orange': 'Syracuse',
+        'Virginia Cavaliers': 'Virginia',
+        'Georgia Tech Yellow Jackets': 'Georgia Tech',
+        
+        // Big 12
+        'Texas Longhorns': 'Texas',
+        'Oklahoma Sooners': 'Oklahoma',
+        'Oklahoma State Cowboys': 'Oklahoma State',
+        'TCU Horned Frogs': 'TCU',
+        'Baylor Bears': 'Baylor',
+        'Kansas State Wildcats': 'Kansas State',
+        'Iowa State Cyclones': 'Iowa State',
+        'Kansas Jayhawks': 'Kansas',
+        'West Virginia Mountaineers': 'West Virginia',
+        'Texas Tech Red Raiders': 'Texas Tech',
+        'BYU Cougars': 'BYU',
+        'Cincinnati Bearcats': 'Cincinnati',
+        'Houston Cougars': 'Houston',
+        'UCF Knights': 'UCF',
+        
+        // Pac-12
+        'USC Trojans': 'USC',
+        'UCLA Bruins': 'UCLA',
+        'Oregon Ducks': 'Oregon',
+        'Washington Huskies': 'Washington',
+        'Stanford Cardinal': 'Stanford',
+        'California Golden Bears': 'California',
+        'Arizona Wildcats': 'Arizona',
+        'Arizona State Sun Devils': 'Arizona State',
+        'Utah Utes': 'Utah',
+        'Colorado Buffaloes': 'Colorado',
+        'Oregon State Beavers': 'Oregon State',
+        'Washington State Cougars': 'Washington State',
+        
+        // Other Notable Programs
+        'Notre Dame Fighting Irish': 'Notre Dame',
+        'Army Black Knights': 'Army',
+        'Navy Midshipmen': 'Navy',
+        'Air Force Falcons': 'Air Force',
+        'Boise State Broncos': 'Boise State',
+        'Memphis Tigers': 'Memphis',
+        'SMU Mustangs': 'SMU',
+        'Tulane Green Wave': 'Tulane',
+        'Liberty Flames': 'Liberty',
+        'Appalachian State Mountaineers': 'Appalachian State',
+        'Coastal Carolina Chanticleers': 'Coastal Carolina',
+        'Marshall Thundering Herd': 'Marshall',
+        'Western Kentucky Hilltoppers': 'Western Kentucky',
+        'Troy Trojans': 'Troy',
+        'South Alabama Jaguars': 'South Alabama',
+        'Louisiana Ragin\' Cajuns': 'Louisiana',
+        'Louisiana Tech Bulldogs': 'Louisiana Tech',
+        'Southern Miss Golden Eagles': 'Southern Miss',
+        'Arkansas State Red Wolves': 'Arkansas State',
+        'Texas State Bobcats': 'Texas State',
+        'UTSA Roadrunners': 'UTSA',
+        'North Texas Mean Green': 'North Texas',
+        'Rice Owls': 'Rice',
+        'Charlotte 49ers': 'Charlotte',
+        'Florida Atlantic Owls': 'Florida Atlantic',
+        'FIU Panthers': 'FIU',
+        'Middle Tennessee Blue Raiders': 'Middle Tennessee',
+        'Old Dominion Monarchs': 'Old Dominion',
+        'James Madison Dukes': 'James Madison',
+        'Georgia State Panthers': 'Georgia State',
+        'Georgia Southern Eagles': 'Georgia Southern',
+        'Temple Owls': 'Temple',
+        'East Carolina Pirates': 'East Carolina',
+        'Tulsa Golden Hurricane': 'Tulsa',
+        'Nevada Wolf Pack': 'Nevada',
+        'UNLV Rebels': 'UNLV',
+        'San Diego State Aztecs': 'San Diego State',
+        'Fresno State Bulldogs': 'Fresno State',
+        'Hawaii Rainbow Warriors': 'Hawaii',
+        'Wyoming Cowboys': 'Wyoming',
+        'Utah State Aggies': 'Utah State',
+        'Colorado State Rams': 'Colorado State',
+        'New Mexico Lobos': 'New Mexico',
+        'San Jose State Spartans': 'San Jose State',
+        'Toledo Rockets': 'Toledo',
+        'Northern Illinois Huskies': 'Northern Illinois',
+        'Central Michigan Chippewas': 'Central Michigan',
+        'Western Michigan Broncos': 'Western Michigan',
+        'Eastern Michigan Eagles': 'Eastern Michigan',
+        'Ball State Cardinals': 'Ball State',
+        'Miami (OH) RedHawks': 'Miami (OH)',
+        'Ohio Bobcats': 'Ohio',
+        'Akron Zips': 'Akron',
+        'Kent State Golden Flashes': 'Kent State',
+        'Buffalo Bulls': 'Buffalo',
+        'Bowling Green Falcons': 'Bowling Green',
+        
+        // Additional teams that might be missing
+        'UAB Blazers': 'UAB',
+        'UTEP Miners': 'UTEP',
+        'New Mexico State Aggies': 'New Mexico State',
+        'Massachusetts Minutemen': 'Massachusetts',
+        'Connecticut Huskies': 'Connecticut',
+        'UMass Minutemen': 'Massachusetts',
+        'Coastal Carolina Chanticleers': 'Coastal Carolina',
+        'App State Mountaineers': 'Appalachian State',
+        'Georgia Southern Eagles': 'Georgia Southern',
+        'Troy Trojans': 'Troy',
+        'South Alabama Jaguars': 'South Alabama',
+        'Louisiana Ragin\' Cajuns': 'Louisiana',
+        'Louisiana Tech Bulldogs': 'Louisiana Tech',
+        'Southern Miss Golden Eagles': 'Southern Miss',
+        'Arkansas State Red Wolves': 'Arkansas State',
+        'Texas State Bobcats': 'Texas State',
+        'UTSA Roadrunners': 'UTSA',
+        'North Texas Mean Green': 'North Texas',
+        'Rice Owls': 'Rice',
+        'Charlotte 49ers': 'Charlotte',
+        'Florida Atlantic Owls': 'Florida Atlantic',
+        'FIU Panthers': 'FIU',
+        'Middle Tennessee Blue Raiders': 'Middle Tennessee',
+        'Old Dominion Monarchs': 'Old Dominion',
+        'James Madison Dukes': 'James Madison',
+        'Georgia State Panthers': 'Georgia State',
+        'Temple Owls': 'Temple',
+        'East Carolina Pirates': 'East Carolina',
+        'Tulsa Golden Hurricane': 'Tulsa',
+        'Nevada Wolf Pack': 'Nevada',
+        'UNLV Rebels': 'UNLV',
+        'San Diego State Aztecs': 'San Diego State',
+        'Fresno State Bulldogs': 'Fresno State',
+        'Hawaii Rainbow Warriors': 'Hawaii',
+        'Wyoming Cowboys': 'Wyoming',
+        'Utah State Aggies': 'Utah State',
+        'Colorado State Rams': 'Colorado State',
+        'New Mexico Lobos': 'New Mexico',
+        'San Jose State Spartans': 'San Jose State',
+        'Toledo Rockets': 'Toledo',
+        'Northern Illinois Huskies': 'Northern Illinois',
+        'Central Michigan Chippewas': 'Central Michigan',
+        'Western Michigan Broncos': 'Western Michigan',
+        'Eastern Michigan Eagles': 'Eastern Michigan',
+        'Ball State Cardinals': 'Ball State',
+        'Miami (OH) RedHawks': 'Miami (OH)',
+        'Ohio Bobcats': 'Ohio',
+        'Akron Zips': 'Akron',
+        'Kent State Golden Flashes': 'Kent State',
+        'Buffalo Bulls': 'Buffalo',
+        'Bowling Green Falcons': 'Bowling Green',
+        
+        // Additional common teams
+        'UAB Blazers': 'UAB',
+        'UTEP Miners': 'UTEP',
+        'New Mexico State Aggies': 'New Mexico State',
+        'Massachusetts Minutemen': 'Massachusetts',
+        'Connecticut Huskies': 'Connecticut',
+        'UMass Minutemen': 'Massachusetts',
+        'Coastal Carolina Chanticleers': 'Coastal Carolina',
+        'App State Mountaineers': 'Appalachian State',
+        'Georgia Southern Eagles': 'Georgia Southern',
+        'Troy Trojans': 'Troy',
+        'South Alabama Jaguars': 'South Alabama',
+        'Louisiana Ragin\' Cajuns': 'Louisiana',
+        'Louisiana Tech Bulldogs': 'Louisiana Tech',
+        'Southern Miss Golden Eagles': 'Southern Miss',
+        'Arkansas State Red Wolves': 'Arkansas State',
+        'Texas State Bobcats': 'Texas State',
+        'UTSA Roadrunners': 'UTSA',
+        'North Texas Mean Green': 'North Texas',
+        'Rice Owls': 'Rice',
+        'Charlotte 49ers': 'Charlotte',
+        'Florida Atlantic Owls': 'Florida Atlantic',
+        'FIU Panthers': 'FIU',
+        'Middle Tennessee Blue Raiders': 'Middle Tennessee',
+        'Old Dominion Monarchs': 'Old Dominion',
+        'James Madison Dukes': 'James Madison',
+        'Georgia State Panthers': 'Georgia State',
+        'Temple Owls': 'Temple',
+        'East Carolina Pirates': 'East Carolina',
+        'Tulsa Golden Hurricane': 'Tulsa',
+        'Nevada Wolf Pack': 'Nevada',
+        'UNLV Rebels': 'UNLV',
+        'San Diego State Aztecs': 'San Diego State',
+        'Fresno State Bulldogs': 'Fresno State',
+        'Hawaii Rainbow Warriors': 'Hawaii',
+        'Wyoming Cowboys': 'Wyoming',
+        'Utah State Aggies': 'Utah State',
+        'Colorado State Rams': 'Colorado State',
+        'New Mexico Lobos': 'New Mexico',
+        'San Jose State Spartans': 'San Jose State',
+        'Toledo Rockets': 'Toledo',
+        'Northern Illinois Huskies': 'Northern Illinois',
+        'Central Michigan Chippewas': 'Central Michigan',
+        'Western Michigan Broncos': 'Western Michigan',
+        'Eastern Michigan Eagles': 'Eastern Michigan',
+        'Ball State Cardinals': 'Ball State',
+        'Miami (OH) RedHawks': 'Miami (OH)',
+        'Ohio Bobcats': 'Ohio',
+        'Akron Zips': 'Akron',
+        'Kent State Golden Flashes': 'Kent State',
+        'Buffalo Bulls': 'Buffalo',
+        'Bowling Green Falcons': 'Bowling Green'
+    };
+    
+    // Try exact match first
+    if (teamNameMappings[teamName]) {
+        return teamNameMappings[teamName];
+    }
+    
+    // Try specific mascot mappings (only for unique mascots that don't conflict)
+    const uniqueMascotMappings = {
+        'Crimson Tide': 'Alabama',
+        'Gators': 'Florida',
+        'Volunteers': 'Tennessee',
+        'Commodores': 'Vanderbilt',
+        'Razorbacks': 'Arkansas',
+        'Buckeyes': 'Ohio State',
+        'Wolverines': 'Michigan',
+        'Nittany Lions': 'Penn State',
+        'Badgers': 'Wisconsin',
+        'Hawkeyes': 'Iowa',
+        'Cornhuskers': 'Nebraska',
+        'Golden Gophers': 'Minnesota',
+        'Boilermakers': 'Purdue',
+        'Hoosiers': 'Indiana',
+        'Fighting Illini': 'Illinois',
+        'Terrapins': 'Maryland',
+        'Scarlet Knights': 'Rutgers',
+        'Seminoles': 'Florida State',
+        'Hurricanes': 'Miami',
+        'Hokies': 'Virginia Tech',
+        'Tar Heels': 'North Carolina',
+        'Wolfpack': 'NC State',
+        'Blue Devils': 'Duke',
+        'Demon Deacons': 'Wake Forest',
+        'Yellow Jackets': 'Georgia Tech',
+        'Longhorns': 'Texas',
+        'Sooners': 'Oklahoma',
+        'Horned Frogs': 'TCU',
+        'Cyclones': 'Iowa State',
+        'Jayhawks': 'Kansas',
+        'Red Raiders': 'Texas Tech',
+        'Trojans': 'USC',
+        'Bruins': 'UCLA',
+        'Ducks': 'Oregon',
+        'Cardinal': 'Stanford',
+        'Golden Bears': 'California',
+        'Sun Devils': 'Arizona State',
+        'Utes': 'Utah',
+        'Buffaloes': 'Colorado',
+        'Beavers': 'Oregon State',
+        'Fighting Irish': 'Notre Dame',
+        'Black Knights': 'Army',
+        'Midshipmen': 'Navy',
+        'Mustangs': 'SMU',
+        'Green Wave': 'Tulane',
+        'Flames': 'Liberty',
+        'Chanticleers': 'Coastal Carolina',
+        'Thundering Herd': 'Marshall',
+        'Hilltoppers': 'Western Kentucky',
+        'Jaguars': 'South Alabama',
+        'Ragin\' Cajuns': 'Louisiana',
+        'Golden Eagles': 'Southern Miss',
+        'Red Wolves': 'Arkansas State',
+        'Roadrunners': 'UTSA',
+        'Mean Green': 'North Texas',
+        '49ers': 'Charlotte',
+        'Blue Raiders': 'Middle Tennessee',
+        'Monarchs': 'Old Dominion',
+        'Dukes': 'James Madison',
+        'Pirates': 'East Carolina',
+        'Golden Hurricane': 'Tulsa',
+        'Wolf Pack': 'Nevada',
+        'Rebels': 'UNLV',
+        'Aztecs': 'San Diego State',
+        'Rainbow Warriors': 'Hawaii',
+        'Lobos': 'New Mexico',
+        'Rockets': 'Toledo',
+        'Chippewas': 'Central Michigan',
+        'RedHawks': 'Miami (OH)',
+        'Zips': 'Akron',
+        'Golden Flashes': 'Kent State',
+        'Bulls': 'Buffalo'
+    };
+    
+    // Try unique mascot mapping (only for mascots that are unique to one team)
+    if (uniqueMascotMappings[teamName]) {
+        console.log(`🎭 Unique mascot mapping found: "${teamName}" -> "${uniqueMascotMappings[teamName]}"`);
+        return uniqueMascotMappings[teamName];
+    }
+    
+    // If no exact match, return the original name
+    console.log(`❌ No mapping found for: "${teamName}"`);
+    return teamName;
 }
 
 // Get team highlight class for possession/at-bat highlighting
