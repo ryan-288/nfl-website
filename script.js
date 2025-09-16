@@ -2941,7 +2941,6 @@ function getSoccerLogoUrl(teamName) {
 // Get College Football logo URLs with comprehensive team database
 function getCollegeFootballLogoUrl(teamName) {
     console.log(`🔍 College Football logo search for: "${teamName}"`);
-    console.log(`🔍 Team name type: ${typeof teamName}, length: ${teamName?.length}`);
     
     const collegeFootballLogos = {
         // Power 5 Conferences - SEC
@@ -3267,7 +3266,46 @@ function getCollegeFootballLogoUrl(teamName) {
         'UConn': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
         'Connecticut': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
         'Michigan St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png',
-        'Michigan State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png'
+        'Michigan State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/127.png',
+        
+        // New Hampshire with correct team ID
+        'New Hampshire': 'https://a.espncdn.com/i/teamlogos/ncaa/500/160.png',
+        'NH': 'https://a.espncdn.com/i/teamlogos/ncaa/500/160.png',
+        'UNH': 'https://a.espncdn.com/i/teamlogos/ncaa/500/160.png',
+        
+        // Delaware with correct team ID
+        'Delaware': 'https://a.espncdn.com/i/teamlogos/ncaa/500/48.png',
+        'UD': 'https://a.espncdn.com/i/teamlogos/ncaa/500/48.png',
+        'UDel': 'https://a.espncdn.com/i/teamlogos/ncaa/500/48.png',
+        
+        // Villanova with correct team ID
+        'Villanova': 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png',
+        'Nova': 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png',
+        'VU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/222.png',
+        
+        // Arkansas State with correct team ID
+        'Arkansas State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png',
+        'Arkansas St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png',
+        'Ark St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png',
+        'A-State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png',
+        
+        // Monmouth with correct team ID
+        'Monmouth': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2405.png',
+        'Monmouth Hawks': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2405.png',
+        'MU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2405.png',
+        
+        // Portland State with correct team ID
+        'Portland State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2502.png',
+        'Portland St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2502.png',
+        'Portland St.': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2502.png',
+        'PSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2502.png',
+        
+        // Jacksonville State with correct team ID
+        'Jacksonville State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/55.png',
+        'Jax State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/55.png',
+        'Jacksonville St': 'https://a.espncdn.com/i/teamlogos/ncaa/500/55.png',
+        'Jacksonville St.': 'https://a.espncdn.com/i/teamlogos/ncaa/500/55.png',
+        'JSU': 'https://a.espncdn.com/i/teamlogos/ncaa/500/55.png'
     };
     
     // Try exact match first
@@ -3488,13 +3526,18 @@ function getCollegeFootballLogoUrl(teamName) {
     
     console.log(`🔍 Available logo keys (first 10):`, Object.keys(collegeFootballLogos).slice(0, 10));
     
-    // ONLY use exact matches - no partial matching at all
+    // DEBUG: Show the exact team name being searched
+    console.log(`🔍 EXACT TEAM NAME: "${teamName}"`);
+    console.log(`🔍 Team name length: ${teamName?.length}`);
+    console.log(`🔍 Team name char codes:`, teamName.split('').map(c => c.charCodeAt(0)));
+    
+    // Try exact match first
     if (collegeFootballLogos[teamName]) {
         console.log(`✅ Exact match found for "${teamName}"`);
         return collegeFootballLogos[teamName];
     }
     
-    // Try case-insensitive exact match as fallback
+    // Try case-insensitive exact match
     const teamNameLower = teamName.toLowerCase();
     for (const [key, logoUrl] of Object.entries(collegeFootballLogos)) {
         if (key.toLowerCase() === teamNameLower) {
@@ -3503,7 +3546,29 @@ function getCollegeFootballLogoUrl(teamName) {
         }
     }
     
-    console.log(`No College Football logo found for: ${teamName}`);
+    // Try partial matching for common variations
+    for (const [key, logoUrl] of Object.entries(collegeFootballLogos)) {
+        const keyLower = key.toLowerCase();
+        const teamLower = teamName.toLowerCase();
+        
+        // Check if team name contains the key or vice versa
+        if (teamLower.includes(keyLower) || keyLower.includes(teamLower)) {
+            console.log(`✅ Partial match found: "${teamName}" -> "${key}"`);
+            return logoUrl;
+        }
+        
+        // Check for common abbreviations
+        if (keyLower.includes('state') && teamLower.includes('st')) {
+            const baseKey = keyLower.replace(' state', '').replace(' st', '');
+            const baseTeam = teamLower.replace(' st', '');
+            if (baseKey === baseTeam) {
+                console.log(`✅ State abbreviation match found: "${teamName}" -> "${key}"`);
+                return logoUrl;
+            }
+        }
+    }
+    
+    console.log(`❌ NO MATCH FOUND for: "${teamName}"`);
     return null;
 }
 
