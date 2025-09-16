@@ -602,7 +602,7 @@ body.pwa-mode {
     
     .count-dots {
         gap: 0px;
-        min-height: 4px;
+        min-height: 2px;
     }
     
     .count-dot {
