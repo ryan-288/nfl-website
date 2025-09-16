@@ -1150,8 +1150,8 @@ body.pwa-mode {
 @media (max-width: 768px) {
     .game-content {
         gap: 8px !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
+        flex-direction: row !important; /* Keep horizontal layout on mobile */
+        align-items: center !important;
     }
     
     /* On mobile, NFL field still goes below, but MLB can stay compact */
@@ -1180,7 +1180,8 @@ body.pwa-mode {
 @media (max-width: 768px) {
     .teams {
         gap: 8px !important;
-        flex: 1.1 !important;
+        flex: 1 !important; /* Allow teams to take up available space */
+        min-width: 0 !important; /* Prevent overflow */
     }
 }
 

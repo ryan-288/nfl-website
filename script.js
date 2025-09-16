@@ -3542,7 +3542,7 @@ function getCollegeFootballLogoUrl(teamName) {
     for (const [key, logoUrl] of Object.entries(collegeFootballLogos)) {
         if (key.toLowerCase() === teamNameLower) {
             console.log(`✅ Case-insensitive exact match found: "${teamName}" -> "${key}"`);
-            return logoUrl;
+                return logoUrl;
         }
     }
     
