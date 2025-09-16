@@ -567,7 +567,7 @@ body.pwa-mode {
     .bases-diamond {
         margin-top: 0px;
         /* Ensure bases fit within the container */
-        transform: scale(0.6);
+        transform: scale(0.5);
         transform-origin: center;
         /* Better centering on mobile */
         width: 100%;
@@ -596,7 +596,7 @@ body.pwa-mode {
     .count-dots-container {
         gap: 0px;
         /* Make count dots much more compact */
-        transform: scale(0.4);
+        transform: scale(0.35);
         transform-origin: left center;
     }
     
@@ -1163,8 +1163,8 @@ body.pwa-mode {
     .mlb-game-state {
         order: 1 !important;
         align-self: flex-end !important;
-        min-width: 40px !important;
-        max-width: 50px !important;
+        min-width: 35px !important;
+        max-width: 40px !important;
     }
 }
 
