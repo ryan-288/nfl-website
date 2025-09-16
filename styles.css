@@ -594,14 +594,14 @@ body.pwa-mode {
     }
     
     .count-dots-container {
-        gap: 0px;
-        /* Make count dots much more compact */
-        transform: scale(0.35);
+        gap: 1px;
+        /* Make count dots more compact without excessive scaling */
+        transform: scale(0.7);
         transform-origin: left center;
     }
     
     .count-dots {
-        gap: 0px;
+        gap: 1px;
         min-height: 4px;
     }
     
