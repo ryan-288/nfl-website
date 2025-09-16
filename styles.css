@@ -1022,8 +1022,7 @@ body.pwa-mode {
 }
 
 .score-card.score-changed {
-    animation: scoreUpdate 2s ease-in-out;
-    background: linear-gradient(135deg, #0a1a0a 0%, #1a2a1a 100%);
+    /* Animation removed - scores will update without visual effects */
 }
 
 @keyframes scoreUpdate {
