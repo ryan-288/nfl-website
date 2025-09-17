@@ -1899,7 +1899,7 @@ body.pwa-mode {
     
     .mlb-game-state {
         order: 1 !important;
-        align-self: flex-end !important;
+        align-self: center !important;
     }
 }
 
