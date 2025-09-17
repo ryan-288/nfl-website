@@ -1797,16 +1797,16 @@ function previousWeek() {
         // Update active button to show today as selected
         updateActiveButtons(currentDayName);
     } else {
-        // For other weeks, use Monday
+        // For previous weeks, use Sunday
         const today = new Date();
-        const monday = new Date(today);
+        const sunday = new Date(today);
         const dayOfWeek = today.getDay();
-        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
-        currentDate = monday;
+        const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+        sunday.setDate(today.getDate() + daysToSunday + (currentWeekOffset * 7));
+        currentDate = sunday;
         
-        // Update active button to show Monday as selected
-        updateActiveButtons('monday');
+        // Update active button to show Sunday as selected
+        updateActiveButtons('sunday');
     }
     
     // Update the custom date picker
@@ -1835,7 +1835,7 @@ function nextWeek() {
         // Update active button to show today as selected
         updateActiveButtons(currentDayName);
     } else {
-        // For other weeks, use Monday
+        // For future weeks, use Monday
         const today = new Date();
         const monday = new Date(today);
         const dayOfWeek = today.getDay();
