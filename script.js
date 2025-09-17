@@ -1788,13 +1788,26 @@ function previousWeek() {
     updateWeekDisplay();
     updateWeekButtons();
     
-    // Update current date to Monday of the selected week
-    const today = new Date();
-    const monday = new Date(today);
-    const dayOfWeek = today.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
-    currentDate = monday;
+    // If we're going back to current week (offset 0), use today's date
+    if (currentWeekOffset === 0) {
+        currentDate = new Date(); // Use today's date
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const currentDayName = dayNames[currentDate.getDay()];
+        
+        // Update active button to show today as selected
+        updateActiveButtons(currentDayName);
+    } else {
+        // For other weeks, use Monday
+        const today = new Date();
+        const monday = new Date(today);
+        const dayOfWeek = today.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
+        currentDate = monday;
+        
+        // Update active button to show Monday as selected
+        updateActiveButtons('monday');
+    }
     
     // Update the custom date picker
     // Format date as YYYY-MM-DD without timezone conversion
@@ -1813,13 +1826,26 @@ function nextWeek() {
     updateWeekDisplay();
     updateWeekButtons();
     
-    // Update current date to Monday of the selected week
-    const today = new Date();
-    const monday = new Date(today);
-    const dayOfWeek = today.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
-    currentDate = monday;
+    // If we're going back to current week (offset 0), use today's date
+    if (currentWeekOffset === 0) {
+        currentDate = new Date(); // Use today's date
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const currentDayName = dayNames[currentDate.getDay()];
+        
+        // Update active button to show today as selected
+        updateActiveButtons(currentDayName);
+    } else {
+        // For other weeks, use Monday
+        const today = new Date();
+        const monday = new Date(today);
+        const dayOfWeek = today.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
+        currentDate = monday;
+        
+        // Update active button to show Monday as selected
+        updateActiveButtons('monday');
+    }
     
     // Update the custom date picker
     // Format date as YYYY-MM-DD without timezone conversion
