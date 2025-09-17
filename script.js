@@ -1835,7 +1835,6 @@ function nextWeek() {
 
 function updateWeekDisplay() {
     const weekLabel = document.getElementById('weekLabel');
-    const weekDates = document.getElementById('weekDates');
     
     if (currentWeekOffset === 0) {
         weekLabel.textContent = 'Current Week';
@@ -1845,7 +1844,7 @@ function updateWeekDisplay() {
         weekLabel.textContent = `${currentWeekOffset} Week${currentWeekOffset > 1 ? 's' : ''} Ahead`;
     }
     
-    // Calculate the Monday of the target week
+    // Calculate the Monday of the target week (needed for week button calculations)
     const today = new Date();
     const monday = new Date(today);
     const dayOfWeek = today.getDay();
@@ -1853,15 +1852,8 @@ function updateWeekDisplay() {
     
     monday.setDate(today.getDate() - daysToMonday + (currentWeekOffset * 7));
     
-    // Generate week date range
-    const weekStart = new Date(monday);
-    const weekEnd = new Date(monday);
-    weekEnd.setDate(monday.getDate() + 6);
-    
-    const startDate = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endDate = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    weekDates.textContent = `${startDate} - ${endDate}`;
+    // Store the Monday of the current week for week button calculations
+    window.currentWeekMonday = monday;
 }
 
 function updateWeekButtons() {
