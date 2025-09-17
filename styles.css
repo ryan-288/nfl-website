@@ -565,9 +565,9 @@ body.pwa-mode {
     }
     
     .bases-diamond {
-        margin-top: 0px;
+        margin-top: 2px;
         /* Ensure bases fit within the container */
-        transform: scale(0.5);
+        transform: scale(0.6);
         transform-origin: center;
         /* Better centering on mobile */
         width: 100%;
@@ -596,7 +596,7 @@ body.pwa-mode {
     .count-dots-container {
         gap: 0px;
         /* Make count dots more compact without excessive scaling */
-        transform: scale(0.75);
+        transform: scale(0.85);
         transform-origin: left center;
     }
     
