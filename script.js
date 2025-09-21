@@ -35,8 +35,7 @@ const ESPN_APIS = {
     'mlb': 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard',
     'nhl': 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard',
     'college-football': 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard',
-    'college-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard',
-    'soccer': 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard'
+    'college-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard'
 };
 
 // Initialize the page
@@ -1328,8 +1327,7 @@ function getSportDisplayName(sportKey) {
         'mlb': 'MLB',
         'nhl': 'NHL',
         'college-football': 'College Football',
-        'college-basketball': 'College Basketball',
-        'soccer': 'Soccer'
+        'college-basketball': 'College Basketball'
     };
     return sportNames[sportKey] || sportKey;
 }
@@ -1386,6 +1384,20 @@ function getGameStatus(event) {
     
     console.log('Status details:', { state, description, period, clock });
     
+    // Special debugging for NHL games
+    if (event.sport === 'nhl' || (event.leagues && event.leagues[0] && event.leagues[0].slug === 'nhl')) {
+        console.log('🏒 NHL Game Status Debug:', {
+            name: event.name,
+            state: state,
+            description: description,
+            period: period,
+            clock: clock,
+            isStateIn: state === 'in',
+            hasPeriod: period && period > 0,
+            hasClock: clock && clock !== '0:00' && clock !== '' && clock !== '0' && clock !== 0
+        });
+    }
+    
     // Check if game is finished - be more strict about this
     if (state === 'post' || 
         description.toLowerCase().includes('final') ||
@@ -1397,7 +1409,7 @@ function getGameStatus(event) {
         return 'final';
     }
     
-    // Check if game is live/in progress - improved MLB detection
+    // Check if game is live/in progress - improved detection for all sports
     if (state === 'in' && (
         description.toLowerCase().includes('quarter') ||
         description.toLowerCase().includes('period') ||
@@ -1405,8 +1417,9 @@ function getGameStatus(event) {
         description.toLowerCase().includes('top') ||
         description.toLowerCase().includes('bottom') ||
         description.toLowerCase().includes('live') ||
+        description.toLowerCase().includes('in progress') ||
         (period && period > 0) ||
-        (clock && clock !== '0:00' && clock !== '' && clock !== '0'))) {
+        (clock && clock !== '0:00' && clock !== '' && clock !== '0' && clock !== 0))) {
         console.log('Game is live');
         return 'live';
     }
@@ -1584,8 +1597,8 @@ function displayScores(scores) {
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'live' && game.period ? `<span class="inning-display live">${getFootballDisplay(game)}</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${(game.sport === 'nhl') && game.status === 'live' ? `<span class="inning-display live">${getNHLDisplay(game)}</span>` : ''}
                     ${(game.sport === 'nhl') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
-                    ${(game.sport === 'soccer') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${game.status === 'scheduled' ? `<span class="inning-display scheduled">${game.displayTime || game.time || 'TBD'}</span>` : ''}
                 </div>
                 <div class="game-content">
@@ -2163,6 +2176,21 @@ document.addEventListener('click', function(e) {
             card.style.transform = '';
         }, 150);
     }
+    
+    // Handle team tile clicks for standings
+    if (e.target.closest('.team')) {
+        const gameCard = e.target.closest('.score-card');
+        const gameId = gameCard.getAttribute('data-game-id');
+        const sport = gameId.split('-')[0];
+        
+        // Get team name from the team tile
+        const teamElement = e.target.closest('.team');
+        const teamNameElement = teamElement.querySelector('.team-name');
+        const teamName = teamNameElement ? teamNameElement.textContent.trim() : '';
+
+        // Navigate to standings page with sport filter and team name
+        window.location.href = `standings.html?sport=${sport}&team=${encodeURIComponent(teamName)}`;
+    }
 });
 
 // Keyboard shortcuts
@@ -2227,7 +2255,7 @@ function createLogoHTML(teamName, sport, logoUrl) {
     
     return `
         <img src="${logoUrl}" alt="${teamName}" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; logoCache.set('${cacheKey}', 'FAILED'); this.onerror=null;" 
+             onerror="console.log('Logo failed to load:', '${logoUrl}'); this.style.display='none'; this.nextElementSibling.style.display='flex'; logoCache.set('${cacheKey}', 'FAILED'); this.onerror=null;" 
              onload="this.style.display='block'; this.nextElementSibling.style.display='none'; logoCache.set('${cacheKey}', '${logoUrl}');"
              style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain; display: block;" />
         <div class="fallback-logo" style="display: none; background: ${getFallbackColor(sport)}; width: 100%; height: 100%; border-radius: 50%; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">${getTeamInitials(teamName)}</div>
@@ -2292,6 +2320,74 @@ window.logoCache = logoCache;
 window.clearLogoCache = clearLogoCache;
 window.getLogoCacheStats = getLogoCacheStats;
 
+// Test NHL logos function
+window.testNHLLogos = function() {
+    console.log('🧪 Testing NHL Logos...');
+    const testTeams = ['New York Rangers', 'New Jersey Devils', 'Florida Panthers', 'Nashville Predators', 'Toronto Maple Leafs', 'Ottawa Senators', 'Rangers', 'Devils', 'Panthers', 'Predators', 'Maple Leafs', 'Senators'];
+    
+    testTeams.forEach(team => {
+        const logoUrl = getNHLLogoUrl(team);
+        console.log(`Team: "${team}" -> Logo: ${logoUrl ? '✅ Found' : '❌ Not found'}`);
+        if (logoUrl) console.log(`  URL: ${logoUrl}`);
+    });
+};
+
+// Debug function to check what team names are actually being used
+window.debugNHLTeams = function() {
+    console.log('🔍 Debugging NHL Team Names...');
+    fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Current NHL games:');
+            data.events.forEach(game => {
+                console.log(`Game: ${game.name}`);
+                if (game.competitions && game.competitions[0] && game.competitions[0].competitors) {
+                    game.competitions[0].competitors.forEach(competitor => {
+                        const teamName = competitor.team.displayName;
+                        console.log(`  Team: "${teamName}"`);
+                        const logoUrl = getNHLLogoUrl(teamName);
+                        console.log(`    Logo: ${logoUrl ? '✅ Found' : '❌ Not found'}`);
+                    });
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching NHL data:', error));
+};
+
+// Test all NHL logo URLs to find broken ones
+window.testAllNHLLogos = function() {
+    console.log('🧪 Testing All NHL Logo URLs...');
+    const allNHLTeams = [
+        'Anaheim Ducks', 'Arizona Coyotes', 'Boston Bruins', 'Buffalo Sabres', 'Calgary Flames',
+        'Carolina Hurricanes', 'Chicago Blackhawks', 'Colorado Avalanche', 'Columbus Blue Jackets',
+        'Dallas Stars', 'Detroit Red Wings', 'Edmonton Oilers', 'Florida Panthers', 'Los Angeles Kings',
+        'Minnesota Wild', 'Montreal Canadiens', 'Nashville Predators', 'New Jersey Devils',
+        'New York Islanders', 'New York Rangers', 'Ottawa Senators', 'Philadelphia Flyers',
+        'Pittsburgh Penguins', 'San Jose Sharks', 'Seattle Kraken', 'St. Louis Blues',
+        'Tampa Bay Lightning', 'Toronto Maple Leafs', 'Vancouver Canucks', 'Vegas Golden Knights',
+        'Washington Capitals', 'Winnipeg Jets'
+    ];
+    
+    allNHLTeams.forEach(team => {
+        const logoUrl = getNHLLogoUrl(team);
+        if (logoUrl) {
+            fetch(logoUrl, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log(`✅ ${team}: ${logoUrl}`);
+                    } else {
+                        console.log(`❌ ${team}: ${logoUrl} (${response.status})`);
+                    }
+                })
+                .catch(error => {
+                    console.log(`❌ ${team}: ${logoUrl} (Failed to fetch)`);
+                });
+        } else {
+            console.log(`❌ ${team}: No logo URL found`);
+        }
+    });
+};
+
 // Function to test ESPN API response structure
 window.testESPNResponse = async function() {
     try {
@@ -2348,8 +2444,7 @@ function getFallbackColor(sport) {
         'mlb': '#228B22',      // Green for MLB
         'nhl': '#1E90FF',      // Blue for NHL
         'college-football': '#DC143C', // Crimson for College Football
-        'college-basketball': '#9932CC', // Purple for College Basketball
-        'soccer': '#32CD32'    // Lime Green for Soccer
+        'college-basketball': '#9932CC' // Purple for College Basketball
     };
     
     return sportColors[sport] || '#666';
@@ -2390,11 +2485,6 @@ function getWorkingLogoUrl(teamName, sport) {
         const nhlUrl = getNHLLogoUrl(teamName);
         console.log(`NHL URL result: ${nhlUrl}`);
         return nhlUrl;
-    } else if (sport === 'soccer') {
-        console.log(`Soccer logo lookup for: ${teamName}`);
-        const soccerUrl = getSoccerLogoUrl(teamName);
-        console.log(`Soccer URL result: ${soccerUrl}`);
-        return soccerUrl;
     } else if (sport === 'college-football') {
         console.log(`College Football logo lookup for: ${teamName}`);
         console.log(`🔍 Looking up logo for cleaned team name: "${teamName}"`);
@@ -2753,208 +2843,133 @@ function getNFLLogoUrl(teamName) {
 
 // Get NHL logo URLs
 function getNHLLogoUrl(teamName) {
-    const nhlLogos = {
-        'Anaheim Ducks': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/ANA.svg',
-        'Arizona Coyotes': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/ARI.svg',
-        'Boston Bruins': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/BOS.svg',
-        'Buffalo Sabres': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/BUF.svg',
-        'Calgary Flames': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/CGY.svg',
-        'Carolina Hurricanes': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/CAR.svg',
-        'Chicago Blackhawks': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/CHI.svg',
-        'Colorado Avalanche': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/COL.svg',
-        'Columbus Blue Jackets': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/CBJ.svg',
-        'Dallas Stars': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/DAL.svg',
-        'Detroit Red Wings': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/DET.svg',
-        'Edmonton Oilers': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/EDM.svg',
-        'Florida Panthers': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/FLA.svg',
-        'Los Angeles Kings': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/LAK.svg',
-        'Minnesota Wild': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/MIN.svg',
-        'Montreal Canadiens': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/MTL.svg',
-        'Nashville Predators': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/NSH.svg',
-        'New Jersey Devils': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/NJD.svg',
-        'New York Islanders': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/NYI.svg',
-        'New York Rangers': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/NYR.svg',
-        'Ottawa Senators': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/OTT.svg',
-        'Philadelphia Flyers': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/PHI.svg',
-        'Pittsburgh Penguins': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/PIT.svg',
-        'San Jose Sharks': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/SJS.svg',
-        'Seattle Kraken': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/SEA.svg',
-        'St. Louis Blues': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/STL.svg',
-        'Tampa Bay Lightning': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/TBL.svg',
-        'Toronto Maple Leafs': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/TOR.svg',
-        'Vancouver Canucks': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/VAN.svg',
-        'Vegas Golden Knights': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/VGK.svg',
-        'Washington Capitals': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/WSH.svg',
-        'Winnipeg Jets': 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/WPG.svg'
-    };
+    console.log(`🔍 NHL logo search for: "${teamName}"`);
     
-    return nhlLogos[teamName] || null;
-}
-
-
-
-// Get Soccer logo URLs with flexible name matching
-function getSoccerLogoUrl(teamName) {
-    const soccerLogos = {
-        // Premier League
-        'Arsenal': 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg',
-        'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg',
-        'Bournemouth': 'https://upload.wikimedia.org/wikipedia/en/e/e5/AFC_Bournemouth_%282013%29.svg',
-        'Brentford': 'https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg',
-        'Brighton': 'https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg',
-        'Burnley': 'https://upload.wikimedia.org/wikipedia/en/6/62/Burnley_FC_Logo.svg',
-        'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
-        'Crystal Palace': 'https://upload.wikimedia.org/wikipedia/en/0/0c/Crystal_Palace_FC_logo.svg',
-        'Everton': 'https://upload.wikimedia.org/wikipedia/en/7/7c/Everton_FC_logo.svg',
-        'Fulham': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Fulham_FC_%28shield%29.svg',
-        'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg',
-        'Luton Town': 'https://upload.wikimedia.org/wikipedia/en/9/9c/Luton_Town_logo.svg',
-        'Manchester City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-        'Manchester United': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-        'Newcastle United': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
-        'Nottingham Forest': 'https://upload.wikimedia.org/wikipedia/en/b/b2/Nottingham_Forest_logo.svg',
-        'Sheffield United': 'https://upload.wikimedia.org/wikipedia/en/9/9c/Sheffield_United_FC_logo.svg',
-        'Tottenham Hotspur': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
-        'West Ham United': 'https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg',
-        'Wolves': 'https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg',
+    const nhlLogos = {
+        // Full team names - Using ESPN logo URLs
+        'Anaheim Ducks': 'https://a.espncdn.com/i/teamlogos/nhl/500/ana.png',
+        'Arizona Coyotes': 'https://a.espncdn.com/i/teamlogos/nhl/500/ari.png',
+        'Boston Bruins': 'https://a.espncdn.com/i/teamlogos/nhl/500/bos.png',
+        'Buffalo Sabres': 'https://a.espncdn.com/i/teamlogos/nhl/500/buf.png',
+        'Calgary Flames': 'https://a.espncdn.com/i/teamlogos/nhl/500/cgy.png',
+        'Carolina Hurricanes': 'https://a.espncdn.com/i/teamlogos/nhl/500/car.png',
+        'Chicago Blackhawks': 'https://a.espncdn.com/i/teamlogos/nhl/500/chi.png',
+        'Colorado Avalanche': 'https://a.espncdn.com/i/teamlogos/nhl/500/col.png',
+        'Columbus Blue Jackets': 'https://a.espncdn.com/i/teamlogos/nhl/500/cbj.png',
+        'Dallas Stars': 'https://a.espncdn.com/i/teamlogos/nhl/500/dal.png',
+        'Detroit Red Wings': 'https://a.espncdn.com/i/teamlogos/nhl/500/det.png',
+        'Edmonton Oilers': 'https://a.espncdn.com/i/teamlogos/nhl/500/edm.png',
+        'Florida Panthers': 'https://a.espncdn.com/i/teamlogos/nhl/500/fla.png',
+        'Los Angeles Kings': 'https://a.espncdn.com/i/teamlogos/nhl/500/la.png',
+        'Minnesota Wild': 'https://a.espncdn.com/i/teamlogos/nhl/500/min.png',
+        'Montreal Canadiens': 'https://a.espncdn.com/i/teamlogos/nhl/500/mtl.png',
+        'Nashville Predators': 'https://a.espncdn.com/i/teamlogos/nhl/500/nsh.png',
+        'New Jersey Devils': 'https://a.espncdn.com/i/teamlogos/nhl/500/njd.png',
+        'New York Islanders': 'https://a.espncdn.com/i/teamlogos/nhl/500/nyi.png',
+        'New York Rangers': 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png',
+        'Ottawa Senators': 'https://a.espncdn.com/i/teamlogos/nhl/500/ott.png',
+        'Philadelphia Flyers': 'https://a.espncdn.com/i/teamlogos/nhl/500/phi.png',
+        'Pittsburgh Penguins': 'https://a.espncdn.com/i/teamlogos/nhl/500/pit.png',
+        'San Jose Sharks': 'https://a.espncdn.com/i/teamlogos/nhl/500/sj.png',
+        'Seattle Kraken': 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png',
+        'St. Louis Blues': 'https://a.espncdn.com/i/teamlogos/nhl/500/stl.png',
+        'Tampa Bay Lightning': 'https://a.espncdn.com/i/teamlogos/nhl/500/tbl.png',
+        'Toronto Maple Leafs': 'https://a.espncdn.com/i/teamlogos/nhl/500/tor.png',
+        'Vancouver Canucks': 'https://a.espncdn.com/i/teamlogos/nhl/500/van.png',
+        'Vegas Golden Knights': 'https://a.espncdn.com/i/teamlogos/nhl/500/vgk.png',
+        'Washington Capitals': 'https://a.espncdn.com/i/teamlogos/nhl/500/wsh.png',
+        'Winnipeg Jets': 'https://a.espncdn.com/i/teamlogos/nhl/500/wpg.png',
         
-        // La Liga
-        'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
-        'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
-        'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
-        'Sevilla': 'https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg',
-        'Valencia': 'https://upload.wikimedia.org/wikipedia/en/3/33/Valencia_CF_logo.svg',
-        'Villarreal': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
-        'Athletic Bilbao': 'https://upload.wikimedia.org/wikipedia/en/0/0f/Athletic_Club_Bilbao_logo.svg',
-        'Real Sociedad': 'https://upload.wikimedia.org/wikipedia/en/1/1f/Real_Sociedad_logo.svg',
-        'Real Betis': 'https://upload.wikimedia.org/wikipedia/en/1/13/Real_Betis_logo.svg',
-        'Celta Vigo': 'https://upload.wikimedia.org/wikipedia/en/4/43/RC_Celta_de_Vigo_logo.svg',
+        // Common abbreviations and variations - Using ESPN logo URLs
+        'Ducks': 'https://a.espncdn.com/i/teamlogos/nhl/500/ana.png',
+        'Coyotes': 'https://a.espncdn.com/i/teamlogos/nhl/500/ari.png',
+        'Bruins': 'https://a.espncdn.com/i/teamlogos/nhl/500/bos.png',
+        'Sabres': 'https://a.espncdn.com/i/teamlogos/nhl/500/buf.png',
+        'Flames': 'https://a.espncdn.com/i/teamlogos/nhl/500/cgy.png',
+        'Hurricanes': 'https://a.espncdn.com/i/teamlogos/nhl/500/car.png',
+        'Blackhawks': 'https://a.espncdn.com/i/teamlogos/nhl/500/chi.png',
+        'Avalanche': 'https://a.espncdn.com/i/teamlogos/nhl/500/col.png',
+        'Blue Jackets': 'https://a.espncdn.com/i/teamlogos/nhl/500/cbj.png',
+        'Stars': 'https://a.espncdn.com/i/teamlogos/nhl/500/dal.png',
+        'Red Wings': 'https://a.espncdn.com/i/teamlogos/nhl/500/det.png',
+        'Oilers': 'https://a.espncdn.com/i/teamlogos/nhl/500/edm.png',
+        'Panthers': 'https://a.espncdn.com/i/teamlogos/nhl/500/fla.png',
+        'Kings': 'https://a.espncdn.com/i/teamlogos/nhl/500/la.png',
+        'Wild': 'https://a.espncdn.com/i/teamlogos/nhl/500/min.png',
+        'Canadiens': 'https://a.espncdn.com/i/teamlogos/nhl/500/mtl.png',
+        'Predators': 'https://a.espncdn.com/i/teamlogos/nhl/500/nsh.png',
+        'Devils': 'https://a.espncdn.com/i/teamlogos/nhl/500/njd.png',
+        'Islanders': 'https://a.espncdn.com/i/teamlogos/nhl/500/nyi.png',
+        'Rangers': 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png',
+        'Senators': 'https://a.espncdn.com/i/teamlogos/nhl/500/ott.png',
+        'Flyers': 'https://a.espncdn.com/i/teamlogos/nhl/500/phi.png',
+        'Penguins': 'https://a.espncdn.com/i/teamlogos/nhl/500/pit.png',
+        'Sharks': 'https://a.espncdn.com/i/teamlogos/nhl/500/sj.png',
+        'Kraken': 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png',
+        'Blues': 'https://a.espncdn.com/i/teamlogos/nhl/500/stl.png',
+        'Lightning': 'https://a.espncdn.com/i/teamlogos/nhl/500/tbl.png',
+        'Maple Leafs': 'https://a.espncdn.com/i/teamlogos/nhl/500/tor.png',
+        'Canucks': 'https://a.espncdn.com/i/teamlogos/nhl/500/van.png',
+        'Golden Knights': 'https://a.espncdn.com/i/teamlogos/nhl/500/vgk.png',
+        'Capitals': 'https://a.espncdn.com/i/teamlogos/nhl/500/wsh.png',
+        'Jets': 'https://a.espncdn.com/i/teamlogos/nhl/500/wpg.png',
         
-        // Bundesliga
-        'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-        'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
-        'RB Leipzig': 'https://upload.wikimedia.org/wikipedia/en/0/04/RB_Leipzig_2014_logo.svg',
-        'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg',
-        'VfB Stuttgart': 'https://upload.wikimedia.org/wikipedia/en/6/6d/VfB_Stuttgart_logo.svg',
-        'Eintracht Frankfurt': 'https://upload.wikimedia.org/wikipedia/en/0/04/Eintracht_Frankfurt_logo.svg',
-        'Hoffenheim': 'https://upload.wikimedia.org/wikipedia/en/0/0d/TSG_1899_Hoffenheim_logo.svg',
-        'SC Freiburg': 'https://upload.wikimedia.org/wikipedia/en/7/7d/SC_Freiburg_logo.svg',
-        'VfL Wolfsburg': 'https://upload.wikimedia.org/wikipedia/en/f/f3/VfL_Wolfsburg_logo.svg',
-        '1. FC Heidenheim': 'https://upload.wikimedia.org/wikipedia/en/8/81/1._FC_Heidenheim_1846_logo.svg',
-        
-        // Serie A
-        'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_1908.svg',
-        'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d2/AC_Milan_logo.svg',
-        'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_Logo_2017_icon.svg',
-        'Napoli': 'https://upload.wikimedia.org/wikipedia/en/2/2d/SSC_Napoli_logo.svg',
-        'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/5/57/Atalanta_BC_logo.svg',
-        'Roma': 'https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg',
-        'Lazio': 'https://upload.wikimedia.org/wikipedia/en/7/72/SS_Lazio_logo.svg',
-        'Fiorentina': 'https://upload.wikimedia.org/wikipedia/en/2/2a/ACF_Fiorentina_logo.svg',
-        'Bologna': 'https://upload.wikimedia.org/wikipedia/en/8/85/Bologna_FC_1909_logo.svg',
-        'Torino': 'https://upload.wikimedia.org/wikipedia/en/1/1d/Torino_FC_Logo.svg',
-        
-        // MLS
-        'LA Galaxy': 'https://upload.wikimedia.org/wikipedia/en/7/72/LA_Galaxy_logo.svg',
-        'Seattle Sounders': 'https://upload.wikimedia.org/wikipedia/en/3/3a/Seattle_Sounders_FC_logo.svg',
-        'Portland Timbers': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Portland_Timbers_logo.svg',
-        'New York City FC': 'https://upload.wikimedia.org/wikipedia/en/2/2f/New_York_City_FC_logo.svg',
-        'Atlanta United': 'https://upload.wikimedia.org/wikipedia/en/7/72/Atlanta_United_FC_logo.svg',
-        'Toronto FC': 'https://upload.wikimedia.org/wikipedia/en/b/b3/Toronto_FC_logo.svg',
-        'Sporting Kansas City': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Sporting_Kansas_City_logo.svg',
-        'Real Salt Lake': 'https://upload.wikimedia.org/wikipedia/en/4/4b/Real_Salt_Lake_logo.svg',
-        'FC Dallas': 'https://upload.wikimedia.org/wikipedia/en/9/9f/FC_Dallas_logo.svg',
-        'Houston Dynamo': 'https://upload.wikimedia.org/wikipedia/en/6/66/Houston_Dynamo_logo.svg'
+        // Additional common variations
+        'Anaheim': 'https://a.espncdn.com/i/teamlogos/nhl/500/ana.png',
+        'Arizona': 'https://a.espncdn.com/i/teamlogos/nhl/500/ari.png',
+        'Boston': 'https://a.espncdn.com/i/teamlogos/nhl/500/bos.png',
+        'Buffalo': 'https://a.espncdn.com/i/teamlogos/nhl/500/buf.png',
+        'Calgary': 'https://a.espncdn.com/i/teamlogos/nhl/500/cgy.png',
+        'Carolina': 'https://a.espncdn.com/i/teamlogos/nhl/500/car.png',
+        'Chicago': 'https://a.espncdn.com/i/teamlogos/nhl/500/chi.png',
+        'Colorado': 'https://a.espncdn.com/i/teamlogos/nhl/500/col.png',
+        'Columbus': 'https://a.espncdn.com/i/teamlogos/nhl/500/cbj.png',
+        'Dallas': 'https://a.espncdn.com/i/teamlogos/nhl/500/dal.png',
+        'Detroit': 'https://a.espncdn.com/i/teamlogos/nhl/500/det.png',
+        'Edmonton': 'https://a.espncdn.com/i/teamlogos/nhl/500/edm.png',
+        'Florida': 'https://a.espncdn.com/i/teamlogos/nhl/500/fla.png',
+        'Los Angeles': 'https://a.espncdn.com/i/teamlogos/nhl/500/la.png',
+        'Minnesota': 'https://a.espncdn.com/i/teamlogos/nhl/500/min.png',
+        'Montreal': 'https://a.espncdn.com/i/teamlogos/nhl/500/mtl.png',
+        'Nashville': 'https://a.espncdn.com/i/teamlogos/nhl/500/nsh.png',
+        'New Jersey': 'https://a.espncdn.com/i/teamlogos/nhl/500/njd.png',
+        'New York': 'https://a.espncdn.com/i/teamlogos/nhl/500/nyr.png',
+        'Ottawa': 'https://a.espncdn.com/i/teamlogos/nhl/500/ott.png',
+        'Philadelphia': 'https://a.espncdn.com/i/teamlogos/nhl/500/phi.png',
+        'Pittsburgh': 'https://a.espncdn.com/i/teamlogos/nhl/500/pit.png',
+        'San Jose': 'https://a.espncdn.com/i/teamlogos/nhl/500/sj.png',
+        'Seattle': 'https://a.espncdn.com/i/teamlogos/nhl/500/sea.png',
+        'St. Louis': 'https://a.espncdn.com/i/teamlogos/nhl/500/stl.png',
+        'Tampa Bay': 'https://a.espncdn.com/i/teamlogos/nhl/500/tbl.png',
+        'Toronto': 'https://a.espncdn.com/i/teamlogos/nhl/500/tor.png',
+        'Vancouver': 'https://a.espncdn.com/i/teamlogos/nhl/500/van.png',
+        'Vegas': 'https://a.espncdn.com/i/teamlogos/nhl/500/vgk.png',
+        'Washington': 'https://a.espncdn.com/i/teamlogos/nhl/500/wsh.png',
+        'Winnipeg': 'https://a.espncdn.com/i/teamlogos/nhl/500/wpg.png'
     };
     
     // Try exact match first
-    if (soccerLogos[teamName]) {
-        return soccerLogos[teamName];
+    if (nhlLogos[teamName]) {
+        console.log(`✅ Found NHL logo for: ${teamName}`);
+        return nhlLogos[teamName];
     }
     
-    // Try flexible matching for common variations
-    const teamVariations = {
-        // Premier League variations
-        'Man City': 'Manchester City',
-        'Man United': 'Manchester United',
-        'Man Utd': 'Manchester United',
-        'Spurs': 'Tottenham Hotspur',
-        'Tottenham': 'Tottenham Hotspur',
-        'West Ham': 'West Ham United',
-        'Newcastle': 'Newcastle United',
-        'Nottingham': 'Nottingham Forest',
-        'Sheffield': 'Sheffield United',
-        'Wolverhampton': 'Wolves',
-        
-        // La Liga variations
-        'Real': 'Real Madrid',
-        'Barca': 'Barcelona',
-        'Atletico': 'Atletico Madrid',
-        'Athletic': 'Athletic Bilbao',
-        'Sociedad': 'Real Sociedad',
-        'Betis': 'Real Betis',
-        'Celta': 'Celta Vigo',
-        
-        // Bundesliga variations
-        'Bayern': 'Bayern Munich',
-        'Dortmund': 'Borussia Dortmund',
-        'Leipzig': 'RB Leipzig',
-        'Leverkusen': 'Bayer Leverkusen',
-        'Stuttgart': 'VfB Stuttgart',
-        'Frankfurt': 'Eintracht Frankfurt',
-        'Freiburg': 'SC Freiburg',
-        'Wolfsburg': 'VfL Wolfsburg',
-        'Heidenheim': '1. FC Heidenheim',
-        
-        // Serie A variations
-        'Inter': 'Inter Milan',
-        'Milan': 'AC Milan',
-        'Juve': 'Juventus',
-        'Roma': 'Roma',
-        'Fiorentina': 'Fiorentina',
-        'Bologna': 'Bologna',
-        'Torino': 'Torino',
-        
-        // MLS variations
-        'Galaxy': 'LA Galaxy',
-        'Sounders': 'Seattle Sounders',
-        'Timbers': 'Portland Timbers',
-        'NYCFC': 'New York City FC',
-        'Atlanta': 'Atlanta United',
-        'Toronto': 'Toronto FC',
-        'Sporting KC': 'Sporting Kansas City',
-        'RSL': 'Real Salt Lake',
-        'Dallas': 'FC Dallas',
-        'Dynamo': 'Houston Dynamo'
-    };
-    
-    // Check for variations
-    for (const [shortName, fullName] of Object.entries(teamVariations)) {
-        if (teamName.includes(shortName) || shortName.includes(teamName)) {
-            console.log(`Found Soccer variation: ${teamName} -> ${fullName}`);
-            return soccerLogos[fullName];
-        }
-    }
-    
-    // Try partial matching for remaining cases
+    // Try partial matching
     const teamNameLower = teamName.toLowerCase();
-    for (const [fullName, logoUrl] of Object.entries(soccerLogos)) {
+    for (const [fullName, logoUrl] of Object.entries(nhlLogos)) {
         const fullNameLower = fullName.toLowerCase();
-        // Check if any word in the full name matches
-        const fullNameWords = fullNameLower.split(' ');
-        const teamNameWords = teamNameLower.split(' ');
-        
-        for (const word of teamNameWords) {
-            if (word.length > 2 && fullNameWords.includes(word)) {
-                console.log(`Found Soccer partial match: ${teamName} -> ${fullName} (via word: ${word})`);
+        if (fullNameLower.includes(teamNameLower) || teamNameLower.includes(fullNameLower)) {
+            console.log(`✅ Found NHL partial match: ${teamName} -> ${fullName}`);
                 return logoUrl;
-            }
         }
     }
     
-    console.log(`No Soccer logo found for: ${teamName}`);
+    console.log(`❌ No NHL logo found for: ${teamName}`);
     return null;
 }
+
+
+
 
 // Get College Football logo URLs with comprehensive team database
 function getCollegeFootballLogoUrl(teamName) {
@@ -4031,8 +4046,6 @@ function getGameTimeDisplay(game) {
             console.log(`Final periodInfo: "${periodInfo}"`);
         } else if (game.sport === 'nhl') {
             periodInfo = `P${game.period || '1'}`;
-        } else if (game.sport === 'soccer') {
-            periodInfo = `${game.period || '1'}H`;
         }
         
         // Convert clock to readable time format
@@ -4070,12 +4083,7 @@ function convertClockToReadable(clock, sport) {
     if (typeof clock === 'number' || !isNaN(parseInt(clock))) {
         const clockNum = parseInt(clock);
         
-        if (sport === 'soccer') {
-            // Soccer: convert seconds to MM:SS format
-            const minutes = Math.floor(clockNum / 60);
-            const seconds = clockNum % 60;
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        } else if (sport === 'nfl' || sport === 'ncaaf' || sport === 'nba' || sport === 'ncaab') {
+        if (sport === 'nfl' || sport === 'ncaaf' || sport === 'nba' || sport === 'ncaab') {
             // Football/Basketball: convert seconds to MM:SS format
             const minutes = Math.floor(clockNum / 60);
             const seconds = clockNum % 60;
@@ -4682,6 +4690,62 @@ function getFootballDisplay(game) {
     return result;
 }
 
+// Get NHL game display text for live games
+function getNHLDisplay(game) {
+    if (game.sport !== 'nhl') return '';
+    
+    console.log(`=== NHL DISPLAY DEBUG ===`);
+    console.log('Game:', game.awayTeam, 'vs', game.homeTeam);
+    console.log('Period:', game.period);
+    console.log('Clock:', game.clock);
+    console.log('Clock type:', typeof game.clock);
+    console.log('Clock value:', game.clock);
+    
+    let periodText = '';
+    if (game.period) {
+        if (game.period === 1) periodText = '1st';
+        else if (game.period === 2) periodText = '2nd';
+        else if (game.period === 3) periodText = '3rd';
+        else if (game.period === 4) periodText = '4th';
+        else if (game.period > 4) periodText = `${game.period}th`;
+        else periodText = game.period.toString();
+    }
+    
+    let timeText = '';
+    if (game.clock) {
+        // Convert to string first, then format time to be more human-readable
+        const clockStr = String(game.clock);
+        console.log('NHL Clock string:', clockStr);
+        
+        if (clockStr.includes(':')) {
+            // Already formatted (e.g., "12:45")
+            timeText = clockStr;
+            console.log('Already formatted NHL time:', timeText);
+        } else {
+            // Convert seconds to MM:SS format
+            const totalSeconds = parseInt(clockStr);
+            if (!isNaN(totalSeconds)) {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                timeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                console.log(`Converted ${totalSeconds} seconds to NHL time: ${timeText}`);
+            } else {
+                timeText = clockStr;
+                console.log('Could not parse NHL clock as number, using raw value:', timeText);
+            }
+        }
+    }
+    
+    const result = periodText && timeText ? `${timeText} ${periodText}` : 
+                   periodText ? periodText : 
+                   timeText ? timeText : '';
+    
+    console.log('NHL Final result:', result);
+    console.log('=== END NHL DISPLAY DEBUG ===');
+    
+    return result;
+}
+
 // Debug function to check inning parsing for MLB games
 function debugMLBInningParsing() {
     console.log('=== DEBUGGING MLB INNING PARSING ===');
@@ -5045,4 +5109,5 @@ function testInningDisplay() {
 
 // Make the test function available globally
 window.testInningDisplay = testInningDisplay;
+
 
