@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Division Standings - Sports Scores</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="View division standings for all sports">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Division Standings</h1>
+            <div class="header-controls">
+                <button id="backBtn" class="nav-button">← Back to Scores</button>
+                <select id="sportFilter" class="sport-filter">
+                    <option value="all">All Sports</option>
+                    <option value="nfl">NFL</option>
+                    <option value="nba">NBA</option>
+                    <option value="mlb">MLB</option>
+                    <option value="nhl">NHL</option>
+                    <option value="college-football">College Football</option>
+                    <option value="college-basketball">College Basketball</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <p>Loading standings...</p>
+        </div>
+        
+        <div id="standingsContainer" class="standings-container" style="display: none;">
+            <!-- Standings will be populated here -->
+        </div>
+        
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <p>Unable to load standings at this time. Please try again later.</p>
+        </div>
+    </main>
+
+    <script src="standings.js"></script>
+</body>
+</html>

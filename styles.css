@@ -1027,9 +1027,7 @@ body.pwa-mode {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.score-card.score-changed {
-    /* Animation removed - scores will update without visual effects */
-}
+/* Score change animation removed - scores will update without visual effects */
 
 @keyframes scoreUpdate {
     0% {
@@ -1201,12 +1199,16 @@ body.pwa-mode {
     border-radius: 5px;
     border: 1px solid #444;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .team:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: #666;
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
 }
+
 
 .team-info {
     display: flex;
@@ -1265,6 +1267,12 @@ body.pwa-mode {
     font-size: 0.8rem;
     font-weight: 600;
     color: #ffffff;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.team-name:hover {
+    color: var(--accent-primary);
 }
 
 .team-score {
@@ -1920,6 +1928,323 @@ body.pwa-mode {
     .count-dot {
         width: 5px !important;
         height: 5px !important;
+    }
+}
+
+/* Standings Page Styles */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header h1 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.header-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.nav-button {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    background: var(--accent-secondary);
+}
+
+.sport-filter {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.main-content {
+    margin-top: 80px;
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.loading-indicator {
+    text-align: center;
+    padding: 40px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-primary);
+    border-top: 3px solid var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.standings-container {
+    display: grid;
+    gap: 30px;
+}
+
+.info-message {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.info-message p {
+    color: var(--text-secondary);
+    margin: 0;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.standings-info {
+    padding: 20px;
+    text-align: center;
+}
+
+.standings-info p {
+    color: var(--text-secondary);
+    margin: 0 0 15px 0;
+    font-size: 0.95rem;
+}
+
+.standings-link {
+    display: inline-block;
+    background: var(--accent-primary);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.standings-link:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+
+.sport-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.sport-title {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.conference-section {
+    padding: 20px;
+}
+
+.conference-title {
+    color: var(--text-primary);
+    margin: 0 0 20px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.divisions-container {
+    display: grid;
+    gap: 25px;
+}
+
+.division-section {
+    background: var(--bg-card-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.division-title {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 15px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.standings-table {
+    padding: 0;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.team-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-secondary);
+    transition: background-color 0.2s ease;
+}
+
+.team-row:last-child {
+    border-bottom: none;
+}
+
+.team-row:hover {
+    background: var(--bg-primary);
+}
+
+.team-row.first-place {
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.team-col {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rank {
+    background: var(--accent-primary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.team-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.record-col,
+.pct-col,
+.gb-col {
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Mobile responsiveness for standings page */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .header-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .main-content {
+        padding: 15px;
+        margin-top: 120px;
+    }
+    
+    .table-header,
+    .team-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .pct-col,
+    .gb-col {
+        display: none;
+    }
+    
+    .divisions-container {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .sport-title {
+        font-size: 1.1rem;
+        padding: 15px;
+    }
+    
+    .conference-section {
+        padding: 15px;
+    }
+    
+    .division-title {
+        padding: 12px 15px;
+    }
+    
+    .table-header,
+    .team-row {
+        padding: 10px 15px;
     }
 }
 
