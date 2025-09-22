@@ -2026,6 +2026,44 @@ body.pwa-mode {
     gap: 30px;
 }
 
+/* Team logo styles for standings page only */
+.standings-container .team-logo-container {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.standings-container .team-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.standings-container .team-initials {
+    width: 100%;
+    height: 100%;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.standings-container .team-col {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .info-message {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
