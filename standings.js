@@ -9,12 +9,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const sportParam = urlParams.get('sport');
     const teamParam = urlParams.get('team');
+    
+    console.log('=== STANDINGS PAGE INITIALIZATION ===');
+    console.log('URL params:', window.location.search);
+    console.log('Sport param:', sportParam);
+    console.log('Team param:', teamParam);
+    
     if (sportParam) {
         currentSport = sportParam;
+        console.log('Set currentSport to:', currentSport);
     }
     if (teamParam) {
         currentTeam = decodeURIComponent(teamParam);
+        console.log('Set currentTeam to:', currentTeam);
     }
+    
+    console.log('Final values - currentSport:', currentSport, 'currentTeam:', currentTeam);
+    console.log('=== END INITIALIZATION ===');
     
     setupEventListeners();
     loadStandings();
@@ -480,8 +491,10 @@ function displayAllSports(container) {
 }
 
 function displaySingleSport(container, sport) {
-    console.log(`Displaying sport: ${sport}, currentTeam: ${currentTeam}`);
+    console.log(`=== DISPLAY SINGLE SPORT ===`);
+    console.log(`Sport: ${sport}, currentTeam: "${currentTeam}"`);
     console.log('Standings data available:', Object.keys(standingsData));
+    console.log(`Has standings data for ${sport}:`, !!standingsData[sport]);
     
     if (!standingsData[sport]) {
         console.log(`No standings data for sport: ${sport}`);
@@ -494,10 +507,10 @@ function displaySingleSport(container, sport) {
     
     // If a specific team was clicked, show their division first
     if (currentTeam) {
-        console.log(`Team clicked: ${currentTeam}, using special division display`);
+        console.log(`✅ Team clicked: "${currentTeam}", using special division display`);
         html += generateSportHTMLWithTeamDivision(sport, currentTeam);
     } else {
-        console.log('No team clicked, using normal display');
+        console.log('❌ No team clicked, using normal display');
         html += generateSportHTML(sport);
     }
     html += '</div>';

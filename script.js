@@ -2177,8 +2177,9 @@ document.addEventListener('click', function(e) {
         }, 150);
     }
     
-    // Handle team tile clicks for standings
+    // Handle team tile clicks for team page
     if (e.target.closest('.team')) {
+        console.log('Team clicked!', e.target);
         const gameCard = e.target.closest('.score-card');
         const gameId = gameCard.getAttribute('data-game-id');
         const sport = gameId.split('-')[0];
@@ -2188,8 +2189,9 @@ document.addEventListener('click', function(e) {
         const teamNameElement = teamElement.querySelector('.team-name');
         const teamName = teamNameElement ? teamNameElement.textContent.trim() : '';
 
-        // Navigate to standings page with sport filter and team name
-        window.location.href = `standings.html?sport=${sport}&team=${encodeURIComponent(teamName)}`;
+        console.log('Navigating to team page:', sport, teamName);
+        // Navigate to team page with sport filter and team name
+        window.location.href = `team.html?sport=${sport}&team=${encodeURIComponent(teamName)}`;
     }
 });
 

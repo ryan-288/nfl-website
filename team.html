@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team - Sports Scores</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+</head>
+<body class="team-page">
+    <div class="container">
+        <!-- Team Info Section -->
+        <section id="teamInfo" class="team-info-section">
+            <div class="team-header">
+                <button id="backBtn" class="back-btn" aria-label="Back to main page">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <div class="team-logo-large">
+                    <img id="teamLogo" src="" alt="Team Logo" class="team-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="team-logo-fallback" style="display: none;">
+                        <span class="team-initials">T</span>
+                    </div>
+                </div>
+                <div class="team-details">
+                    <h2 id="teamName" class="team-name-large">Team Name</h2>
+                    <p id="teamRecord" class="team-record">0-0</p>
+                    <p id="teamDivision" class="team-division">Division</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="division">Division</button>
+            <button class="tab-btn" data-tab="depth-chart">Depth Chart</button>
+            <button class="tab-btn" data-tab="schedule">Schedule</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="tab-content">
+            <!-- Division Standings Tab -->
+            <div id="division-tab" class="tab-panel active">
+                <div class="section-header">
+                    <h3>Division Standings</h3>
+                </div>
+                <div id="divisionStandings" class="standings-container">
+                    <div class="loading-indicator" id="loadingIndicator">
+                        <div class="spinner"></div>
+                        <p>Loading division standings...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Depth Chart Tab -->
+            <div id="depth-chart-tab" class="tab-panel">
+                <div class="section-header">
+                    <h3>Depth Chart</h3>
+                </div>
+                <div id="depthChart" class="depth-chart-container">
+                    <div class="info-message">
+                        <p>Depth chart information coming soon!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div id="schedule-tab" class="tab-panel">
+                <div class="section-header">
+                    <h3>Schedule</h3>
+                </div>
+                <div id="teamSchedule" class="schedule-container">
+                    <div class="loading-indicator" id="scheduleLoadingIndicator">
+                        <div class="spinner"></div>
+                        <p>Loading schedule...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <h3>Error</h3>
+            <p>Unable to load team information. Please try again later.</p>
+        </div>
+    </div>
+
+    <script src="team.js?v=20250122"></script>
+</body>
+</html>
