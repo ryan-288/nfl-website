@@ -2,102 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sports Scores">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
-    <meta name="msapplication-TileColor" content="#000000">
-    <meta name="msapplication-config" content="none">
-    
-    <title>Sports Scores Hub - Live ESPN Data</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="styles.css?v=20250822" onload="console.log('CSS loaded:', this.href)">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Apple touch icons -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIGZpbGw9IiMwMDdiZmYiLz4KPGFuZ2xlIHg9IjkwIiB5PSI5MCIgcj0iNzAiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik04MCA5NkgxMTJWMTA0SDgwVjk2WiIgZmlsbD0iIzAwN2JmZiIvPgo8cGF0aCBkPSJNODAgMTE2SDExMlYxMjRINzZWMTA0SDgwVjExNloiIGZpbGw9IiMwMDdiZmYiLz4KPHBhdGggZD0iTTgwIDEzNkgxMTJWMTQ0SDgwVjEzNloiIGZpbGw9IiMwMDdiZmYiLz4KPC9zdmc+">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knightro's Contact Kingdom</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-
-        <!-- Site Header with Title and Live Games Indicator -->
-        <div class="site-header">
-            <div class="header-left">
-                <h1>Scores Hub - Live ESPN Sports Data</h1>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="central_florida_knights_2021-pres-a.webp" alt="Knightro" class="knightro-logo">
+                Knightro's Contact Kingdom
             </div>
-            <div class="live-games-indicator">
-                <span class="count" id="liveGamesCount">0</span>
-                <span>Live Games</span>
+            <div class="nav-menu" id="navMenu">
+                <div class="nav-item" id="loginNav" style="display: none;">
+                    <button class="btn btn-sword" onclick="showLogin()">Login</button>
+                </div>
+                <div class="nav-item" id="registerNav" style="display: none;">
+                    <button class="btn btn-sword" onclick="showRegister()">Register</button>
+                </div>
+                <div class="nav-item" id="userNav" style="display: none;">
+                    <span class="nav-user" id="userInfo"></span>
+                    <button class="btn btn-sword" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Login Form -->
+        <div id="loginSection" class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                        <h2>Enter the Kingdom</h2>
+                    <form id="loginForm" class="auth-form">
+                            <div class="form-group">
+                                <label for="loginUsername">Username</label>
+                                <input type="text" id="loginUsername" name="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-sword">
+                                Charge On
+                            </button>
+                        </form>
+                        <p class="auth-switch">
+                            Don't have an account? 
+                            <a href="#" onclick="showRegister()">Register here</a>
+                        </p>
+                    </div>
+                </div>
+            
+            <!-- Knightro for Login Page -->
+            <div class="knightro-bottom">
+                <a href="https://github.com/Jabsz5/RFPBJ_COP.git" target="_blank" rel="noopener noreferrer">
+                    <img src="./229-2290578_history-page-image-ucf-knightro-png.png" alt="Knightro" class="knightro-main">
+                </a>
             </div>
         </div>
 
-        <div class="date-navigation">
-            <div class="week-display" onclick="toggleDatePicker()" style="cursor: pointer;">
-                <div class="week-label" id="weekLabel">Current Week</div>
+        <!-- Registration Form -->
+        <div id="registerSection" class="auth-section" style="display: none;">
+            <div class="auth-container">
+                <div class="auth-card">
+                        <h2>Join the Kingdom</h2>
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="regFirstName">First Name</label>
+                            <input type="text" id="regFirstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regLastName">Last Name</label>
+                            <input type="text" id="regLastName" name="lastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regUsername">Username</label>
+                            <input type="text" id="regUsername" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input type="password" id="regPassword" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-sword">
+                            Join Kingdom
+                        </button>
+                    </form>
+                    <p class="auth-switch">
+                        Already have an account? 
+                        <a href="#" onclick="showLogin()">Login here</a>
+                    </p>
+                </div>
             </div>
             
-            <div class="week-buttons">
-                <button class="week-nav-btn" onclick="previousWeek()">◀</button>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('monday')">Mon</button>
-                    <div class="day-date" id="mondayDate">-</div>
+            <!-- Knightro for Register Page -->
+            <div class="knightro-bottom">
+                <a href="https://github.com/Jabsz5/RFPBJ_COP.git" target="_blank" rel="noopener noreferrer">
+                    <img src="./229-2290578_history-page-image-ucf-knightro-png.png" alt="Knightro" class="knightro-main">
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact Management Section -->
+        <div id="contactSection" class="contact-section" style="display: none;">
+            <div class="contact-container">
+                <!-- Header -->
+                <div class="contact-header">
+                    <h2>Kingdom Contacts</h2>
+                    <button class="btn btn-sword" onclick="showAddContactForm()">
+                        <i class="fas fa-plus"></i> Add Contact
+                    </button>
                 </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('tuesday')">Tue</button>
-                    <div class="day-date" id="tuesdayDate">-</div>
+
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search the kingdom..." onkeyup="searchContacts()">
+                    </div>
                 </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('wednesday')">Wed</button>
-                    <div class="day-date" id="wednesdayDate">-</div>
+
+                <!-- Add Contact Form -->
+                <div id="addContactForm" class="add-contact-form" style="display: none;">
+                    <div class="form-card">
+                        <h3>Add New Contact</h3>
+                        <form id="contactForm" class="contact-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactFirstName">First Name</label>
+                                    <input type="text" id="contactFirstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactLastName">Last Name</label>
+                                    <input type="text" id="contactLastName" name="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactPhone">Phone</label>
+                                    <input type="tel" id="contactPhone" name="phone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactEmail">Email</label>
+                                    <input type="email" id="contactEmail" name="email" required>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-sword">
+                                    Add Contact
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAddContactForm()">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('thursday')">Thu</button>
-                    <div class="day-date" id="thursdayDate">-</div>
+
+                <!-- Contacts List -->
+                <div class="contacts-container">
+                    <div id="contactsList" class="contacts-list">
+                        <!-- Contacts will be dynamically loaded here -->
+                    </div>
+                    <div id="noContacts" class="no-contacts" style="display: none;">
+                        <h3>No contacts in the kingdom</h3>
+                        <p>Start by adding your first contact!</p>
+                    </div>
                 </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('friday')">Fri</button>
-                    <div class="day-date" id="fridayDate">-</div>
-                </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('saturday')">Sat</button>
-                    <div class="day-date" id="saturdayDate">-</div>
-                </div>
-                <div class="day-button">
-                    <button class="week-btn" onclick="goToDate('sunday')">Sun</button>
-                    <div class="day-date" id="sundayDate">-</div>
-                </div>
-                <button class="week-nav-btn" onclick="nextWeek()">▶</button>
             </div>
             
-            <div class="date-picker" id="datePicker" style="display: none;">
-                <input type="date" id="customDate" onchange="goToCustomDate(this.value)" style="display: none;">
+            <!-- Knightro at Bottom of Contact Page -->
+            <div class="knightro-bottom contact-knightro">
+                <img src="./knightro_arms_up.png" alt="Knightro" class="knightro-main">
             </div>
         </div>
-
-        <div class="controls">
-            <div class="sport-filters">
-                <button class="sport-btn active" data-sport="all">All Sports</button>
-                <button class="sport-btn" data-sport="nfl">NFL</button>
-                <button class="sport-btn" data-sport="nba">NBA</button>
-                <button class="sport-btn" data-sport="mlb">MLB</button>
-                <button class="sport-btn" data-sport="nhl">NHL</button>
-                <button class="sport-btn" data-sport="college-football">NCAAF</button>
-                <button class="sport-btn" data-sport="college-basketball">NCAAB</button>
-            </div>
-        </div>
-
-        <!-- Current date display removed - nothing here -->
-
-        <div class="scores-container" id="scoresContainer">
-            <!-- Scores will be loaded here -->
-        </div>
+    </main>
 
 
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
     </div>
 
-    <script src="script.js?v=20250122"></script>
+    <!-- Alert Messages -->
+    <div id="alertContainer" class="alert-container"></div>
+
+    <script src="script.js"></script>
 </body>
 </html>
