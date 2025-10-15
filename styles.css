@@ -248,19 +248,20 @@ body.pwa-mode {
 }
 
 .week-btn:hover {
-    background: rgba(0, 123, 255, 0.1);
-    border-color: rgba(0, 123, 255, 0.3);
+    background: rgba(0, 86, 179, 0.15);
+    border-color: rgba(0, 86, 179, 0.4);
     color: var(--text-primary);
     transform: translateY(-1px);
     transition: all 0.2s ease;
 }
 
 .week-btn.active {
-    background: #007bff;
-    border-color: #007bff;
+    background: #0056b3;
+    border-color: #0056b3;
     color: white;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.5);
+    transform: scale(1.05);
 }
 
 .day-date {
@@ -376,19 +377,20 @@ body.pwa-mode {
 }
 
 .sport-btn:hover {
-    background: rgba(0, 123, 255, 0.1);
-    border-color: rgba(0, 123, 255, 0.3);
+    background: rgba(0, 86, 179, 0.15);
+    border-color: rgba(0, 86, 179, 0.4);
     color: var(--text-primary);
     transform: translateY(-1px);
     transition: all 0.2s ease;
 }
 
 .sport-btn.active {
-    background: #007bff;
-    border-color: #007bff;
+    background: #0056b3;
+    border-color: #0056b3;
     color: white;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.5);
+    transform: scale(1.05);
 }
 
 /* Scores container with dark theme */
