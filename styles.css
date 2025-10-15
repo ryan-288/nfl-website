@@ -394,8 +394,8 @@ body.pwa-mode {
 /* Mobile-first grid adjustments */
 @media (max-width: 768px) {
     .scores-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 }
 
@@ -451,7 +451,7 @@ body.pwa-mode {
     }
     
     .week-buttons {
-        gap: 6px;
+        gap: 8px;
     }
     
     .week-btn {
@@ -462,15 +462,15 @@ body.pwa-mode {
     
     .day-button {
         flex-direction: column;
-        gap: 3px;
+        gap: 6px;
     }
     
     .day-date {
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .sport-filters {
-        gap: 6px;
+        gap: 8px;
         margin-bottom: 8px;
     }
     
@@ -486,12 +486,12 @@ body.pwa-mode {
     }
     
     .score-card {
-        padding: 10px;
+        padding: 14px;
         margin: 0;
     }
     
     .game-header {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
     
     .sport-type {
@@ -527,21 +527,21 @@ body.pwa-mode {
     }
     
     .team-logo {
-        width: 16px;
-        height: 16px;
-        margin-right: 2px;
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
     }
     
     .team-name {
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .team-score {
-        font-size: 0.75rem;
+        font-size: 0.95rem;
     }
     
     .pitcher-info {
-        font-size: 0.6rem;
+        font-size: 0.8rem;
         margin-top: 1px;
     }
     
@@ -565,9 +565,9 @@ body.pwa-mode {
     }
     
     .bases-diamond {
-        margin-top: 2px;
+        margin-top: 4px;
         /* Ensure bases fit within the container */
-        transform: scale(0.6);
+        transform: scale(0.8);
         transform-origin: center;
         /* Better centering on mobile */
         width: 100%;
@@ -575,21 +575,21 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 3px;
+        gap: 6px;
         justify-content: center;
     }
     
     .base {
-        width: 6px;
-        height: 6px;
-        font-size: 0.2rem;
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
         /* Ensure bases don't overflow */
         flex-shrink: 0;
         border-width: 1px;
     }
     
     .base span {
-        font-size: 0.15rem;
+        font-size: 0.6rem;
         line-height: 1;
     }
     
@@ -679,7 +679,7 @@ body.pwa-mode {
     
     .sport-filters {
         gap: 4px;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     
     .sport-btn {
@@ -688,8 +688,8 @@ body.pwa-mode {
     }
     
     .scores-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        grid-template-columns: 1fr;
+        gap: 8px;
         margin-top: 15px;
     }
     
@@ -702,14 +702,14 @@ body.pwa-mode {
     
     .bases-diamond {
         margin-top: 0px;
-        transform: scale(0.75);
+        transform: scale(0.9);
         /* Better centering on extra small mobile */
         width: 100%;
         justify-content: center;
     }
     
     .bases-row {
-        gap: 3px;
+        gap: 6px;
         justify-content: center;
     }
     
@@ -722,7 +722,7 @@ body.pwa-mode {
     }
     
     .base span {
-        font-size: 0.15rem;
+        font-size: 0.6rem;
         line-height: 1;
     }
     
@@ -743,16 +743,16 @@ body.pwa-mode {
     }
     
     .score-card {
-        padding: 6px;
+        padding: 12px;
     }
     
     .game-header {
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     
     .sport-type, .game-status, .inning-display {
         padding: 3px 6px;
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .inning-display {
@@ -766,7 +766,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 6px;
+        gap: 8px;
     }
     
     .team {
@@ -781,21 +781,21 @@ body.pwa-mode {
     }
     
     .team-name {
-        font-size: 0.6rem;
+        font-size: 0.8rem;
     }
     
     .team-score {
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .game-info {
         padding-top: 3px;
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .game-time, .game-date {
         padding: 2px 4px;
-        font-size: 0.6rem;
+        font-size: 0.8rem;
     }
     
     /* MLB game state extra small mobile */
@@ -805,9 +805,9 @@ body.pwa-mode {
     }
     
     .base {
-        width: 5px;
-        height: 5px;
-        font-size: 0.15rem;
+        width: 12px;
+        height: 12px;
+        font-size: 0.6rem;
     }
     
     .count-dot {
@@ -1730,7 +1730,7 @@ body.pwa-mode {
     
     .sport-filters {
         gap: 4px;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     
     .sport-btn {
@@ -1739,8 +1739,8 @@ body.pwa-mode {
     }
     
     .scores-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        grid-template-columns: 1fr;
+        gap: 8px;
         margin-top: 15px;
     }
     
@@ -1753,14 +1753,14 @@ body.pwa-mode {
     
     .bases-diamond {
         margin-top: 0px;
-        transform: scale(0.75);
+        transform: scale(0.9);
         /* Better centering on extra small mobile */
         width: 100%;
         justify-content: center;
     }
     
     .bases-row {
-        gap: 3px;
+        gap: 6px;
         justify-content: center;
     }
     
@@ -1773,7 +1773,7 @@ body.pwa-mode {
     }
     
     .base span {
-        font-size: 0.15rem;
+        font-size: 0.6rem;
         line-height: 1;
     }
     
@@ -1794,16 +1794,16 @@ body.pwa-mode {
     }
     
     .score-card {
-        padding: 6px;
+        padding: 12px;
     }
     
     .game-header {
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     
     .sport-type, .game-status, .inning-display {
         padding: 3px 6px;
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .inning-display {
@@ -1817,7 +1817,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 6px;
+        gap: 8px;
     }
     
     .team {
@@ -1832,21 +1832,21 @@ body.pwa-mode {
     }
     
     .team-name {
-        font-size: 0.6rem;
+        font-size: 0.8rem;
     }
     
     .team-score {
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .game-info {
         padding-top: 3px;
-        font-size: 0.65rem;
+        font-size: 0.85rem;
     }
     
     .game-time, .game-date {
         padding: 2px 4px;
-        font-size: 0.6rem;
+        font-size: 0.8rem;
     }
     
     /* MLB game state extra small mobile */
@@ -1856,9 +1856,9 @@ body.pwa-mode {
     }
     
     .base {
-        width: 5px;
-        height: 5px;
-        font-size: 0.15rem;
+        width: 12px;
+        height: 12px;
+        font-size: 0.6rem;
     }
     
     .count-dot {
@@ -1890,8 +1890,8 @@ body.pwa-mode {
     }
     
     .base {
-        width: 12px !important;
-        height: 12px !important;
+        width: 16px !important;
+        height: 16px !important;
         border-width: 1px !important;
     }
     
@@ -1921,8 +1921,8 @@ body.pwa-mode {
     }
     
     .base {
-        width: 10px !important;
-        height: 10px !important;
+        width: 14px !important;
+        height: 14px !important;
     }
     
     .count-dot {
