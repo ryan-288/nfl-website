@@ -248,15 +248,19 @@ body.pwa-mode {
 }
 
 .week-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 123, 255, 0.1);
+    border-color: rgba(0, 123, 255, 0.3);
     color: var(--text-primary);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
 }
 
 .week-btn.active {
-    background: rgba(0, 123, 255, 0.2);
-    border-color: rgba(0, 123, 255, 0.4);
-    color: #007bff;
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .day-date {
@@ -372,15 +376,19 @@ body.pwa-mode {
 }
 
 .sport-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 123, 255, 0.1);
+    border-color: rgba(0, 123, 255, 0.3);
     color: var(--text-primary);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
 }
 
 .sport-btn.active {
-    background: rgba(0, 123, 255, 0.2);
-    border-color: rgba(0, 123, 255, 0.4);
-    color: #007bff;
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 /* Scores container with dark theme */
@@ -389,6 +397,7 @@ body.pwa-mode {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
     margin-top: 30px;
+    padding: 10px;
 }
 
 /* Mobile-first grid adjustments */
@@ -396,6 +405,7 @@ body.pwa-mode {
     .scores-container {
         grid-template-columns: 1fr;
         gap: 12px;
+        padding: 5px;
     }
 }
 
@@ -483,6 +493,7 @@ body.pwa-mode {
         grid-template-columns: 1fr;
         gap: 12px;
         margin-top: 20px;
+        padding: 5px;
     }
     
     .score-card {
@@ -691,6 +702,7 @@ body.pwa-mode {
         grid-template-columns: 1fr;
         gap: 8px;
         margin-top: 15px;
+        padding: 3px;
     }
     
     /* MLB game state extra small mobile optimization */
@@ -1018,7 +1030,7 @@ body.pwa-mode {
     transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .score-card:hover {
@@ -1742,6 +1754,7 @@ body.pwa-mode {
         grid-template-columns: 1fr;
         gap: 8px;
         margin-top: 15px;
+        padding: 3px;
     }
     
     /* MLB game state extra small mobile optimization */
