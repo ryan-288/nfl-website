@@ -1699,7 +1699,7 @@ function displayScores(scores) {
                     
                     ${game.sport === 'nfl' && game.status === 'live' ? '' : ''}
                     
-                    ${game.sport === 'mlb' && game.status === 'live' ? `<div class="mlb-game-state">
+                    ${game.sport === 'mlb' && game.status === 'live' ? `<div class="mlb-game-state live-game">
                         <div class="mlb-bases-container">
                             ${game.bases ? getBasesVisual(game.bases) : ''}
                         </div>
