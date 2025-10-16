@@ -414,7 +414,7 @@ body.pwa-mode {
 /* Extra small mobile devices */
 @media (max-width: 480px) {
     .site-header {
-        padding: 2px 10px !important;
+        padding: 6px 12px !important;
         margin-bottom: 15px !important;
         width: 100vw !important;
         left: 0 !important;
@@ -1955,6 +1955,10 @@ body.pwa-mode {
 
 /* Mobile: Make bases look like desktop and smaller banner text */
 @media (max-width: 768px) {
+    .site-header {
+        padding: 8px 15px !important;
+    }
+    
     .site-header h1 {
         font-size: 1.2rem !important;
     }
