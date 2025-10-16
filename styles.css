@@ -533,7 +533,11 @@ body.pwa-mode {
         gap: 8px;
         flex: 1;
         min-width: 0;
-        max-width: 60%;
+    }
+    
+    /* Limit teams width only when bases are expanded (live games) */
+    .score-card:has(.mlb-game-state.live-game) .teams {
+        max-width: 70%;
     }
     
     .team {
@@ -542,9 +546,9 @@ body.pwa-mode {
     }
     
     .team-logo {
-        width: 20px;
-        height: 20px;
-        margin-right: 4px;
+        width: 28px;
+        height: 28px;
+        margin-right: 6px;
     }
     
     .team-name {
@@ -570,54 +574,93 @@ body.pwa-mode {
         font-size: 0.75rem;
     }
     
-    /* MLB game state mobile optimization */
+    /* MLB game state mobile optimization - DEFAULT (non-live games) */
     .mlb-game-state {
-        min-width: 120px;
-        max-width: none;
-        gap: 2px;
-        /* Allow bases to take up more space on mobile */
+        min-width: 60px;
+        max-width: 80px;
+        gap: 1px;
         flex-shrink: 0;
-        flex: 1.5;
+        flex: 0;
+    }
+    
+    /* MLB game state mobile optimization - LIVE GAMES ONLY */
+    .mlb-game-state.live-game {
+        min-width: 80px;
+        max-width: 30%;
+        gap: 2px;
+        /* Allow bases to take up 30% of space on mobile for live games */
+        flex-shrink: 0;
+        flex: 1;
     }
     
     .bases-diamond {
-        margin-top: 8px;
-        /* Increase size for better visibility on mobile */
-        transform: scale(1.5);
+        margin-top: 4px;
+        /* Default size for non-live games */
+        transform: scale(0.8);
         transform-origin: center;
         /* Better centering on mobile */
         width: 100%;
         justify-content: center;
     }
     
+    /* Larger bases diamond for live games only */
+    .mlb-game-state.live-game .bases-diamond {
+        margin-top: 4px;
+        /* Small size increase for live games */
+        transform: scale(0.9);
+    }
+    
+    /* Ensure even spacing for live game bases */
+    .mlb-game-state.live-game .bases-row {
+        gap: 10px;
+    }
+    
     .bases-row {
-        gap: 6px;
+        gap: 8px;
         justify-content: center;
     }
     
     .base {
-        width: 28px;
-        height: 28px;
-        font-size: 0.9rem;
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
         /* Ensure bases don't overflow */
         flex-shrink: 0;
         border-width: 1px;
     }
     
+    /* Larger bases for live games only */
+    .mlb-game-state.live-game .base {
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+    }
+    
     .base span {
-        font-size: 0.9rem;
+        font-size: 0.6rem;
         line-height: 1;
     }
     
+    /* Larger base span text for live games only */
+    .mlb-game-state.live-game .base span {
+        font-size: 0.6rem;
+    }
+    
     .count-dots-container {
-        gap: 2px;
-        /* Make count dots more visible on mobile */
-        transform: scale(1.0);
+        gap: 0px;
+        /* Default size for non-live games */
+        transform: scale(0.8);
         transform-origin: left center;
     }
     
+    /* Larger count dots for live games only */
+    .mlb-game-state.live-game .count-dots-container {
+        gap: 1px;
+        transform: scale(0.8);
+    }
+    
     .count-dots {
-        gap: 2px !important;
+        gap: 0px !important;
         min-height: 2px !important;
         display: flex !important;
         align-items: center !important;
@@ -630,10 +673,10 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px !important;
-        width: 8px !important;
-        height: 4px !important;
-        margin-right: 0px !important;
+        font-size: 6px !important;
+        width: 10px !important;
+        height: 6px !important;
+        margin-right: 2px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -726,7 +769,7 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 6px;
+        gap: 8px;
         justify-content: center;
     }
     
@@ -754,9 +797,9 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px;
-        width: 8px;
-        height: 4px;
+        font-size: 6px;
+        width: 10px;
+        height: 6px;
     }
     
     .score-card {
@@ -792,9 +835,9 @@ body.pwa-mode {
     }
     
     .team-logo {
-        width: 14px;
-        height: 14px;
-        margin-right: 1px;
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
     }
     
     .team-name {
@@ -834,9 +877,9 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px;
-        width: 8px;
-        height: 4px;
+        font-size: 6px;
+        width: 10px;
+        height: 6px;
     }
 }
 
@@ -854,7 +897,7 @@ body.pwa-mode {
 
 .bases-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
     /* Ensure bases don't overflow */
@@ -933,10 +976,19 @@ body.pwa-mode {
 /* Mobile-first approach - apply mobile styles by default */
 @media (max-width: 768px) {
     .mlb-game-state {
-        min-width: 120px !important;
-        max-width: none !important;
+        min-width: 60px !important;
+        max-width: 80px !important;
+        gap: 1px !important;
+        flex: 0 !important;
+        justify-content: center !important;
+    }
+    
+    /* Live games get expanded layout */
+    .mlb-game-state.live-game {
+        min-width: 80px !important;
+        max-width: 30% !important;
         gap: 2px !important;
-        flex: 1.5 !important;
+        flex: 1 !important;
         justify-content: center !important;
     }
 }
@@ -962,6 +1014,7 @@ body.pwa-mode {
     /* Make count dots more compact by default */
     transform: scale(0.9);
     transform-origin: left center;
+    margin-top: 8px;
 }
 
 .count-dots {
@@ -994,7 +1047,7 @@ body.pwa-mode {
 }
 
 .count-label {
-    font-size: 8px;
+    font-size: 10px;
     color: var(--text-muted);
     font-weight: bold;
     width: 16px;
@@ -1002,7 +1055,7 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 10px;
+    height: 12px;
     flex-shrink: 0;
 }
 
@@ -1205,7 +1258,11 @@ body.pwa-mode {
         gap: 8px !important;
         flex: 1 !important; /* Allow teams to take up available space */
         min-width: 0 !important; /* Prevent overflow */
-        max-width: 60% !important; /* Limit teams to give more space to bases */
+    }
+    
+    /* Limit teams width only when bases are expanded (live games) */
+    .score-card:has(.mlb-game-state.live-game) .teams {
+        max-width: 70% !important; /* Teams get 70%, bases get 30% */
     }
 }
 
@@ -1590,7 +1647,7 @@ body.pwa-mode {
 
 .bases-row {
     display: flex;
-        gap: 12px;
+        gap: 10px;
     align-items: center;
 }
 
@@ -1675,7 +1732,7 @@ body.pwa-mode {
 }
 
 .count-label {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: var(--count-label);
     font-weight: 600;
     text-align: center;
@@ -1689,6 +1746,7 @@ body.pwa-mode {
     flex-direction: column;
         gap: 4px;
     align-items: center;
+    margin-top: 8px;
 }
 
 /* Specific styling for balls, strikes, outs rows - horizontal layout */
@@ -1780,7 +1838,7 @@ body.pwa-mode {
     }
     
     .bases-row {
-        gap: 6px;
+        gap: 8px;
         justify-content: center;
     }
     
@@ -1808,9 +1866,9 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px;
-        width: 8px;
-        height: 4px;
+        font-size: 6px;
+        width: 10px;
+        height: 6px;
     }
     
     .score-card {
@@ -1846,9 +1904,9 @@ body.pwa-mode {
     }
     
     .team-logo {
-        width: 14px;
-        height: 14px;
-        margin-right: 1px;
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
     }
     
     .team-name {
@@ -1888,9 +1946,9 @@ body.pwa-mode {
     }
     
     .count-label {
-        font-size: 4px;
-        width: 8px;
-        height: 4px;
+        font-size: 6px;
+        width: 10px;
+        height: 6px;
     }
 }
 
@@ -1905,24 +1963,53 @@ body.pwa-mode {
     }
     
     .bases-diamond {
-        transform: scale(1.6) !important;
-        gap: 4px !important;
+        transform: scale(0.9) !important;
+        gap: 1px !important;
+    }
+    
+    /* Larger bases diamond for live games only */
+    .mlb-game-state.live-game .bases-diamond {
+        transform: scale(1.0) !important;
+        gap: 1px !important;
+    }
+    
+    /* Ensure even spacing for live game bases on mobile */
+    .mlb-game-state.live-game .bases-row {
+        gap: 10px !important;
     }
     
     .base {
-        width: 30px !important;
-        height: 30px !important;
+        width: 16px !important;
+        height: 16px !important;
         border-width: 1px !important;
     }
     
+    /* Larger bases for live games only */
+    .mlb-game-state.live-game .base {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    
     .count-dots-container {
-        transform: scale(1.4) !important;
-        gap: 3px !important;
+        transform: scale(0.8) !important;
+        gap: 1px !important;
+    }
+    
+    /* Larger count dots for live games only */
+    .mlb-game-state.live-game .count-dots-container {
+        transform: scale(0.9) !important;
+        gap: 1px !important;
     }
     
     .count-dot {
-        width: 10px !important;
-        height: 10px !important;
+        width: 6px !important;
+        height: 6px !important;
+    }
+    
+    /* Larger count dots for live games only */
+    .mlb-game-state.live-game .count-dot {
+        width: 7px !important;
+        height: 7px !important;
     }
     
     .mlb-game-state {
