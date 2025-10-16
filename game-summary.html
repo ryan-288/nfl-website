@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Game Summary">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="msapplication-config" content="none">
+    
+    <title>Game Summary - Sports Scores Hub</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1B04SJSFFZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-1B04SJSFFZ');
+    </script>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css?v=20250822">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Apple touch icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIGZpbGw9IiMwMDdiZmYiLz4KPGFuZ2xlIHg9IjkwIiB5PSI5MCIgcj0iNzAiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik04MCA5NkgxMTJWMTA0SDgwVjk2WiIgZmlsbD0iIzAwN2JmZiIvPgo8cGF0aCBkPSJNODAgMTE2SDExMlYxMjRINzZWMTA0SDgwVjExNloiIGZpbGw9IiMwMDdiZmYiLz4KPHBhdGggZD0iTTgwIDEzNkgxMTJWMTQ0SDgwVjEzNloiIGZpbGw9IiMwMDdiZmYiLz4KPC9zdmc+">
+</head>
+<body>
+    <div class="container">
+        <!-- Site Header -->
+        <div class="site-header">
+            <div class="header-left">
+                <h1>Game Summary</h1>
+            </div>
+            <div class="back-button">
+                <button onclick="goBack()" class="back-btn">← Back to Scores</button>
+            </div>
+        </div>
+
+        <!-- Game Summary Content -->
+        <div class="game-summary-content">
+            <div class="coming-soon-card">
+                <div class="game-info-header">
+                    <h2 id="gameTitle">Game Summary</h2>
+                    <div class="sport-badge" id="sportBadge">SPORT</div>
+                </div>
+                <div class="coming-soon-icon">🚧</div>
+                <h3>Detailed Game Summary Coming Soon</h3>
+                <p>We're working on detailed game summaries with:</p>
+                <ul class="feature-list">
+                    <li>📊 Live play-by-play updates</li>
+                    <li>📈 Team statistics and performance</li>
+                    <li>🎯 Key moments and highlights</li>
+                    <li>📱 Real-time score updates</li>
+                    <li>📺 Broadcast information</li>
+                </ul>
+                <p class="coming-soon-note">Check back soon for the full game experience!</p>
+                <button onclick="goBack()" class="return-btn">Return to Live Scores</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            // Go back to the previous page (main scores page)
+            window.history.back();
+        }
+
+        // Load game data when page loads
+        function loadGameData() {
+            const gameData = sessionStorage.getItem('currentGame');
+            if (gameData) {
+                try {
+                    const game = JSON.parse(gameData);
+                    updateGameInfo(game);
+                } catch (error) {
+                    console.error('Error parsing game data:', error);
+                }
+            }
+        }
+
+        function updateGameInfo(game) {
+            // Update the game title
+            const gameTitle = document.getElementById('gameTitle');
+            if (gameTitle) {
+                gameTitle.textContent = `${game.awayTeam} vs ${game.homeTeam}`;
+            }
+
+            // Update the sport badge
+            const sportBadge = document.getElementById('sportBadge');
+            if (sportBadge) {
+                sportBadge.textContent = game.sport.toUpperCase();
+            }
+        }
+
+        // Load game data when page loads
+        document.addEventListener('DOMContentLoaded', loadGameData);
+
+        // Add some basic styling for the coming soon page
+        const style = document.createElement('style');
+        style.textContent = `
+            .game-summary-content {
+                padding: 40px 20px;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .coming-soon-card {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-primary);
+                border-radius: 12px;
+                padding: 40px 30px;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .coming-soon-icon {
+                font-size: 4rem;
+                margin-bottom: 20px;
+            }
+
+            .game-info-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid var(--border-primary);
+            }
+
+            .game-info-header h2 {
+                color: var(--text-primary);
+                font-size: 1.5rem;
+                margin: 0;
+                font-weight: 600;
+            }
+
+            .sport-badge {
+                background: var(--accent-primary);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .coming-soon-card h3 {
+                color: var(--text-primary);
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+                font-weight: 600;
+            }
+
+            .coming-soon-card p {
+                color: var(--text-secondary);
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+                line-height: 1.6;
+            }
+
+            .feature-list {
+                list-style: none;
+                padding: 0;
+                margin: 30px 0;
+                text-align: left;
+                max-width: 400px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .feature-list li {
+                color: var(--text-secondary);
+                font-size: 1rem;
+                margin-bottom: 12px;
+                padding: 8px 0;
+                border-bottom: 1px solid var(--border-secondary);
+            }
+
+            .feature-list li:last-child {
+                border-bottom: none;
+            }
+
+            .coming-soon-note {
+                font-style: italic;
+                color: var(--accent-primary);
+                margin-top: 30px;
+            }
+
+            .back-btn, .return-btn {
+                background: var(--accent-primary);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 10px;
+            }
+
+            .back-btn:hover, .return-btn:hover {
+                background: var(--accent-secondary);
+                transform: translateY(-2px);
+            }
+
+            .back-button {
+                display: flex;
+                align-items: center;
+            }
+
+            @media (max-width: 768px) {
+                .coming-soon-card {
+                    padding: 30px 20px;
+                }
+
+                .coming-soon-card h2 {
+                    font-size: 1.5rem;
+                }
+
+                .feature-list {
+                    max-width: 100%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
