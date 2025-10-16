@@ -1,6 +1,6 @@
 {
-  "name": "Sports Scores",
-  "short_name": "Sports",
+  "name": "Quiet Scores",
+  "short_name": "Quiet",
   "description": "Live sports scores and game information",
   "start_url": "/",
   "display": "standalone",
