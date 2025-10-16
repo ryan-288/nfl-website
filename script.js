@@ -726,40 +726,62 @@ function parseESPNData(espnData, sportKey) {
             console.log('Competition object:', competition);
             console.log('Competition situation:', competition?.situation);
             
-            // Try to get inning info from status description first
-            if (event.status?.type?.description) {
-                const description = event.status.type.description.toLowerCase();
-                console.log(`MLB status description: "${description}"`);
+            // PRIMARY: Get inning info from status.type.detail and shortDetail (most reliable)
+            if (event.status?.type?.detail || event.status?.type?.shortDetail) {
+                const detail = event.status.type.detail || event.status.type.shortDetail;
+                const detailLower = detail.toLowerCase();
+                console.log(`MLB status detail: "${detail}"`);
                 
-                // Enhanced inning state detection
-                if (description.includes('top')) {
-                    topBottom = 'top';
-                    console.log('Found top from description');
-                } else if (description.includes('bottom')) {
-                    topBottom = 'bot';
-                    console.log('Found bottom from description');
-                } else if (description.includes('between') || description.includes('middle')) {
-                    topBottom = 'mid';
-                    console.log('Found between/middle from description');
-                } else if (description.includes('end') || description.includes('ended')) {
-                    topBottom = 'end';
-                    console.log('Found end from description');
-                } else if (description.includes('inning')) {
-                    // Check if it's a transition state
-                    if (description.includes('complete') || description.includes('finished')) {
-                        topBottom = 'end';
-                        console.log(`Found inning complete from description for inning ${inningNumber}`);
-                    } else if (description.includes('break') || description.includes('pause')) {
-                        topBottom = 'mid';
-                        console.log(`Found inning break from description for inning ${inningNumber}`);
-                    }
+                // Extract inning number and top/bottom from detail
+                const inningMatch = detailLower.match(/(\d+)(?:st|nd|rd|th)/);
+                if (inningMatch) {
+                    inningNumber = parseInt(inningMatch[1]);
+                    console.log(`Found inning number from detail: ${inningNumber}`);
                 }
+                
+                // Determine top/bottom from detail
+                if (detailLower.includes('top')) {
+                    topBottom = 'top';
+                    console.log('Found top from detail');
+                } else if (detailLower.includes('bottom') || detailLower.includes('bot')) {
+                    topBottom = 'bot';
+                    console.log('Found bottom from detail');
+                } else if (detailLower.includes('between') || detailLower.includes('middle') || detailLower.includes('mid')) {
+                    topBottom = 'mid';
+                    console.log('Found middle from detail');
+                } else if (detailLower.includes('end') || detailLower.includes('ended')) {
+                    topBottom = 'end';
+                    console.log('Found end from detail');
+                }
+            }
+            
+            // FALLBACK: Try to get inning info from status description
+            if (!inningNumber && event.status?.type?.description) {
+                const description = event.status.type.description.toLowerCase();
+                console.log(`MLB status description fallback: "${description}"`);
                 
                 // Extract inning number from description (e.g., "Top 3rd", "Bottom 5th")
                 const inningMatch = description.match(/(\d+)(?:st|nd|rd|th)/);
                 if (inningMatch) {
                     inningNumber = parseInt(inningMatch[1]);
                     console.log(`Found inning number from description: ${inningNumber}`);
+                }
+                
+                // Enhanced inning state detection from description
+                if (!topBottom) {
+                    if (description.includes('top')) {
+                        topBottom = 'top';
+                        console.log('Found top from description');
+                    } else if (description.includes('bottom')) {
+                        topBottom = 'bot';
+                        console.log('Found bottom from description');
+                    } else if (description.includes('between') || description.includes('middle')) {
+                        topBottom = 'mid';
+                        console.log('Found between/middle from description');
+                    } else if (description.includes('end') || description.includes('ended')) {
+                        topBottom = 'end';
+                        console.log('Found end from description');
+                    }
                 }
             }
             
@@ -823,40 +845,80 @@ function parseESPNData(espnData, sportKey) {
                 }
             }
             
-            // Try to get more reliable inning info from competition.situation object
+            // SECONDARY: Try to get more reliable inning info from competition.situation object
             if (competition?.situation) {
                 console.log(`MLB competition situation found:`, competition.situation);
                 
-                // Check if inning info is in the situation object
-                if (competition.situation.inning !== undefined && competition.situation.inning !== null) {
-                    inningNumber = competition.situation.inning;
+                // Parse situation object for inning, balls, strikes, outs, and base runners
+                const situation = competition.situation;
+                
+                // Extract inning info if not already found
+                if (!inningNumber && situation.inning !== undefined && situation.inning !== null) {
+                    inningNumber = situation.inning;
                     console.log(`Found inning from situation: ${inningNumber}`);
                 }
                 
-                // This is the most reliable source for top vs bottom
-                if (competition.situation.topOfInning !== undefined && competition.situation.topOfInning !== null) {
-                    topBottom = competition.situation.topOfInning ? 'top' : 'bot';
-                    console.log(`Found topOfInning from situation: ${competition.situation.topOfInning} -> ${topBottom}`);
-                }
-                // Fallback to inningHalf
-                else if (competition.situation.inningHalf !== undefined && competition.situation.inningHalf !== null) {
-                    if (competition.situation.inningHalf === 1 || competition.situation.inningHalf === 'top') {
-                        topBottom = 'top';
-                    } else if (competition.situation.inningHalf === 2 || competition.situation.inningHalf === 'bottom') {
-                        topBottom = 'bot';
+                // Extract top/bottom info if not already found
+                if (!topBottom) {
+                    if (situation.topOfInning !== undefined && situation.topOfInning !== null) {
+                        topBottom = situation.topOfInning ? 'top' : 'bot';
+                        console.log(`Found topOfInning from situation: ${situation.topOfInning} -> ${topBottom}`);
                     }
-                    console.log(`Found inningHalf: ${competition.situation.inningHalf} -> ${topBottom}`);
-                }
-                // Fallback to inningState
-                else if (competition.situation.inningState !== undefined && competition.situation.inningState !== null) {
-                    const state = competition.situation.inningState.toString().toLowerCase();
-                    if (state.includes('top') || state === '1') {
-                        topBottom = 'top';
-                    } else if (state.includes('bottom') || state.includes('bot') || state === '2') {
-                        topBottom = 'bot';
+                    // Fallback to inningHalf
+                    else if (situation.inningHalf !== undefined && situation.inningHalf !== null) {
+                        if (situation.inningHalf === 1 || situation.inningHalf === 'top') {
+                            topBottom = 'top';
+                        } else if (situation.inningHalf === 2 || situation.inningHalf === 'bottom') {
+                            topBottom = 'bot';
+                        }
+                        console.log(`Found inningHalf: ${situation.inningHalf} -> ${topBottom}`);
                     }
-                    console.log(`Found inningState: ${competition.situation.inningState} -> ${topBottom}`);
+                    // Fallback to inningState
+                    else if (situation.inningState !== undefined && situation.inningState !== null) {
+                        const state = situation.inningState.toString().toLowerCase();
+                        if (state.includes('top') || state === '1') {
+                            topBottom = 'top';
+                        } else if (state.includes('bottom') || state.includes('bot') || state === '2') {
+                            topBottom = 'bot';
+                        }
+                        console.log(`Found inningState: ${situation.inningState} -> ${topBottom}`);
+                    }
                 }
+                
+                // Extract balls, strikes, and outs
+                if (situation.balls !== undefined && situation.balls !== null) {
+                    balls = situation.balls;
+                    console.log(`Found balls from situation: ${balls}`);
+                }
+                
+                if (situation.strikes !== undefined && situation.strikes !== null) {
+                    strikes = situation.strikes;
+                    console.log(`Found strikes from situation: ${strikes}`);
+                }
+                
+                if (situation.outs !== undefined && situation.outs !== null) {
+                    outs = situation.outs;
+                    console.log(`Found outs from situation: ${outs}`);
+                }
+                
+                // Extract base runners information
+                const baseRunners = [];
+                if (situation.onFirst) baseRunners.push('1st');
+                if (situation.onSecond) baseRunners.push('2nd');
+                if (situation.onThird) baseRunners.push('3rd');
+                
+                if (baseRunners.length > 0) {
+                    bases = baseRunners.join(', ');
+                    console.log(`Found base runners: ${bases}`);
+                }
+                
+                // Log additional situation data for debugging
+                console.log('=== SITUATION DETAILS ===');
+                console.log('Balls:', balls);
+                console.log('Strikes:', strikes);
+                console.log('Outs:', outs);
+                console.log('Base runners:', bases);
+                console.log('=== END SITUATION DETAILS ===');
                 
                 // Additional fallback: Check for inning information in other fields
                 if (!topBottom) {
@@ -6184,10 +6246,10 @@ function getGameTimeDisplay(game) {
                                   `${game.inningNumber}th`;
                 
                 let inningState = '';
-                if (game.topBottom === 'top') inningState = 'top';
-                else if (game.topBottom === 'bot') inningState = 'bot';
-                else if (game.topBottom === 'mid') inningState = 'mid';
-                else if (game.topBottom === 'end') inningState = 'end';
+                if (game.topBottom === 'top') inningState = 'Top';
+                else if (game.topBottom === 'bot' || game.topBottom === 'bottom') inningState = 'Bot';
+                else if (game.topBottom === 'mid' || game.topBottom === 'middle') inningState = 'Mid';
+                else if (game.topBottom === 'end') inningState = 'End';
                 
                 periodInfo = `${inningState} ${inningText}`;
             } else if (game.period && game.period > 0) {
@@ -6198,14 +6260,14 @@ function getGameTimeDisplay(game) {
                                   `${game.period}th`;
                 
                 let inningState = '';
-                if (game.topBottom === 'top') inningState = 'top';
-                else if (game.topBottom === 'bot') inningState = 'bot';
-                else if (game.topBottom === 'mid') inningState = 'mid';
-                else if (game.topBottom === 'end') inningState = 'end';
+                if (game.topBottom === 'top') inningState = 'Top';
+                else if (game.topBottom === 'bot' || game.topBottom === 'bottom') inningState = 'Bot';
+                else if (game.topBottom === 'mid' || game.topBottom === 'middle') inningState = 'Mid';
+                else if (game.topBottom === 'end') inningState = 'End';
                 
                 periodInfo = `${inningState} ${inningText}`;
             } else {
-                periodInfo = 'top 1st';
+                periodInfo = 'Top 1st';
             }
             
             // Count dots will be displayed next to bases (outside the bubble)
@@ -6763,13 +6825,13 @@ function getInningDisplay(game) {
         
         let inningState = '';
         if (game.topBottom === 'top') {
-            inningState = 'top';
+            inningState = 'Top';
         } else if (game.topBottom === 'bot' || game.topBottom === 'bottom') {
-            inningState = 'bot';
+            inningState = 'Bot';
         } else if (game.topBottom === 'mid' || game.topBottom === 'middle') {
-            inningState = 'mid';
-        } else if (game.topBottom === 'end' || game.topBottom === 'end') {
-            inningState = 'end';
+            inningState = 'Mid';
+        } else if (game.topBottom === 'end') {
+            inningState = 'End';
         } else {
             // If topBottom is not set, try to infer from the game state
             console.log('No topBottom found, trying to infer from game state...');
