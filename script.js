@@ -28,6 +28,25 @@ function debugESPNData(gameIndex = 0) {
     console.log('=== END ESPN DEBUG ===');
 }
 
+// Open game summary page when clicking on a game card
+function openGameSummary(sport, awayTeam, homeTeam, gameId) {
+    console.log('Opening game summary for:', sport, awayTeam, 'vs', homeTeam, 'ID:', gameId);
+    
+    // Store game data in sessionStorage for the summary page
+    const gameData = {
+        sport: sport,
+        awayTeam: awayTeam,
+        homeTeam: homeTeam,
+        gameId: gameId,
+        timestamp: new Date().toISOString()
+    };
+    
+    sessionStorage.setItem('currentGame', JSON.stringify(gameData));
+    
+    // Navigate to game summary page
+    window.location.href = 'game-summary.html';
+}
+
 // ESPN API endpoints
 const ESPN_APIS = {
     'nfl': 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
@@ -1651,7 +1670,7 @@ function displayScores(scores) {
     }
         
         return `
-            <div class="score-card ${changeClass}" data-game-id="${game.sport}-${game.awayTeam}-${game.homeTeam}">
+            <div class="score-card ${changeClass}" data-game-id="${game.sport}-${game.awayTeam}-${game.homeTeam}" onclick="openGameSummary('${game.sport}', '${game.awayTeam}', '${game.homeTeam}', '${game.id}')">
                 <div class="game-header">
                     <span class="sport-type">${game.sport}</span>
                     ${game.sport === 'mlb' && game.status === 'live' && game.inningNumber ? `<span class="inning-display live">${getInningDisplay(game)}</span>` : ''}
