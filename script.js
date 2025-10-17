@@ -1362,6 +1362,7 @@ function parseESPNData(espnData, sportKey) {
             status: status,
             period: event.status?.period || null,
             clock: event.status?.clock || null,
+            description: event.status?.type?.description || '',
             inning: inningNumber,
             topBottom: topBottom,
             inningNumber: inningNumber,
@@ -1677,6 +1678,7 @@ function displayScores(scores) {
                     ${game.sport === 'mlb' && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'live' && game.period ? `<span class="inning-display live">${getFootballDisplay(game)}</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
+                    ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'live' ? `<span class="inning-display live">${getNBADisplay(game)}</span>` : ''}
                     ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nhl') && game.status === 'live' ? `<span class="inning-display live">${getNHLDisplay(game)}</span>` : ''}
                     ${(game.sport === 'nhl') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
@@ -6995,6 +6997,77 @@ function getNHLDisplay(game) {
     
     console.log('NHL Final result:', result);
     console.log('=== END NHL DISPLAY DEBUG ===');
+    
+    return result;
+}
+
+function getNBADisplay(game) {
+    if (game.sport !== 'nba') return '';
+    
+    console.log(`=== NBA DISPLAY DEBUG ===`);
+    console.log('Game:', game.awayTeam, 'vs', game.homeTeam);
+    console.log('Period:', game.period);
+    console.log('Clock:', game.clock);
+    console.log('Clock type:', typeof game.clock);
+    console.log('Clock value:', game.clock);
+    console.log('Game status:', game.status);
+    console.log('Game description:', game.description);
+    
+    // Check for halftime scenarios
+    const isHalftime = (
+        game.description && game.description.toLowerCase().includes('halftime') ||
+        game.description && game.description.toLowerCase().includes('half') ||
+        (game.clock === '0:00' || game.clock === 0 || game.clock === '0') && 
+        (game.period === 0 || game.period === null) && 
+        game.status === 'live'
+    );
+    
+    if (isHalftime) {
+        console.log('NBA game is in halftime');
+        return 'HALFTIME';
+    }
+    
+    let periodText = '';
+    if (game.period) {
+        if (game.period === 1) periodText = '1st';
+        else if (game.period === 2) periodText = '2nd';
+        else if (game.period === 3) periodText = '3rd';
+        else if (game.period === 4) periodText = '4th';
+        else if (game.period > 4) periodText = `OT${game.period - 4}`;
+        else periodText = game.period.toString();
+    }
+    
+    let timeText = '';
+    if (game.clock) {
+        // Convert to string first, then format time to be more human-readable
+        const clockStr = String(game.clock);
+        console.log('NBA Clock string:', clockStr);
+        
+        if (clockStr.includes(':')) {
+            // Already formatted (e.g., "12:45")
+            timeText = clockStr;
+            console.log('Already formatted NBA time:', timeText);
+        } else {
+            // Convert seconds to MM:SS format
+            const totalSeconds = parseInt(clockStr);
+            if (!isNaN(totalSeconds)) {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                timeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                console.log(`Converted ${totalSeconds} seconds to NBA time: ${timeText}`);
+            } else {
+                timeText = clockStr;
+                console.log('Could not parse NBA clock as number, using raw value:', timeText);
+            }
+        }
+    }
+    
+    const result = periodText && timeText ? `${timeText} ${periodText}` : 
+                   periodText ? periodText : 
+                   timeText ? timeText : '';
+    
+    console.log('NBA Final result:', result);
+    console.log('=== END NBA DISPLAY DEBUG ===');
     
     return result;
 }
