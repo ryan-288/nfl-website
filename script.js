@@ -1352,6 +1352,36 @@ function parseESPNData(espnData, sportKey) {
             console.log(`  Home team abbreviation:`, homeTeam.team?.abbreviation);
         }
         
+        // Extract broadcast information for CFB games
+        let broadcastChannel = null;
+        if (sportKey === 'college-football') {
+            // Try the direct broadcast field first
+            if (event.broadcast) {
+                broadcastChannel = event.broadcast;
+            }
+            // Try competitions[0].broadcasts array (most common location)
+            else if (competition && competition.broadcasts && competition.broadcasts.length > 0) {
+                const broadcast = competition.broadcasts[0];
+                if (broadcast.names && broadcast.names.length > 0) {
+                    broadcastChannel = broadcast.names[0];
+                }
+            }
+            // Fallback to geoBroadcasts array
+            else if (event.geoBroadcasts && event.geoBroadcasts.length > 0) {
+                const geoBroadcast = event.geoBroadcasts[0];
+                if (geoBroadcast.media && geoBroadcast.media.shortName) {
+                    broadcastChannel = geoBroadcast.media.shortName;
+                }
+            }
+            // Legacy broadcasts array fallback
+            else if (event.broadcasts && event.broadcasts.length > 0) {
+                const broadcast = event.broadcasts[0];
+                if (broadcast.names && broadcast.names.length > 0) {
+                    broadcastChannel = broadcast.names[0];
+                }
+            }
+        }
+        
         const parsedGame = {
             id: event.id,
             sport: sportKey,
@@ -1383,7 +1413,8 @@ function parseESPNData(espnData, sportKey) {
             displayTime: displayDateTime.time,
             fullDateTime: event.date,
             gameDate: event.date,
-            ballOn: ballOn
+            ballOn: ballOn,
+            broadcastChannel: broadcastChannel
         };
         
         // Debug logging for MLB games
@@ -1395,6 +1426,7 @@ function parseESPNData(espnData, sportKey) {
             console.log('Status:', parsedGame.status);
             console.log('=== END MLB GAME OBJECT DEBUG ===');
         }
+        
         
         console.log('Parsed game:', parsedGame);
         return parsedGame;
@@ -1408,8 +1440,8 @@ function getSportDisplayName(sportKey) {
         'nba': 'NBA',
         'mlb': 'MLB',
         'nhl': 'NHL',
-        'college-football': 'College Football',
-        'college-basketball': 'College Basketball'
+        'college-football': 'CFB',
+        'college-basketball': 'CBB'
     };
     return sportNames[sportKey] || sportKey;
 }
@@ -1478,6 +1510,17 @@ function getGameStatus(event) {
             hasPeriod: period && period > 0,
             hasClock: clock && clock !== '0:00' && clock !== '' && clock !== '0' && clock !== 0
         });
+    }
+    
+    // Check for halftime scenarios (for football games)
+    if ((event.sport === 'nfl' || event.sport === 'college-football' || 
+         (event.leagues && event.leagues[0] && (event.leagues[0].slug === 'nfl' || event.leagues[0].slug === 'college-football'))) &&
+        state === 'in' && 
+        (description.toLowerCase().includes('halftime') || 
+         description.toLowerCase().includes('half') ||
+         (clock === '0:00' || clock === 0 || clock === '0') && period === 2)) {
+        console.log('Football game is in halftime');
+        return 'halftime';
     }
     
     // Check if game is finished - be more strict about this
@@ -1670,13 +1713,15 @@ function displayScores(scores) {
         console.log(`  Home: ${logoCache.has(`${game.sport}-${game.homeTeam}`) ? 'cached' : 'not cached'}`);
     }
         
+        
         return `
             <div class="score-card ${changeClass}" data-game-id="${game.sport}-${game.awayTeam}-${game.homeTeam}" onclick="openGameSummary('${game.sport}', '${game.awayTeam}', '${game.homeTeam}', '${game.id}')">
                 <div class="game-header">
-                    <span class="sport-type">${game.sport}</span>
+                    <span class="sport-type">${getSportDisplayName(game.sport)}${game.sport === 'college-football' && game.broadcastChannel ? ` • ${game.broadcastChannel}` : ''}</span>
                     ${game.sport === 'mlb' && game.status === 'live' && game.inningNumber ? `<span class="inning-display live">${getInningDisplay(game)}</span>` : ''}
                     ${game.sport === 'mlb' && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'live' && game.period ? `<span class="inning-display live">${getFootballDisplay(game)}</span>` : ''}
+                    ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'halftime' ? `<span class="inning-display halftime">HALFTIME</span>` : ''}
                     ${(game.sport === 'nfl' || game.sport === 'college-football') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
                     ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'live' ? `<span class="inning-display live">${getNBADisplay(game)}</span>` : ''}
                     ${(game.sport === 'nba' || game.sport === 'ncaab') && game.status === 'final' ? `<span class="inning-display final">FINAL</span>` : ''}
@@ -1857,6 +1902,8 @@ function getStatusDisplay(status) {
     switch (status) {
         case 'live':
             return '🔴 LIVE';
+        case 'halftime':
+            return '⏸️ HALFTIME';
         case 'final':
             return '🏁 FINAL';
         case 'scheduled':
@@ -6898,6 +6945,30 @@ function getFootballDisplay(game) {
     console.log('Clock:', game.clock);
     console.log('Clock type:', typeof game.clock);
     console.log('Clock value:', game.clock);
+    console.log('Game status:', game.status);
+    console.log('Game description:', game.description);
+    
+    // Check for halftime scenarios
+    const isHalftime = (
+        game.description && game.description.toLowerCase().includes('halftime') ||
+        game.description && game.description.toLowerCase().includes('half') ||
+        (game.clock === '0:00' || game.clock === 0 || game.clock === '0') && 
+        (game.period === 2) && 
+        game.status === 'live'
+    );
+    
+    console.log('Halftime check:', {
+        description: game.description,
+        clock: game.clock,
+        period: game.period,
+        status: game.status,
+        isHalftime: isHalftime
+    });
+    
+    if (isHalftime) {
+        console.log('Football game is in halftime');
+        return 'HALFTIME';
+    }
     
     let quarterText = '';
     if (game.period) {

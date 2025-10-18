@@ -1222,6 +1222,13 @@ body.pwa-mode {
     text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
+.inning-display.halftime {
+    background: transparent;
+    color: #ffc107;
+    text-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+    font-weight: 600;
+}
+
 /* Game content container - mixed layout for different sports */
 .game-content {
     display: flex;
