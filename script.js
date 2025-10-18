@@ -1382,6 +1382,22 @@ function parseESPNData(espnData, sportKey) {
             }
         }
         
+        // Extract spread information for CFB games
+        let awaySpread = null;
+        let homeSpread = null;
+        if (sportKey === 'college-football' && competition && competition.odds && competition.odds.length > 0) {
+            const odds = competition.odds[0];
+            if (odds.pointSpread) {
+                const pointSpread = odds.pointSpread;
+                if (pointSpread.away && pointSpread.away.close && pointSpread.away.close.line) {
+                    awaySpread = pointSpread.away.close.line;
+                }
+                if (pointSpread.home && pointSpread.home.close && pointSpread.home.close.line) {
+                    homeSpread = pointSpread.home.close.line;
+                }
+            }
+        }
+        
         const parsedGame = {
             id: event.id,
             sport: sportKey,
@@ -1414,7 +1430,9 @@ function parseESPNData(espnData, sportKey) {
             fullDateTime: event.date,
             gameDate: event.date,
             ballOn: ballOn,
-            broadcastChannel: broadcastChannel
+            broadcastChannel: broadcastChannel,
+            awaySpread: awaySpread,
+            homeSpread: homeSpread
         };
         
         // Debug logging for MLB games
@@ -1737,7 +1755,7 @@ function displayScores(scores) {
                                     ${awayLogo}
                                 </div>
                                 <div class="team-details">
-                                    <span class="team-name">${game.awayTeam}</span>
+                                    <span class="team-name">${game.awayTeam}${game.sport === 'college-football' && game.status === 'scheduled' && game.awaySpread ? ` (${game.awaySpread})` : ''}</span>
                                     ${game.awayTeamRecord ? `<span class="team-record">${game.awayTeamRecord}</span>` : ''}
                                     ${game.sport === 'mlb' && game.status === 'scheduled' && game.awayPitcher ? `<span class="pitcher-info">${game.awayPitcher}</span>` : ''}
                                 </div>
@@ -1752,7 +1770,7 @@ function displayScores(scores) {
                                     ${homeLogo}
                                 </div>
                                 <div class="team-details">
-                                    <span class="team-name">${game.homeTeam}</span>
+                                    <span class="team-name">${game.homeTeam}${game.sport === 'college-football' && game.status === 'scheduled' && game.homeSpread ? ` (${game.homeSpread})` : ''}</span>
                                     ${game.homeTeamRecord ? `<span class="team-record">${game.homeTeamRecord}</span>` : ''}
                                     ${game.sport === 'mlb' && game.status === 'scheduled' && game.homePitcher ? `<span class="pitcher-info">${game.homePitcher}</span>` : ''}
                                 </div>
