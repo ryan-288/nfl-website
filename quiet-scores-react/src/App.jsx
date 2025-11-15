@@ -313,6 +313,8 @@ function TeamLogo({ name, logoUrl, fallbackText }) {
         src={logoUrl}
         alt={`${name} logo`}
         onError={() => setFailed(true)}
+        loading="lazy"
+        decoding="async"
         style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain' }}
       />
       <div className="fallback-logo" style={{ display: 'none' }}>
@@ -546,7 +548,7 @@ function GameSummary({ game, onBack }) {
     <div className="container">
       <header className="site-header">
         <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
+          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" loading="eager" width="40" height="40" />
           <h1>Game Summary</h1>
         </div>
         <button className="back-btn" onClick={onBack}>
@@ -828,7 +830,7 @@ function App() {
     <div className="container">
       <header className="site-header">
         <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
+          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" loading="eager" width="40" height="40" />
           <h1>Quiet Scores - Live ESPN Data</h1>
         </div>
         <div
