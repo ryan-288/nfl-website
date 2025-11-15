@@ -499,6 +499,24 @@ async function fetchTeamConferences(sportKey, { signal } = {}) {
     }
 
     const data = await response.json()
+    
+    // Debug: log the structure to see what we get
+    if (!window._loggedTeamsDebug) {
+      window._loggedTeamsDebug = true
+      console.log('=== TEAMS ENDPOINT DEBUG ===')
+      console.log('Full response structure:', Object.keys(data))
+      console.log('Sports:', data?.sports)
+      console.log('Sample team structure:', data?.sports?.[0]?.leagues?.[0]?.teams?.[0] || data?.teams?.[0])
+      if (data?.sports?.[0]?.leagues?.[0]?.teams?.[0]) {
+        const sampleTeam = data.sports[0].leagues[0].teams[0]
+        console.log('Sample team keys:', Object.keys(sampleTeam))
+        console.log('Sample team.team keys:', sampleTeam.team ? Object.keys(sampleTeam.team) : 'no team')
+        console.log('Sample team.team.group:', sampleTeam.team?.group)
+        console.log('Sample team.team.conference:', sampleTeam.team?.conference)
+        console.log('Full sample team:', JSON.stringify(sampleTeam, null, 2).substring(0, 2000))
+      }
+    }
+    
     const teams = data?.sports?.[0]?.leagues?.[0]?.teams || data?.teams || []
     
     const conferenceMap = {}
@@ -521,6 +539,7 @@ async function fetchTeamConferences(sportKey, { signal } = {}) {
       }
     })
 
+    console.log('Conference map created:', Object.keys(conferenceMap).length, 'teams mapped')
     conferenceCache.set(sportKey, conferenceMap)
     return conferenceMap
   } catch (error) {
