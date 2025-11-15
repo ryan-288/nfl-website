@@ -156,8 +156,25 @@ function transformEvent(event, sportKey) {
   const awayAbbreviation = away.team?.abbreviation || null
 
   // Extract conference information for college sports
-  const homeConference = home.team?.group?.name || home.team?.conference?.name || null
-  const awayConference = away.team?.group?.name || away.team?.conference?.name || null
+  // Check multiple possible locations for conference data
+  const homeConference = 
+    home.team?.group?.name || 
+    home.team?.conference?.name || 
+    home.team?.groups?.name ||
+    home.team?.groups?.[0]?.name ||
+    home.team?.conferences?.[0]?.name ||
+    home.group?.name ||
+    home.conference?.name ||
+    null
+  const awayConference = 
+    away.team?.group?.name || 
+    away.team?.conference?.name || 
+    away.team?.groups?.name ||
+    away.team?.groups?.[0]?.name ||
+    away.team?.conferences?.[0]?.name ||
+    away.group?.name ||
+    away.conference?.name ||
+    null
 
   // Extract possession/at-bat information
   let possessionTeam = null

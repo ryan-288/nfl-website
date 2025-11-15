@@ -841,12 +841,23 @@ function App() {
     const conferences = new Set()
     const collegeGames = scores.filter((game) => game.sport === selectedSport)
     
+    // Debug: log games to see conference data
+    if (collegeGames.length > 0) {
+      console.log('College games:', collegeGames.slice(0, 2))
+      console.log('Sample game conferences:', {
+        home: collegeGames[0]?.homeConference,
+        away: collegeGames[0]?.awayConference
+      })
+    }
+    
     collegeGames.forEach((game) => {
       if (game.homeConference) conferences.add(game.homeConference)
       if (game.awayConference) conferences.add(game.awayConference)
     })
     
-    return Array.from(conferences).sort()
+    const confs = Array.from(conferences).sort()
+    console.log('Available conferences:', confs)
+    return confs
   }, [scores, selectedSport])
 
   const liveCount = useMemo(
@@ -937,19 +948,25 @@ function App() {
         </div>
         
         {/* Conference filters for college sports */}
-        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && availableConferences.length > 0 && (
+        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && (
           <div className="conference-filters">
-            {availableConferences.map((conference) => (
-              <button
-                key={conference}
-                className={['conference-btn', selectedConference === conference ? 'active' : '']
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => handleConferenceClick(conference)}
-              >
-                {conference}
-              </button>
-            ))}
+            {availableConferences.length > 0 ? (
+              availableConferences.map((conference) => (
+                <button
+                  key={conference}
+                  className={['conference-btn', selectedConference === conference ? 'active' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => handleConferenceClick(conference)}
+                >
+                  {conference}
+                </button>
+              ))
+            ) : (
+              <div style={{ color: '#888', fontSize: '0.75rem', padding: '6px 12px' }}>
+                No conferences found (check console for debug info)
+              </div>
+            )}
           </div>
         )}
       </div>
