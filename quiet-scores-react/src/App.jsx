@@ -863,6 +863,8 @@ function App() {
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => handleDaySelect(dayKey)}
+                aria-label={`Select ${dayKey}`}
+                aria-pressed={activeDay === dayKey}
               >
                 {dayKey.slice(0, 3).charAt(0).toUpperCase() + dayKey.slice(1, 3)}
               </button>
@@ -900,6 +902,8 @@ function App() {
                 .join(' ')}
               data-sport={button.value}
               onClick={() => handleSportClick(button.value)}
+              aria-label={`Filter by ${button.label}`}
+              aria-pressed={selectedSport === button.value}
             >
               {button.label}
             </button>
