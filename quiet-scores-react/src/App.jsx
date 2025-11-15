@@ -1,6 +1,35 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useScores } from './hooks/useScores'
 import { fetchGameSummary } from './lib/espnApi'
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'white', background: '#000' }}>
+          <h1>Something went wrong</h1>
+          <pre>{this.state.error?.toString()}</pre>
+          <button onClick={() => window.location.reload()}>Reload Page</button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
 
 const SPORT_BUTTONS = [
   { label: 'All Sports', value: 'all' },
