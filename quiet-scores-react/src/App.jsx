@@ -724,6 +724,7 @@ function App() {
   const [activeDay, setActiveDay] = useState(todayKey === 'sunday' ? 'sunday' : todayKey)
   const [currentDate, setCurrentDate] = useState(() => new Date(today))
   const [selectedSport, setSelectedSport] = useState('all')
+  const [selectedConference, setSelectedConference] = useState('all')
   const [selectedGame, setSelectedGame] = useState(null)
 
   const { scores, isLoading, error } = useScores(currentDate)
@@ -743,6 +744,12 @@ function App() {
 
   const handleSportClick = (sport) => {
     setSelectedSport(sport)
+    // Reset conference filter when changing sports
+    setSelectedConference('all')
+  }
+
+  const handleConferenceClick = (conference) => {
+    setSelectedConference(conference)
   }
 
   const handleDaySelect = (dayKey) => {
@@ -803,13 +810,38 @@ function App() {
   const weekLabel = formatWeekLabel(weekOffset)
 
   const sortedScores = useMemo(() => {
-    const baseScores =
+    let baseScores =
       selectedSport === 'all'
         ? scores
         : scores.filter((game) => game.sport === selectedSport)
+    
+    // Filter by conference for college sports
+    if ((selectedSport === 'college-football' || selectedSport === 'college-basketball') && selectedConference !== 'all') {
+      baseScores = baseScores.filter((game) => 
+        game.homeConference === selectedConference || game.awayConference === selectedConference
+      )
+    }
+    
     const copy = [...baseScores]
     copy.sort(compareGames)
     return copy
+  }, [scores, selectedSport, selectedConference])
+
+  // Get unique conferences from current games for college sports
+  const availableConferences = useMemo(() => {
+    if (selectedSport !== 'college-football' && selectedSport !== 'college-basketball') {
+      return []
+    }
+    
+    const conferences = new Set()
+    const collegeGames = scores.filter((game) => game.sport === selectedSport)
+    
+    collegeGames.forEach((game) => {
+      if (game.homeConference) conferences.add(game.homeConference)
+      if (game.awayConference) conferences.add(game.awayConference)
+    })
+    
+    return Array.from(conferences).sort()
   }, [scores, selectedSport])
 
   const liveCount = useMemo(
@@ -898,6 +930,31 @@ function App() {
             </button>
           ))}
         </div>
+        
+        {/* Conference filters for college sports */}
+        {availableConferences.length > 0 && (
+          <div className="conference-filters">
+            <button
+              className={['conference-btn', selectedConference === 'all' ? 'active' : '']
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => handleConferenceClick('all')}
+            >
+              All Conferences
+            </button>
+            {availableConferences.map((conference) => (
+              <button
+                key={conference}
+                className={['conference-btn', selectedConference === conference ? 'active' : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => handleConferenceClick(conference)}
+              >
+                {conference}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="scores-container" id="scoresContainer">

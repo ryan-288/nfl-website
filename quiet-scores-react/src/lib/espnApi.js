@@ -155,6 +155,10 @@ function transformEvent(event, sportKey) {
   const homeAbbreviation = home.team?.abbreviation || null
   const awayAbbreviation = away.team?.abbreviation || null
 
+  // Extract conference information for college sports
+  const homeConference = home.team?.group?.name || home.team?.conference?.name || null
+  const awayConference = away.team?.group?.name || away.team?.conference?.name || null
+
   // Extract possession/at-bat information
   let possessionTeam = null
   const situation = competition?.situation
@@ -254,6 +258,8 @@ function transformEvent(event, sportKey) {
     awayShortName,
     homeAbbreviation,
     awayAbbreviation,
+    homeConference,
+    awayConference,
     possessionTeam: possessionTeam ? String(possessionTeam) : null,
     awayTeamId: away.team?.id ? String(away.team.id) : null,
     homeTeamId: home.team?.id ? String(home.team.id) : null,
