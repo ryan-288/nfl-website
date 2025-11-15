@@ -114,7 +114,7 @@ function pickTeamLogo(team) {
   return null
 }
 
-function transformEvent(event, sportKey) {
+function transformEvent(event, sportKey, conferenceMap = {}) {
   if (!event) return null
   const competition = event.competitions?.[0]
   if (!competition) return null
@@ -175,8 +175,8 @@ function transformEvent(event, sportKey) {
   const awayAbbreviation = away.team?.abbreviation || null
 
   // Extract conference information for college sports
-  // Check multiple possible locations for conference data
-  const homeConference = 
+  // First try from API response, then fallback to conference map from teams endpoint
+  let homeConference = 
     home.team?.group?.name || 
     home.team?.conference?.name || 
     home.team?.groups?.name ||
@@ -185,7 +185,8 @@ function transformEvent(event, sportKey) {
     home.group?.name ||
     home.conference?.name ||
     null
-  const awayConference = 
+  
+  let awayConference = 
     away.team?.group?.name || 
     away.team?.conference?.name || 
     away.team?.groups?.name ||
@@ -194,6 +195,14 @@ function transformEvent(event, sportKey) {
     away.group?.name ||
     away.conference?.name ||
     null
+
+  // If not found in response, try to get from conference map
+  if (!homeConference && Object.keys(conferenceMap).length > 0) {
+    homeConference = conferenceMap[homeTeamName] || conferenceMap[home.team?.id] || null
+  }
+  if (!awayConference && Object.keys(conferenceMap).length > 0) {
+    awayConference = conferenceMap[awayTeamName] || conferenceMap[away.team?.id] || null
+  }
 
   // Extract possession/at-bat information
   let possessionTeam = null
@@ -413,9 +422,21 @@ async function fetchSportScoreboard(sportKey, date, { signal } = {}) {
   const data = await response.json()
   const events = data?.events ?? []
 
-  return events
-    .map((event) => transformEvent(event, sportKey))
+  // For college sports, try to enrich with conference data
+  let conferenceMap = {}
+  if (sportKey === 'college-football' || sportKey === 'college-basketball') {
+    try {
+      conferenceMap = await fetchTeamConferences(sportKey, { signal })
+    } catch (err) {
+      console.warn('Failed to fetch conferences, using team name matching:', err)
+    }
+  }
+
+  const games = events
+    .map((event) => transformEvent(event, sportKey, conferenceMap))
     .filter(Boolean)
+  
+  return games
 }
 
 async function fetchAllScoreboards(date, { signal } = {}) {
@@ -452,5 +473,61 @@ async function fetchGameSummary(sportKey, gameId, { signal } = {}) {
   return data
 }
 
-export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary }
+// Cache for team-to-conference mappings
+const conferenceCache = new Map()
+
+async function fetchTeamConferences(sportKey, { signal } = {}) {
+  // Check cache first
+  if (conferenceCache.has(sportKey)) {
+    return conferenceCache.get(sportKey)
+  }
+
+  try {
+    let teamsEndpoint
+    if (sportKey === 'college-football') {
+      teamsEndpoint = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams'
+    } else if (sportKey === 'college-basketball') {
+      teamsEndpoint = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams'
+    } else {
+      return {}
+    }
+
+    const response = await fetch(teamsEndpoint, { signal })
+    if (!response.ok) {
+      console.warn(`Failed to fetch teams for ${sportKey}:`, response.status)
+      return {}
+    }
+
+    const data = await response.json()
+    const teams = data?.sports?.[0]?.leagues?.[0]?.teams || data?.teams || []
+    
+    const conferenceMap = {}
+    teams.forEach((teamData) => {
+      const team = teamData.team || teamData
+      const teamName = team.displayName || team.name
+      const conference = 
+        team.group?.name || 
+        team.conference?.name || 
+        team.groups?.[0]?.name ||
+        team.conferences?.[0]?.name ||
+        null
+      
+      if (teamName && conference) {
+        conferenceMap[teamName] = conference
+        // Also map by ID if available
+        if (team.id) {
+          conferenceMap[team.id] = conference
+        }
+      }
+    })
+
+    conferenceCache.set(sportKey, conferenceMap)
+    return conferenceMap
+  } catch (error) {
+    console.warn(`Error fetching conferences for ${sportKey}:`, error)
+    return {}
+  }
+}
+
+export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary, fetchTeamConferences }
 

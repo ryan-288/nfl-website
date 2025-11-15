@@ -838,13 +838,23 @@ function App() {
     
     // Filter by conference for college sports
     if ((selectedSport === 'college-football' || selectedSport === 'college-basketball') && selectedConference !== 'all') {
-      const conferenceTeams = CONFERENCE_TEAMS[selectedConference] || []
       baseScores = baseScores.filter((game) => {
-        const homeTeam = game.homeTeam || ''
-        const awayTeam = game.awayTeam || ''
-        return conferenceTeams.some(team => 
-          homeTeam.includes(team) || awayTeam.includes(team)
-        )
+        // First try to use actual conference data from API
+        if (game.homeConference === selectedConference || game.awayConference === selectedConference) {
+          return true
+        }
+        
+        // Fallback to team name matching if conference data not available
+        const conferenceTeams = CONFERENCE_TEAMS[selectedConference] || []
+        if (conferenceTeams.length > 0) {
+          const homeTeam = game.homeTeam || ''
+          const awayTeam = game.awayTeam || ''
+          return conferenceTeams.some(team => 
+            homeTeam.includes(team) || awayTeam.includes(team)
+          )
+        }
+        
+        return false
       })
     }
     
@@ -857,8 +867,24 @@ function App() {
     if (selectedSport !== 'college-football' && selectedSport !== 'college-basketball') {
       return []
     }
-    return MAJOR_CONFERENCES
-  }, [selectedSport])
+    
+    // Try to get conferences from actual game data first
+    const conferences = new Set()
+    const collegeGames = scores.filter((game) => game.sport === selectedSport)
+    
+    collegeGames.forEach((game) => {
+      if (game.homeConference) conferences.add(game.homeConference)
+      if (game.awayConference) conferences.add(game.awayConference)
+    })
+    
+    // If we found conferences in the data, use those (filtered to major ones)
+    const foundConferences = Array.from(conferences).filter(conf => 
+      MAJOR_CONFERENCES.some(major => conf.includes(major) || major.includes(conf))
+    )
+    
+    // If we found some, use those; otherwise use hardcoded list
+    return foundConferences.length > 0 ? foundConferences : MAJOR_CONFERENCES
+  }, [scores, selectedSport])
 
   const liveCount = useMemo(
     () => sortedScores.filter((game) => game.status === 'live' || game.status === 'halftime').length,
