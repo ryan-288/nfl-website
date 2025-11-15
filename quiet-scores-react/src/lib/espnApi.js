@@ -114,7 +114,7 @@ function pickTeamLogo(team) {
   return null
 }
 
-function transformEvent(event, sportKey, conferenceMap = {}) {
+function transformEvent(event, sportKey) {
   if (!event) return null
   const competition = event.competitions?.[0]
   if (!competition) return null
@@ -175,34 +175,10 @@ function transformEvent(event, sportKey, conferenceMap = {}) {
   const awayAbbreviation = away.team?.abbreviation || null
 
   // Extract conference information for college sports
-  // First try from API response, then fallback to conference map from teams endpoint
-  let homeConference = 
-    home.team?.group?.name || 
-    home.team?.conference?.name || 
-    home.team?.groups?.name ||
-    home.team?.groups?.[0]?.name ||
-    home.team?.conferences?.[0]?.name ||
-    home.group?.name ||
-    home.conference?.name ||
-    null
-  
-  let awayConference = 
-    away.team?.group?.name || 
-    away.team?.conference?.name || 
-    away.team?.groups?.name ||
-    away.team?.groups?.[0]?.name ||
-    away.team?.conferences?.[0]?.name ||
-    away.group?.name ||
-    away.conference?.name ||
-    null
-
-  // If not found in response, try to get from conference map
-  if (!homeConference && Object.keys(conferenceMap).length > 0) {
-    homeConference = conferenceMap[homeTeamName] || conferenceMap[home.team?.id] || null
-  }
-  if (!awayConference && Object.keys(conferenceMap).length > 0) {
-    awayConference = conferenceMap[awayTeamName] || conferenceMap[away.team?.id] || null
-  }
+  // ESPN API doesn't reliably provide conference data in scoreboard endpoint
+  // We'll use hardcoded team lists for filtering instead
+  const homeConference = null
+  const awayConference = null
 
   // Extract possession/at-bat information
   let possessionTeam = null
@@ -422,21 +398,9 @@ async function fetchSportScoreboard(sportKey, date, { signal } = {}) {
   const data = await response.json()
   const events = data?.events ?? []
 
-  // For college sports, try to enrich with conference data
-  let conferenceMap = {}
-  if (sportKey === 'college-football' || sportKey === 'college-basketball') {
-    try {
-      conferenceMap = await fetchTeamConferences(sportKey, { signal })
-    } catch (err) {
-      console.warn('Failed to fetch conferences, using team name matching:', err)
-    }
-  }
-
-  const games = events
-    .map((event) => transformEvent(event, sportKey, conferenceMap))
+  return events
+    .map((event) => transformEvent(event, sportKey))
     .filter(Boolean)
-  
-  return games
 }
 
 async function fetchAllScoreboards(date, { signal } = {}) {
