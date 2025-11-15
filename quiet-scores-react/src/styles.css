@@ -554,7 +554,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 8px;
+        gap: 0;
         flex: 1;
         min-width: 0;
     }
@@ -565,8 +565,14 @@ body.pwa-mode {
     }
     
     .team {
-        padding: 4px 6px;
+        padding: 8px 0;
         gap: 4px;
+    }
+    
+    .team.winner,
+    .team.possession,
+    .team.at-bat {
+        padding-left: 6px;
     }
     
     .team-logo {
@@ -850,12 +856,18 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 8px;
+        gap: 0;
     }
     
     .team {
-        padding: 2px 4px;
+        padding: 6px 0;
         gap: 2px;
+    }
+    
+    .team.winner,
+    .team.possession,
+    .team.at-bat {
+        padding-left: 4px;
     }
     
     .team-logo {
@@ -1449,13 +1461,13 @@ body.pwa-mode {
 
 /* Winner highlighting */
 .team.winner {
-    background: rgba(76, 175, 80, 0.1);
-    border-radius: 8px;
-    padding: 4px;
+    background: transparent;
+    border-left: 3px solid rgba(76, 175, 80, 0.5);
+    padding-left: 8px;
 }
 
 .team.winner .team-name {
-    color: var(--accent-success);
+    color: rgba(76, 175, 80, 0.9);
     font-weight: 600;
 }
 
@@ -1470,16 +1482,23 @@ body.pwa-mode {
 }
 
 /* Possession/At-bat highlighting */
+.team.possession,
+.team.at-bat {
+    border-left: 3px solid rgba(0, 123, 255, 0.5);
+    padding-left: 8px;
+    background: rgba(0, 123, 255, 0.03);
+}
+
 .team.possession .team-name,
 .team.at-bat .team-name {
-    color: #ffd700;
-    font-weight: bold;
+    color: #007bff;
+    font-weight: 600;
 }
 
 .team.possession .team-score,
 .team.at-bat .team-score {
     color: #007bff;
-    font-weight: inherit;
+    font-weight: 600;
     text-shadow: none;
 }
 
@@ -1508,7 +1527,8 @@ body.pwa-mode {
 
 /* Hover effect for winner teams */
 .team.winner:hover {
-    background: rgba(76, 175, 80, 0.15);
+    background: transparent;
+    border-left-color: rgba(76, 175, 80, 0.7);
 }
 
 /* Pulse animation for live games */
@@ -1917,12 +1937,18 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 8px;
+        gap: 0;
     }
     
     .team {
-        padding: 2px 4px;
+        padding: 6px 0;
         gap: 2px;
+    }
+    
+    .team.winner,
+    .team.possession,
+    .team.at-bat {
+        padding-left: 4px;
     }
     
     .team-logo {
