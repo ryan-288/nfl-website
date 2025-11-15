@@ -1,8 +1,31 @@
 {
   "name": "quiet-scores-react",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "A modern React application displaying real-time live sports scores from ESPN APIs for NFL, NBA, MLB, NHL, and college sports",
+  "keywords": [
+    "sports",
+    "scores",
+    "nfl",
+    "nba",
+    "mlb",
+    "nhl",
+    "college-football",
+    "college-basketball",
+    "espn",
+    "live-scores",
+    "sports-scores",
+    "react",
+    "real-time"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryan-288/nfl-website"
+  },
+  "homepage": "https://nfl-website-six.vercel.app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

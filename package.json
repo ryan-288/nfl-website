@@ -1,7 +1,21 @@
 {
   "name": "nfl-website",
   "version": "1.0.0",
+  "description": "Quiet Scores - Live sports scores application built with React",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryan-288/nfl-website"
+  },
+  "homepage": "https://nfl-website-six.vercel.app",
+  "keywords": [
+    "sports",
+    "scores",
+    "nfl",
+    "react",
+    "espn"
+  ],
+  "license": "MIT",
   "scripts": {
     "build": "cd quiet-scores-react && npm install && npm run build",
     "dev": "cd quiet-scores-react && npm run dev"
