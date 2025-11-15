@@ -114,7 +114,6 @@ body.pwa-mode {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     margin-bottom: 0;
     margin-left: 20px;
 }
@@ -163,7 +162,6 @@ body.pwa-mode {
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--text-primary);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     margin-bottom: 10px;
 }
 
@@ -336,7 +334,6 @@ body.pwa-mode {
 .date-picker input[type="date"]:focus {
     outline: none;
     border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 /* Controls section */
@@ -967,7 +964,6 @@ body.pwa-mode {
     background: var(--base-occupied);
     border-color: var(--accent-secondary);
     color: var(--text-primary);
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
 }
 
 .second-base {
@@ -1071,7 +1067,6 @@ body.pwa-mode {
 .count-dot.active {
     background: var(--accent-primary);
     border-color: var(--accent-secondary);
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
     color: var(--text-primary);
 }
 
@@ -1137,11 +1132,9 @@ body.pwa-mode {
     }
     25% {
         transform: scale(1.02);
-        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.3);
     }
     50% {
         transform: scale(1.01);
-        box-shadow: 0 12px 35px rgba(40, 167, 69, 0.2);
     }
     100% {
         transform: scale(1);
@@ -1164,7 +1157,6 @@ body.pwa-mode {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    text-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
 }
 
 .game-status {
@@ -1179,19 +1171,16 @@ body.pwa-mode {
     background: transparent;
     color: #dc3545;
     animation: pulse 2s infinite;
-    text-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
 }
 
 .game-status.final {
     background: transparent;
     color: #28a745;
-    text-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
 }
 
 .game-status.scheduled {
     background: transparent;
     color: #6c757d;
-    text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
 /* Inning display in header */
@@ -1206,26 +1195,22 @@ body.pwa-mode {
 .inning-display.live {
     background: transparent;
     color: #dc3545;
-    text-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
 }
 
 .inning-display.final {
     background: transparent;
     color: #00ff88;
-    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
     font-weight: 600;
 }
 
 .inning-display.scheduled {
     background: transparent;
     color: #6c757d;
-    text-shadow: 0 0 15px rgba(108, 117, 125, 0.8);
 }
 
 .inning-display.halftime {
     background: transparent;
     color: #ffc107;
-    text-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
     font-weight: 600;
 }
 
@@ -1392,7 +1377,6 @@ body.pwa-mode {
     font-size: 1rem;
     font-weight: 700;
     color: #007bff;
-    text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
 .game-info {
@@ -1425,7 +1409,6 @@ body.pwa-mode {
 .game-time:contains('Q'), .game-time:contains('P'), .game-time:contains('T'), .game-time:contains('B'), .game-time:contains('H') {
     color: #00ff88;
     font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
 }
 
 /* Game date styling */
@@ -1466,7 +1449,6 @@ body.pwa-mode {
 .team.winner .team-score {
     color: #007bff;
     font-weight: 700;
-    text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
 .team.winner .team-logo {
@@ -1479,7 +1461,6 @@ body.pwa-mode {
 .team.at-bat .team-name {
     color: #ffd700;
     font-weight: bold;
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
 }
 
 .team.possession .team-score,
@@ -1520,13 +1501,10 @@ body.pwa-mode {
 /* Pulse animation for live games */
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
     }
 }
 
@@ -1606,7 +1584,6 @@ body.pwa-mode {
     color: rgba(255, 255, 255, 0.9);
     font-size: 11px;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     background: rgba(0, 0, 0, 0.3);
     padding: 2px 4px;
     border-radius: 3px;
@@ -1708,7 +1685,6 @@ body.pwa-mode {
 .base.occupied {
     background: var(--base-occupied);
     border-color: var(--base-occupied);
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
 }
 
 .base span {
@@ -1746,26 +1722,22 @@ body.pwa-mode {
 .count-dot.active {
     background: var(--accent-primary);
     border-color: var(--accent-primary);
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
 }
 
 /* Specific colors for different count types */
 .balls-dots .count-dot.active {
     background: #28a745;
     border-color: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
 }
 
 .strikes-dots .count-dot.active {
     background: #ffc107;
     border-color: #ffc107;
-    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
 }
 
 .outs-dots .count-dot.active {
     background: #dc3545;
     border-color: #dc3545;
-    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
 }
 
 .count-label {
@@ -2660,13 +2632,11 @@ body.pwa-mode {
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .standings-link:hover {
     background: var(--accent-secondary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
 }
 
 
