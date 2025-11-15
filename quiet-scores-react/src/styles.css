@@ -1436,7 +1436,7 @@ body.pwa-mode {
 .team.winner {
     background: transparent;
     border-left: 2px solid rgba(76, 175, 80, 0.3);
-    border-radius: 0;
+    border-radius: 5px;
     padding-left: 6px;
 }
 
