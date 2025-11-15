@@ -829,7 +829,7 @@ function App() {
   return (
     <div className="container">
       <div style={{ background: '#00ff00', color: '#000', padding: '20px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999 }}>
-        ⚠️ IF YOU SEE THIS GREEN BANNER, THE SITE IS UPDATING! ⚠️
+        ⚠️ IF YOU SEE THIS GREEN BANNER, THE SITE IS UPDATING! COMMIT: 1573541 ⚠️
       </div>
       <header className="site-header">
         <div className="header-left">
