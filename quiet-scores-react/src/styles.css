@@ -10,15 +10,15 @@
     --border-primary: #333333;
     --border-secondary: #444444;
     --text-primary: #ffffff;
-    --text-secondary: #cccccc;
-    --text-muted: #888888;
+    --text-secondary: #e0e0e0;
+    --text-muted: #b0b0b0;
     --accent-primary: #007bff;
     --accent-secondary: #0056b3;
     --base-empty: #2d2d2d;
     --base-occupied: #007bff;
     --count-dot: #2d2d2d;
     --count-dot-border: #444444;
-    --count-label: #666666;
+    --count-label: #b0b0b0;
 }
 
 * {
@@ -224,7 +224,7 @@ body.pwa-mode {
 
 .week-label {
     font-size: 14px;
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 5px;
 }
 
@@ -282,7 +282,7 @@ body.pwa-mode {
 
 .day-date {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
@@ -1383,7 +1383,7 @@ body.pwa-mode {
     padding-top: 15px;
     border-top: 1px solid #444;
     font-size: 0.9rem;
-    color: #cccccc;
+    color: var(--text-secondary);
 }
 
 .game-time, .game-date {
@@ -1411,7 +1411,7 @@ body.pwa-mode {
 /* Game date styling */
 .game-date {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     text-align: center;
 }
 
@@ -1419,7 +1419,7 @@ body.pwa-mode {
 .info, .error {
     text-align: center;
     padding: 40px;
-    color: #cccccc;
+    color: var(--text-secondary);
     font-size: 1.1rem;
     background: #1a1a1a;
     border-radius: 15px;

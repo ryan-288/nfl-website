@@ -544,7 +544,7 @@ function GameSummary({ game, onBack }) {
 
   return (
     <div className="container">
-      <div className="site-header">
+      <header className="site-header">
         <div className="header-left">
           <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
           <h1>Game Summary</h1>
@@ -552,8 +552,9 @@ function GameSummary({ game, onBack }) {
         <button className="back-btn" onClick={onBack}>
           ← Back to Scores
         </button>
-      </div>
+      </header>
 
+      <main>
       <div className="game-summary-content">
         {isLoading && <div className="info">Loading game summary...</div>}
         {error && <div className="error">Error loading summary: {error}</div>}
@@ -711,6 +712,7 @@ function GameSummary({ game, onBack }) {
           </div>
         )}
       </div>
+      </main>
     </div>
   )
 }
@@ -824,7 +826,7 @@ function App() {
 
   return (
     <div className="container">
-      <div className="site-header">
+      <header className="site-header">
         <div className="header-left">
           <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
           <h1>Quiet Scores - Live ESPN Data</h1>
@@ -838,8 +840,9 @@ function App() {
           </span>
           <span>Live Games</span>
         </div>
-      </div>
+      </header>
 
+      <main>
       <div className="date-navigation">
         <div className="week-display" onClick={toggleDatePicker} style={{ cursor: 'pointer' }}>
           <div className="week-label" id="weekLabel">
@@ -917,6 +920,7 @@ function App() {
           ))
         )}
       </div>
+      </main>
     </div>
   )
 }
