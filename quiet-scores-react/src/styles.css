@@ -1442,12 +1442,12 @@ body.pwa-mode {
 
 .team.winner .team-name {
     color: rgba(76, 175, 80, 0.8);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .team.winner .team-score {
     color: #007bff;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .team.winner .team-logo {
