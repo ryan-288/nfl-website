@@ -299,20 +299,7 @@ function TeamLogo({ name, logoUrl, fallbackText }) {
   const [failed, setFailed] = useState(false)
   const fallback = fallbackText || getTeamInitials(name)
 
-  // Check if logo URL suggests it might be dark/black
-  const checkIfDarkLogo = (url) => {
-    if (!url) return false
-    const urlLower = url.toLowerCase()
-    return (
-      urlLower.includes('dark') ||
-      urlLower.includes('black') ||
-      urlLower.includes('_d.') ||
-      urlLower.includes('-d.')
-    )
-  }
-
-  // If logo appears to be dark, use fallback instead
-  if (!logoUrl || failed || (logoUrl && checkIfDarkLogo(logoUrl))) {
+  if (!logoUrl || failed) {
     return (
       <div className="fallback-logo">
         {fallback}
