@@ -1154,6 +1154,13 @@ body.pwa-mode {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    gap: 8px;
+    min-width: 0;
+}
+
+.game-header .sport-type {
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .sport-type {
@@ -1165,6 +1172,11 @@ body.pwa-mode {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     text-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: inline-block;
 }
 
 .game-status {

@@ -1,35 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useScores } from './hooks/useScores'
 import { fetchGameSummary } from './lib/espnApi'
-
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: '20px', color: 'white', background: '#000' }}>
-          <h1>Something went wrong</h1>
-          <pre>{this.state.error?.toString()}</pre>
-          <button onClick={() => window.location.reload()}>Reload Page</button>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
 
 const SPORT_BUTTONS = [
   { label: 'All Sports', value: 'all' },
@@ -121,6 +92,73 @@ function getSportDisplayName(sport) {
     default:
       return sport?.toUpperCase() ?? 'SPORT'
   }
+}
+
+function abbreviateNetwork(network) {
+  if (!network) return ''
+  
+  const networkLower = network.toLowerCase()
+  
+  // Common network abbreviations
+  const abbreviations = {
+    'espn': 'ESPN',
+    'espn2': 'ESPN2',
+    'espnu': 'ESPNU',
+    'espn+': 'ESPN+',
+    'abc': 'ABC',
+    'cbs': 'CBS',
+    'nbc': 'NBC',
+    'fox': 'FOX',
+    'fs1': 'FS1',
+    'fs2': 'FS2',
+    'fox sports 1': 'FS1',
+    'fox sports 2': 'FS2',
+    'sec network': 'SECN',
+    'secn': 'SECN',
+    'big ten network': 'BTN',
+    'btn': 'BTN',
+    'acc network': 'ACCN',
+    'accn': 'ACCN',
+    'pac-12 network': 'PAC12',
+    'pac12': 'PAC12',
+    'tnt': 'TNT',
+    'tbs': 'TBS',
+    'nfl network': 'NFLN',
+    'nfln': 'NFLN',
+    'nba tv': 'NBATV',
+    'nbav': 'NBATV',
+    'mlb network': 'MLBN',
+    'mlbn': 'MLBN',
+    'nhl network': 'NHLN',
+    'nhl': 'NHL',
+  }
+  
+  // Check for exact match first
+  if (abbreviations[networkLower]) {
+    return abbreviations[networkLower]
+  }
+  
+  // Check for partial matches
+  for (const [key, abbrev] of Object.entries(abbreviations)) {
+    if (networkLower.includes(key)) {
+      return abbrev
+    }
+  }
+  
+  // If network name is long, abbreviate it
+  if (network.length > 8) {
+    // Take first 3-4 letters and make uppercase
+    const words = network.split(' ')
+    if (words.length > 1) {
+      // Multiple words - take first letter of each
+      return words.map(w => w[0]?.toUpperCase() || '').join('').slice(0, 4)
+    } else {
+      // Single word - take first 4-5 chars
+      return network.slice(0, 5).toUpperCase()
+    }
+  }
+  
+  return network
 }
 
 function getTeamInitials(teamName) {
@@ -382,7 +420,7 @@ function ScoreCard({ game, onOpenSummary }) {
       <div className="game-header">
         <span className="sport-type">
           {getSportDisplayName(game.sport)}
-          {game.broadcastChannel ? ` • ${game.broadcastChannel}` : ''}
+          {game.broadcastChannel ? ` • ${abbreviateNetwork(game.broadcastChannel)}` : ''}
         </span>
         {statusBadge}
       </div>
