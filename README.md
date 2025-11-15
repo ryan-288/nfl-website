@@ -110,3 +110,4 @@ Deployed on Vercel: [nfl-website-six.vercel.app](https://nfl-website-six.vercel.
 ## 📝 License
 
 MIT
+
