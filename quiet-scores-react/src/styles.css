@@ -1103,13 +1103,13 @@ body.pwa-mode {
 
 /* Score cards with dark theme and team logos */
 .score-card {
-    background: var(--bg-card);
+    background: rgba(5, 5, 5, 0.3);
     border-radius: 12px;
     padding: 16px;
     margin: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.02);
     position: relative;
     overflow: visible;
     cursor: pointer;
@@ -1117,8 +1117,9 @@ body.pwa-mode {
 
 .score-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(5, 5, 5, 0.4);
 }
 
 /* Score change animation removed - scores will update without visual effects */
@@ -1291,16 +1292,16 @@ body.pwa-mode {
     align-items: center;
     justify-content: space-between;
     padding: 5px 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: transparent;
     border-radius: 5px;
-    border: 1px solid #444;
+    border: none;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
 .team:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--accent-primary);
+    background: rgba(255, 255, 255, 0.02);
+    border-color: transparent;
     transform: translateY(-1px);
 }
 
@@ -1433,19 +1434,20 @@ body.pwa-mode {
 
 /* Winner highlighting */
 .team.winner {
-    background: rgba(76, 175, 80, 0.1);
-    border-radius: 8px;
-    padding: 4px;
+    background: transparent;
+    border-left: 2px solid rgba(76, 175, 80, 0.3);
+    border-radius: 0;
+    padding-left: 6px;
 }
 
 .team.winner .team-name {
-    color: var(--accent-success);
-    font-weight: 600;
+    color: rgba(76, 175, 80, 0.8);
+    font-weight: 500;
 }
 
 .team.winner .team-score {
     color: #007bff;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .team.winner .team-logo {
@@ -1456,8 +1458,14 @@ body.pwa-mode {
 /* Possession/At-bat highlighting */
 .team.possession .team-name,
 .team.at-bat .team-name {
-    color: #ffd700;
-    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.team.possession,
+.team.at-bat {
+    border-left: 2px solid rgba(0, 123, 255, 0.4);
+    padding-left: 6px;
 }
 
 .team.possession .team-score,
@@ -1492,7 +1500,7 @@ body.pwa-mode {
 
 /* Hover effect for winner teams */
 .team.winner:hover {
-    background: rgba(76, 175, 80, 0.15);
+    background: rgba(76, 175, 80, 0.05);
 }
 
 /* Pulse animation for live games */
