@@ -551,7 +551,7 @@ function GameSummary({ game, onBack }) {
           <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" loading="eager" width="40" height="40" />
           <h1>Game Summary</h1>
         </div>
-        <button className="back-btn" onClick={onBack}>
+        <button className="back-btn" onClick={onBack} aria-label="Back to scores">
           ← Back to Scores
         </button>
       </header>
@@ -853,7 +853,7 @@ function App() {
         </div>
 
         <div className="week-buttons">
-          <button className="week-nav-btn" onClick={handlePreviousWeek}>
+          <button className="week-nav-btn" onClick={handlePreviousWeek} aria-label="Previous week">
             ◀
           </button>
           {DAY_KEYS.map((dayKey) => (
@@ -871,7 +871,7 @@ function App() {
               </div>
             </div>
           ))}
-          <button className="week-nav-btn" onClick={handleNextWeek}>
+          <button className="week-nav-btn" onClick={handleNextWeek} aria-label="Next week">
             ▶
           </button>
         </div>
@@ -881,6 +881,8 @@ function App() {
             ref={dateInputRef}
             type="date"
             id="customDate"
+            aria-label="Select custom date"
+            title="Select custom date"
             value={formatDateInputValue(currentDate)}
             onChange={handleCustomDateChange}
             style={{ display: 'none' }}

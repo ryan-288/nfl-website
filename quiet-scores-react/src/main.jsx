@@ -45,6 +45,7 @@ class ErrorBoundary extends React.Component {
           </details>
           <button 
             onClick={() => window.location.reload()}
+            aria-label="Reload page"
             style={{
               marginTop: '20px',
               padding: '10px 20px',

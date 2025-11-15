@@ -29,7 +29,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #ff0000 !important; /* RED BACKGROUND TEST - IF YOU SEE THIS, CSS IS LOADING */
+    background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
@@ -363,7 +363,7 @@ body.pwa-mode {
     justify-content: flex-start;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none; /* Firefox - not supported by Safari */
     -ms-overflow-style: none; /* IE and Edge */
     padding: 0 10px;
     scroll-behavior: smooth;
