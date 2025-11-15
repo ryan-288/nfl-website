@@ -1335,6 +1335,10 @@ body.pwa-mode {
     justify-content: center;
     flex-shrink: 0;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 2px;
 }
 
 .team-logo img {
@@ -1343,6 +1347,7 @@ body.pwa-mode {
     object-fit: contain;
     max-width: 100%;
     max-height: 100%;
+    filter: brightness(1.1) contrast(1.1);
 }
 
 .team-logo .fallback-logo {
@@ -1614,6 +1619,10 @@ body.pwa-mode {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 1px;
 }
 
 .field-logo {
@@ -1628,6 +1637,7 @@ body.pwa-mode {
     object-fit: contain;
     max-width: 100%;
     max-height: 100%;
+    filter: brightness(1.1) contrast(1.1);
 }
 
 .team-logo-small .fallback-logo {
