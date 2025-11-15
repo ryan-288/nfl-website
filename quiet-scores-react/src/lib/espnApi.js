@@ -80,6 +80,33 @@ function extractRecord(competitor) {
 function pickTeamLogo(team) {
   if (!team) return null
   if (Array.isArray(team.logos) && team.logos.length > 0) {
+    // Prefer alternate logos (often lighter versions) if available
+    // ESPN sometimes provides multiple variants - look for alternates first
+    const alternates = team.logos.filter((entry) => 
+      Boolean(entry.href) && (
+        entry.href.toLowerCase().includes('alternate') ||
+        entry.href.toLowerCase().includes('alt') ||
+        entry.href.toLowerCase().includes('light') ||
+        entry.href.toLowerCase().includes('white')
+      )
+    )
+    
+    // If alternates found, use the first one
+    if (alternates.length > 0 && alternates[0]?.href) {
+      return alternates[0].href
+    }
+    
+    // Otherwise, try to find a logo that's not the primary dark one
+    // Look for logos that might be lighter variants
+    const nonPrimary = team.logos.find((entry) => 
+      Boolean(entry.href) && 
+      !entry.href.toLowerCase().includes('dark') &&
+      !entry.href.toLowerCase().includes('black')
+    ) ?? team.logos.find((entry) => Boolean(entry.href))
+    
+    if (nonPrimary?.href) return nonPrimary.href
+    
+    // Fallback to first available logo
     const primary = team.logos.find((entry) => Boolean(entry.href)) ?? team.logos[0]
     if (primary?.href) return primary.href
   }
