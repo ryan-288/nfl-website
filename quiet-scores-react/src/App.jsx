@@ -12,6 +12,22 @@ const SPORT_BUTTONS = [
   { label: 'CBB', value: 'college-basketball' },
 ]
 
+// Major college conferences
+const MAJOR_CONFERENCES = [
+  'SEC',
+  'Big Ten',
+  'Big 12',
+  'ACC'
+]
+
+// Conference team mappings for filtering
+const CONFERENCE_TEAMS = {
+  'SEC': ['Alabama', 'Auburn', 'Arkansas', 'Florida', 'Georgia', 'Kentucky', 'LSU', 'Mississippi State', 'Missouri', 'Ole Miss', 'South Carolina', 'Tennessee', 'Texas A&M', 'Vanderbilt'],
+  'Big Ten': ['Illinois', 'Indiana', 'Iowa', 'Maryland', 'Michigan', 'Michigan State', 'Minnesota', 'Nebraska', 'Northwestern', 'Ohio State', 'Penn State', 'Purdue', 'Rutgers', 'Wisconsin'],
+  'Big 12': ['Baylor', 'BYU', 'Cincinnati', 'Houston', 'Iowa State', 'Kansas', 'Kansas State', 'Oklahoma', 'Oklahoma State', 'TCU', 'Texas', 'Texas Tech', 'UCF', 'West Virginia'],
+  'ACC': ['Boston College', 'Clemson', 'Duke', 'Florida State', 'Georgia Tech', 'Louisville', 'Miami', 'NC State', 'North Carolina', 'Pittsburgh', 'Syracuse', 'Virginia', 'Virginia Tech', 'Wake Forest']
+}
+
 const DAY_KEYS = [
   'monday',
   'tuesday',
@@ -822,9 +838,14 @@ function App() {
     
     // Filter by conference for college sports
     if ((selectedSport === 'college-football' || selectedSport === 'college-basketball') && selectedConference !== 'all') {
-      baseScores = baseScores.filter((game) => 
-        game.homeConference === selectedConference || game.awayConference === selectedConference
-      )
+      const conferenceTeams = CONFERENCE_TEAMS[selectedConference] || []
+      baseScores = baseScores.filter((game) => {
+        const homeTeam = game.homeTeam || ''
+        const awayTeam = game.awayTeam || ''
+        return conferenceTeams.some(team => 
+          homeTeam.includes(team) || awayTeam.includes(team)
+        )
+      })
     }
     
     const copy = [...baseScores]
@@ -832,33 +853,12 @@ function App() {
     return copy
   }, [scores, selectedSport, selectedConference])
 
-  // Get unique conferences from current games for college sports
   const availableConferences = useMemo(() => {
     if (selectedSport !== 'college-football' && selectedSport !== 'college-basketball') {
       return []
     }
-    
-    const conferences = new Set()
-    const collegeGames = scores.filter((game) => game.sport === selectedSport)
-    
-    // Debug: log games to see conference data
-    if (collegeGames.length > 0) {
-      console.log('College games:', collegeGames.slice(0, 2))
-      console.log('Sample game conferences:', {
-        home: collegeGames[0]?.homeConference,
-        away: collegeGames[0]?.awayConference
-      })
-    }
-    
-    collegeGames.forEach((game) => {
-      if (game.homeConference) conferences.add(game.homeConference)
-      if (game.awayConference) conferences.add(game.awayConference)
-    })
-    
-    const confs = Array.from(conferences).sort()
-    console.log('Available conferences:', confs)
-    return confs
-  }, [scores, selectedSport])
+    return MAJOR_CONFERENCES
+  }, [selectedSport])
 
   const liveCount = useMemo(
     () => sortedScores.filter((game) => game.status === 'live' || game.status === 'halftime').length,
