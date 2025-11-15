@@ -1109,7 +1109,7 @@ body.pwa-mode {
     margin: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
     overflow: visible;
     cursor: pointer;
@@ -1118,7 +1118,8 @@ body.pwa-mode {
 .score-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--bg-card-secondary);
 }
 
 /* Score change animation removed - scores will update without visual effects */
@@ -1268,7 +1269,7 @@ body.pwa-mode {
 .teams {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0;
     flex: 2;
 }
 
@@ -1290,18 +1291,33 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 5px;
-    border: 1px solid #444;
-    transition: all 0.3s ease;
+    padding: 10px 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
     cursor: pointer;
 }
 
+.team:last-child {
+    border-bottom: none;
+}
+
 .team:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--accent-primary);
-    transform: translateY(-1px);
+    background: transparent;
+    border-color: transparent;
+    transform: none;
+    padding-left: 4px;
+}
+
+.over-under-display {
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 0;
 }
 
 
