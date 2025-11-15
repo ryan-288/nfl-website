@@ -464,6 +464,13 @@ body.pwa-mode {
     font-weight: 600;
 }
 
+.conference-loading {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    font-style: italic;
+}
+
 /* Scores container with dark theme */
 .scores-container {
     display: grid;

@@ -932,7 +932,7 @@ function App() {
         </div>
         
         {/* Conference filters for college sports */}
-        {availableConferences.length > 0 && (
+        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && (
           <div className="conference-filters">
             <button
               className={['conference-btn', selectedConference === 'all' ? 'active' : '']
@@ -942,17 +942,21 @@ function App() {
             >
               All Conferences
             </button>
-            {availableConferences.map((conference) => (
-              <button
-                key={conference}
-                className={['conference-btn', selectedConference === conference ? 'active' : '']
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => handleConferenceClick(conference)}
-              >
-                {conference}
-              </button>
-            ))}
+            {availableConferences.length > 0 ? (
+              availableConferences.map((conference) => (
+                <button
+                  key={conference}
+                  className={['conference-btn', selectedConference === conference ? 'active' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => handleConferenceClick(conference)}
+                >
+                  {conference}
+                </button>
+              ))
+            ) : (
+              <span className="conference-loading">Loading conferences...</span>
+            )}
           </div>
         )}
       </div>
