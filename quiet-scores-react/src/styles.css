@@ -1303,11 +1303,11 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
-    background: transparent;
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 0;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
     transition: all 0.2s ease;
     cursor: pointer;
 }
