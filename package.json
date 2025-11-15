@@ -1,0 +1,10 @@
+{
+  "name": "nfl-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd quiet-scores-react && npm install && npm run build",
+    "dev": "cd quiet-scores-react && npm run dev"
+  }
+}
+
