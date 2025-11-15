@@ -1307,7 +1307,7 @@ body.pwa-mode {
     background: transparent !important;
     border-radius: 0 !important;
     border: none !important;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
+    border-bottom: 3px solid #ff0000 !important;
     transition: all 0.2s ease;
     cursor: pointer;
 }
