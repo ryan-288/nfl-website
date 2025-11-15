@@ -1304,10 +1304,10 @@ body.pwa-mode {
     align-items: center;
     justify-content: space-between;
     padding: 12px 0;
-    background: transparent !important;
+    background: #ff00ff !important;
     border-radius: 0 !important;
     border: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 5px solid #00ff00 !important;
     transition: all 0.2s ease;
     cursor: pointer;
 }
