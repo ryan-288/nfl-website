@@ -416,8 +416,15 @@ body.pwa-mode {
     padding-top: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     animation: slideUp 0.3s ease-out;
-    max-height: 200px;
-    overflow-y: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scroll-behavior: smooth;
+}
+
+.conference-filters::-webkit-scrollbar {
+    display: none;
 }
 
 @keyframes slideUp {

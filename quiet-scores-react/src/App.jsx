@@ -749,7 +749,12 @@ function App() {
   }
 
   const handleConferenceClick = (conference) => {
-    setSelectedConference(conference)
+    // Toggle: if clicking the same conference, clear the filter
+    if (selectedConference === conference) {
+      setSelectedConference('all')
+    } else {
+      setSelectedConference(conference)
+    }
   }
 
   const handleDaySelect = (dayKey) => {
@@ -932,31 +937,19 @@ function App() {
         </div>
         
         {/* Conference filters for college sports */}
-        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && (
+        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && availableConferences.length > 0 && (
           <div className="conference-filters">
-            <button
-              className={['conference-btn', selectedConference === 'all' ? 'active' : '']
-                .filter(Boolean)
-                .join(' ')}
-              onClick={() => handleConferenceClick('all')}
-            >
-              All Conferences
-            </button>
-            {availableConferences.length > 0 ? (
-              availableConferences.map((conference) => (
-                <button
-                  key={conference}
-                  className={['conference-btn', selectedConference === conference ? 'active' : '']
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => handleConferenceClick(conference)}
-                >
-                  {conference}
-                </button>
-              ))
-            ) : (
-              <span className="conference-loading">Loading conferences...</span>
-            )}
+            {availableConferences.map((conference) => (
+              <button
+                key={conference}
+                className={['conference-btn', selectedConference === conference ? 'active' : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => handleConferenceClick(conference)}
+              >
+                {conference}
+              </button>
+            ))}
           </div>
         )}
       </div>
