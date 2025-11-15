@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://nfl-website-six.vercel.app/sitemap.xml
-

@@ -313,8 +313,6 @@ function TeamLogo({ name, logoUrl, fallbackText }) {
         src={logoUrl}
         alt={`${name} logo`}
         onError={() => setFailed(true)}
-        loading="lazy"
-        decoding="async"
         style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain' }}
       />
       <div className="fallback-logo" style={{ display: 'none' }}>
@@ -546,17 +544,16 @@ function GameSummary({ game, onBack }) {
 
   return (
     <div className="container">
-      <header className="site-header">
+      <div className="site-header">
         <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" loading="eager" width="40" height="40" />
+          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
           <h1>Game Summary</h1>
         </div>
-        <button className="back-btn" onClick={onBack} aria-label="Back to scores">
+        <button className="back-btn" onClick={onBack}>
           ← Back to Scores
         </button>
-      </header>
+      </div>
 
-      <main>
       <div className="game-summary-content">
         {isLoading && <div className="info">Loading game summary...</div>}
         {error && <div className="error">Error loading summary: {error}</div>}
@@ -714,7 +711,6 @@ function GameSummary({ game, onBack }) {
           </div>
         )}
       </div>
-      </main>
     </div>
   )
 }
@@ -828,12 +824,9 @@ function App() {
 
   return (
     <div className="container">
-      <div style={{ background: '#00ff00', color: '#000', padding: '20px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999 }}>
-        ⚠️ LATEST CODE - COMMIT bd580d8 - IF YOU SEE THIS, VERCEL IS WORKING! ⚠️
-      </div>
-      <header className="site-header">
+      <div className="site-header">
         <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" loading="eager" width="40" height="40" />
+          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
           <h1>Quiet Scores - Live ESPN Data</h1>
         </div>
         <div
@@ -845,9 +838,8 @@ function App() {
           </span>
           <span>Live Games</span>
         </div>
-      </header>
+      </div>
 
-      <main>
       <div className="date-navigation">
         <div className="week-display" onClick={toggleDatePicker} style={{ cursor: 'pointer' }}>
           <div className="week-label" id="weekLabel">
@@ -856,7 +848,7 @@ function App() {
         </div>
 
         <div className="week-buttons">
-          <button className="week-nav-btn" onClick={handlePreviousWeek} aria-label="Previous week">
+          <button className="week-nav-btn" onClick={handlePreviousWeek}>
             ◀
           </button>
           {DAY_KEYS.map((dayKey) => (
@@ -866,8 +858,6 @@ function App() {
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => handleDaySelect(dayKey)}
-                aria-label={`Select ${dayKey}`}
-                aria-pressed={activeDay === dayKey}
               >
                 {dayKey.slice(0, 3).charAt(0).toUpperCase() + dayKey.slice(1, 3)}
               </button>
@@ -876,7 +866,7 @@ function App() {
               </div>
             </div>
           ))}
-          <button className="week-nav-btn" onClick={handleNextWeek} aria-label="Next week">
+          <button className="week-nav-btn" onClick={handleNextWeek}>
             ▶
           </button>
         </div>
@@ -886,8 +876,6 @@ function App() {
             ref={dateInputRef}
             type="date"
             id="customDate"
-            aria-label="Select custom date"
-            title="Select custom date"
             value={formatDateInputValue(currentDate)}
             onChange={handleCustomDateChange}
             style={{ display: 'none' }}
@@ -905,8 +893,6 @@ function App() {
                 .join(' ')}
               data-sport={button.value}
               onClick={() => handleSportClick(button.value)}
-              aria-label={`Filter by ${button.label}`}
-              aria-pressed={selectedSport === button.value}
             >
               {button.label}
             </button>
@@ -931,7 +917,6 @@ function App() {
           ))
         )}
       </div>
-      </main>
     </div>
   )
 }

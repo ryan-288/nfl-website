@@ -10,15 +10,15 @@
     --border-primary: #333333;
     --border-secondary: #444444;
     --text-primary: #ffffff;
-    --text-secondary: #e0e0e0;
-    --text-muted: #b0b0b0;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
     --accent-primary: #007bff;
     --accent-secondary: #0056b3;
     --base-empty: #2d2d2d;
     --base-occupied: #007bff;
     --count-dot: #2d2d2d;
     --count-dot-border: #444444;
-    --count-label: #b0b0b0;
+    --count-label: #666666;
 }
 
 * {
@@ -29,7 +29,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #ffff00 !important; /* BRIGHT YELLOW - IF YOU SEE THIS, CSS IS LOADING */
+    background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
@@ -224,7 +224,7 @@ body.pwa-mode {
 
 .week-label {
     font-size: 14px;
-    color: var(--text-muted);
+    color: #888;
     margin-bottom: 5px;
 }
 
@@ -282,7 +282,7 @@ body.pwa-mode {
 
 .day-date {
     font-size: 12px;
-    color: var(--text-muted);
+    color: #888;
     font-weight: 500;
 }
 
@@ -363,7 +363,7 @@ body.pwa-mode {
     justify-content: flex-start;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none; /* Firefox - not supported by Safari */
+    scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
     padding: 0 10px;
     scroll-behavior: smooth;
@@ -554,7 +554,7 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 0;
+        gap: 8px;
         flex: 1;
         min-width: 0;
     }
@@ -565,14 +565,8 @@ body.pwa-mode {
     }
     
     .team {
-        padding: 8px 0;
+        padding: 4px 6px;
         gap: 4px;
-    }
-    
-    .team.winner,
-    .team.possession,
-    .team.at-bat {
-        padding-left: 6px;
     }
     
     .team-logo {
@@ -856,18 +850,12 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 0;
+        gap: 8px;
     }
     
     .team {
-        padding: 6px 0;
+        padding: 2px 4px;
         gap: 2px;
-    }
-    
-    .team.winner,
-    .team.possession,
-    .team.at-bat {
-        padding-left: 4px;
     }
     
     .team-logo {
@@ -1121,7 +1109,7 @@ body.pwa-mode {
     margin: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: visible;
     cursor: pointer;
@@ -1130,8 +1118,7 @@ body.pwa-mode {
 .score-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.15);
-    background: var(--bg-card-secondary);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Score change animation removed - scores will update without visual effects */
@@ -1281,14 +1268,14 @@ body.pwa-mode {
 .teams {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 12px;
     flex: 2;
 }
 
 /* Mobile-first approach - apply mobile styles by default */
 @media (max-width: 768px) {
     .teams {
-        gap: 0 !important;
+        gap: 8px !important;
         flex: 1 !important; /* Allow teams to take up available space */
         min-width: 0 !important; /* Prevent overflow */
     }
@@ -1303,33 +1290,18 @@ body.pwa-mode {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
-    background: transparent !important;
-    border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    transition: all 0.2s ease;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    border: 1px solid #444;
+    transition: all 0.3s ease;
     cursor: pointer;
 }
 
-.team:last-child {
-    border-bottom: none;
-}
-
 .team:hover {
-    background: transparent;
-    border-color: transparent;
-    transform: none;
-    padding-left: 4px;
-}
-
-.over-under-display {
-    padding: 8px 0;
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    margin: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
 }
 
 
@@ -1411,7 +1383,7 @@ body.pwa-mode {
     padding-top: 15px;
     border-top: 1px solid #444;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: #cccccc;
 }
 
 .game-time, .game-date {
@@ -1439,7 +1411,7 @@ body.pwa-mode {
 /* Game date styling */
 .game-date {
     font-size: 12px;
-    color: var(--text-muted);
+    color: #888;
     text-align: center;
 }
 
@@ -1447,7 +1419,7 @@ body.pwa-mode {
 .info, .error {
     text-align: center;
     padding: 40px;
-    color: var(--text-secondary);
+    color: #cccccc;
     font-size: 1.1rem;
     background: #1a1a1a;
     border-radius: 15px;
@@ -1461,13 +1433,13 @@ body.pwa-mode {
 
 /* Winner highlighting */
 .team.winner {
-    background: transparent;
-    border-left: 3px solid rgba(76, 175, 80, 0.5);
-    padding-left: 8px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 8px;
+    padding: 4px;
 }
 
 .team.winner .team-name {
-    color: rgba(76, 175, 80, 0.9);
+    color: var(--accent-success);
     font-weight: 600;
 }
 
@@ -1482,23 +1454,16 @@ body.pwa-mode {
 }
 
 /* Possession/At-bat highlighting */
-.team.possession,
-.team.at-bat {
-    border-left: 3px solid rgba(0, 123, 255, 0.5);
-    padding-left: 8px;
-    background: rgba(0, 123, 255, 0.03);
-}
-
 .team.possession .team-name,
 .team.at-bat .team-name {
-    color: #007bff;
-    font-weight: 600;
+    color: #ffd700;
+    font-weight: bold;
 }
 
 .team.possession .team-score,
 .team.at-bat .team-score {
     color: #007bff;
-    font-weight: 600;
+    font-weight: inherit;
     text-shadow: none;
 }
 
@@ -1527,8 +1492,7 @@ body.pwa-mode {
 
 /* Hover effect for winner teams */
 .team.winner:hover {
-    background: transparent;
-    border-left-color: rgba(76, 175, 80, 0.7);
+    background: rgba(76, 175, 80, 0.15);
 }
 
 /* Pulse animation for live games */
@@ -1937,18 +1901,12 @@ body.pwa-mode {
     }
     
     .teams {
-        gap: 0;
+        gap: 8px;
     }
     
     .team {
-        padding: 6px 0;
+        padding: 2px 4px;
         gap: 2px;
-    }
-    
-    .team.winner,
-    .team.possession,
-    .team.at-bat {
-        padding-left: 4px;
     }
     
     .team-logo {
