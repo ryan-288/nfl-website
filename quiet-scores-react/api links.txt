@@ -1,0 +1,91 @@
+College Football
+Latest News httpsite.api.espn.comapissitev2sportsfootballcollege-footballnews
+
+Latest Scores httpsite.api.espn.comapissitev2sportsfootballcollege-footballscoreboard
+
+query params
+
+calendar 'blacklist'
+dates any date in YYYYMMDD
+Game Information httpsite.api.espn.comapissitev2sportsfootballcollege-footballsummaryevent=gameId
+
+params
+
+gameId identifier of some game (EX 400934572 for 2017 Army vs Navy)
+Team Information httpsite.api.espn.comapissitev2sportsfootballcollege-footballteamsteam
+
+params
+
+team some team abbreviation (EX 'all' for Allegheny, 'gt' for Georgia Tech, 'wisconsin' for Wisconsin)
+Rankings httpsite.api.espn.comapissitev2sportsfootballcollege-footballrankings
+
+NFL
+Scores httpsite.api.espn.comapissitev2sportsfootballnflscoreboard
+
+News httpsite.api.espn.comapissitev2sportsfootballnflnews
+
+All Teams httpsite.api.espn.comapissitev2sportsfootballnflteams
+
+Specific Team httpsite.api.espn.comapissitev2sportsfootballnflteamsteam
+
+Baseball
+MLB
+Scores httpsite.api.espn.comapissitev2sportsbaseballmlbscoreboard
+
+News httpsite.api.espn.comapissitev2sportsbaseballmlbnews
+
+All Teams httpsite.api.espn.comapissitev2sportsbaseballmlbteams
+
+Specific Team httpsite.api.espn.comapissitev2sportsbaseballmlbteamsteam
+
+College Baseball
+Scores httpssite.api.espn.comapissitev2sportsbaseballcollege-baseballscoreboard
+
+Hockey
+Scores httpsite.api.espn.comapissitev2sportshockeynhlscoreboard
+
+News httpsite.api.espn.comapissitev2sportshockeynhlnews
+
+All Teams httpsite.api.espn.comapissitev2sportshockeynhlteams
+
+Specific Team httpsite.api.espn.comapissitev2sportshockeynhlteamsteam
+
+Basketball
+NBA
+Scores httpsite.api.espn.comapissitev2sportsbasketballnbascoreboard
+
+News httpsite.api.espn.comapissitev2sportsbasketballnbanews
+
+All Teams httpsite.api.espn.comapissitev2sportsbasketballnbateams
+
+Specific Team httpsite.api.espn.comapissitev2sportsbasketballnbateamsteam
+
+WNBA
+Scores httpsite.api.espn.comapissitev2sportsbasketballwnbascoreboard
+
+News httpsite.api.espn.comapissitev2sportsbasketballwnbanews
+
+All Teams httpsite.api.espn.comapissitev2sportsbasketballwnbateams
+
+Specific Team httpsite.api.espn.comapissitev2sportsbasketballwnbateamsteam
+
+Women's College Basketball
+Scores httpsite.api.espn.comapissitev2sportsbasketballwomens-college-basketballscoreboard
+
+News httpsite.api.espn.comapissitev2sportsbasketballwomens-college-basketballnews
+
+All Teams httpsite.api.espn.comapissitev2sportsbasketballwomens-college-basketballteams
+
+Specific Team httpsite.api.espn.comapissitev2sportsbasketballwomens-college-basketballteamsteam
+
+Men's College Basketball
+Scores httpsite.api.espn.comapissitev2sportsbasketballmens-college-basketballscoreboard
+
+News httpsite.api.espn.comapissitev2sportsbasketballmens-college-basketballnews
+
+All Teams httpsite.api.espn.comapissitev2sportsbasketballmens-college-basketballteams
+
+Specific Team httpsite.api.espn.comapissitev2sportsbasketballmens-college-basketballteamsteam
+
+Soccer
+Scores httpsite.api.espn.comapissitev2sportssoccerleaguescoreboard
