@@ -12,21 +12,6 @@ const SPORT_BUTTONS = [
   { label: 'CBB', value: 'college-basketball' },
 ]
 
-// Major college conferences
-const MAJOR_CONFERENCES = [
-  'SEC',
-  'Big Ten',
-  'Big 12',
-  'ACC'
-]
-
-// Conference team mappings for filtering
-const CONFERENCE_TEAMS = {
-  'SEC': ['Alabama', 'Auburn', 'Arkansas', 'Florida', 'Georgia', 'Kentucky', 'LSU', 'Mississippi State', 'Missouri', 'Ole Miss', 'South Carolina', 'Tennessee', 'Texas A&M', 'Vanderbilt'],
-  'Big Ten': ['Illinois', 'Indiana', 'Iowa', 'Maryland', 'Michigan', 'Michigan State', 'Minnesota', 'Nebraska', 'Northwestern', 'Ohio State', 'Penn State', 'Purdue', 'Rutgers', 'Wisconsin'],
-  'Big 12': ['Baylor', 'BYU', 'Cincinnati', 'Houston', 'Iowa State', 'Kansas', 'Kansas State', 'Oklahoma', 'Oklahoma State', 'TCU', 'Texas', 'Texas Tech', 'UCF', 'West Virginia'],
-  'ACC': ['Boston College', 'Clemson', 'Duke', 'Florida State', 'Georgia Tech', 'Louisville', 'Miami', 'NC State', 'North Carolina', 'Pittsburgh', 'Syracuse', 'Virginia', 'Virginia Tech', 'Wake Forest']
-}
 
 const DAY_KEYS = [
   'monday',
@@ -740,7 +725,6 @@ function App() {
   const [activeDay, setActiveDay] = useState(todayKey === 'sunday' ? 'sunday' : todayKey)
   const [currentDate, setCurrentDate] = useState(() => new Date(today))
   const [selectedSport, setSelectedSport] = useState('all')
-  const [selectedConference, setSelectedConference] = useState('all')
   const [selectedGame, setSelectedGame] = useState(null)
 
   const { scores, isLoading, error } = useScores(currentDate)
@@ -760,17 +744,6 @@ function App() {
 
   const handleSportClick = (sport) => {
     setSelectedSport(sport)
-    // Reset conference filter when changing sports
-    setSelectedConference('all')
-  }
-
-  const handleConferenceClick = (conference) => {
-    // Toggle: if clicking the same conference, clear the filter
-    if (selectedConference === conference) {
-      setSelectedConference('all')
-    } else {
-      setSelectedConference(conference)
-    }
   }
 
   const handleDaySelect = (dayKey) => {
@@ -836,32 +809,12 @@ function App() {
         ? scores
         : scores.filter((game) => game.sport === selectedSport)
     
-    // Filter by conference for college sports using hardcoded team lists
-    if ((selectedSport === 'college-football' || selectedSport === 'college-basketball') && selectedConference !== 'all') {
-      const conferenceTeams = CONFERENCE_TEAMS[selectedConference] || []
-      if (conferenceTeams.length > 0) {
-        baseScores = baseScores.filter((game) => {
-          const homeTeam = game.homeTeam || ''
-          const awayTeam = game.awayTeam || ''
-          return conferenceTeams.some(team => 
-            homeTeam.includes(team) || awayTeam.includes(team)
-          )
-        })
-      }
-    }
     
     const copy = [...baseScores]
     copy.sort(compareGames)
     return copy
-  }, [scores, selectedSport, selectedConference])
+  }, [scores, selectedSport])
 
-  const availableConferences = useMemo(() => {
-    if (selectedSport !== 'college-football' && selectedSport !== 'college-basketball') {
-      return []
-    }
-    // Use hardcoded major conferences since ESPN API doesn't reliably provide conference data
-    return MAJOR_CONFERENCES
-  }, [selectedSport])
 
   const liveCount = useMemo(
     () => sortedScores.filter((game) => game.status === 'live' || game.status === 'halftime').length,
@@ -949,29 +902,6 @@ function App() {
             </button>
           ))}
         </div>
-        
-        {/* Conference filters for college sports */}
-        {(selectedSport === 'college-football' || selectedSport === 'college-basketball') && (
-          <div className="conference-filters">
-            {availableConferences.length > 0 ? (
-              availableConferences.map((conference) => (
-                <button
-                  key={conference}
-                  className={['conference-btn', selectedConference === conference ? 'active' : '']
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => handleConferenceClick(conference)}
-                >
-                  {conference}
-                </button>
-              ))
-            ) : (
-              <div style={{ color: '#888', fontSize: '0.75rem', padding: '6px 12px' }}>
-                No conferences found (check console for debug info)
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="scores-container" id="scoresContainer">
