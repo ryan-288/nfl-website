@@ -277,7 +277,6 @@ body.pwa-mode {
     border-color: #0056b3;
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.5);
     transform: scale(1.05);
 }
 
@@ -405,7 +404,6 @@ body.pwa-mode {
     border-color: #0056b3;
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.5);
     transform: scale(1.05);
 }
 
@@ -1304,7 +1302,6 @@ body.pwa-mode {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--accent-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
 }
 
 
