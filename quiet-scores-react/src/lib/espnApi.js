@@ -129,6 +129,25 @@ function transformEvent(event, sportKey) {
 
   if (!home || !away) return null
 
+  // Debug: Log team structure for college sports to find conference data
+  if (sportKey === 'college-football' || sportKey === 'college-basketball') {
+    // Log first game only to avoid spam
+    if (!window._loggedConferenceDebug) {
+      window._loggedConferenceDebug = true
+      console.log('=== CONFERENCE DEBUG ===')
+      console.log('Home competitor:', home)
+      console.log('Home team:', home.team)
+      console.log('Home team keys:', home.team ? Object.keys(home.team) : 'no team')
+      console.log('Competitor keys:', Object.keys(home))
+      if (home.team) {
+        console.log('Team group:', home.team.group)
+        console.log('Team conference:', home.team.conference)
+        console.log('Team groups:', home.team.groups)
+        console.log('Full team object:', JSON.stringify(home.team, null, 2).substring(0, 1000))
+      }
+    }
+  }
+
   const status = event.status ?? {}
   const statusType = status.type ?? {}
   const normalizedStatus = normalizeStatus(
