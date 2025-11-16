@@ -588,26 +588,6 @@ function GameSummary({ game, onBack }) {
                   <div className="team-score-large">{game.homeScore || '-'}</div>
                 </div>
               </div>
-              <div className="score-bar-container">
-                <div className="score-bar">
-                  <div
-                    className="score-bar-segment away"
-                    style={{ width: `${awayPercent}%` }}
-                  >
-                    <span className="score-bar-label">
-                      {game.awayTeam} {awayScore || '-'}
-                    </span>
-                  </div>
-                  <div
-                    className="score-bar-segment home"
-                    style={{ width: `${homePercent}%` }}
-                  >
-                    <span className="score-bar-label">
-                      {homeScore || '-'} {game.homeTeam}
-                    </span>
-                  </div>
-                </div>
-              </div>
               <div className="game-status-badge">
                 <span className="sport-badge">{getSportDisplayName(game.sport)}</span>
                 <span className="status-text">{game.status === 'live' ? 'LIVE' : game.status === 'final' ? 'FINAL' : 'SCHEDULED'}</span>
