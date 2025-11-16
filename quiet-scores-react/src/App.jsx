@@ -543,6 +543,21 @@ function GameSummary({ game, onBack }) {
     return { away: awayLeader, home: homeLeader, category: categoryLeaders.displayName || categoryLeaders.name }
   }
 
+  const parseNumericValue = (value) => {
+    if (value === null || value === undefined) return NaN
+    if (typeof value === 'number') return value
+    const str = String(value)
+    const cleaned = str.replace(/[^\d.-]/g, '')
+    const num = parseFloat(cleaned)
+    return Number.isNaN(num) ? NaN : num
+  }
+
+  const awayScore = Number(game.awayScore) || 0
+  const homeScore = Number(game.homeScore) || 0
+  const totalScore = awayScore + homeScore
+  const awayPercent = totalScore > 0 ? (awayScore / totalScore) * 100 : 50
+  const homePercent = totalScore > 0 ? (homeScore / totalScore) * 100 : 50
+
   return (
     <div className="container">
       <div className="site-header">
@@ -573,6 +588,26 @@ function GameSummary({ game, onBack }) {
                   <div className="team-score-large">{game.homeScore || '-'}</div>
                 </div>
               </div>
+              <div className="score-bar-container">
+                <div className="score-bar">
+                  <div
+                    className="score-bar-segment away"
+                    style={{ width: `${awayPercent}%` }}
+                  >
+                    <span className="score-bar-label">
+                      {game.awayTeam} {awayScore || '-'}
+                    </span>
+                  </div>
+                  <div
+                    className="score-bar-segment home"
+                    style={{ width: `${homePercent}%` }}
+                  >
+                    <span className="score-bar-label">
+                      {homeScore || '-'} {game.homeTeam}
+                    </span>
+                  </div>
+                </div>
+              </div>
               <div className="game-status-badge">
                 <span className="sport-badge">{getSportDisplayName(game.sport)}</span>
                 <span className="status-text">{game.status === 'live' ? 'LIVE' : game.status === 'final' ? 'FINAL' : 'SCHEDULED'}</span>
@@ -588,19 +623,52 @@ function GameSummary({ game, onBack }) {
                     <thead>
                       <tr>
                         <th></th>
-                        <th>{awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}</th>
-                        <th>{homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}</th>
+                        <th colSpan={2}>
+                          <div className="boxscore-header-teams">
+                            <span className="boxscore-header-away">
+                              {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
+                            </span>
+                            <span className="boxscore-header-home">
+                              {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
+                            </span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {awayTeam.statistics && homeTeam.statistics && awayTeam.statistics.map((stat, idx) => {
                         const homeStat = homeTeam.statistics[idx]
                         if (!stat || !homeStat) return null
+                        const awayDisplay = stat.displayValue || stat.value || '-'
+                        const homeDisplay = homeStat.displayValue || homeStat.value || '-'
+                        const awayVal = parseNumericValue(stat.displayValue ?? stat.value)
+                        const homeVal = parseNumericValue(homeStat.displayValue ?? homeStat.value)
+                        const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
+                        const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
+                        const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
                         return (
                           <tr key={idx}>
                             <td className="stat-label">{stat.label || stat.name}</td>
-                            <td>{stat.displayValue || stat.value || '-'}</td>
-                            <td>{homeStat.displayValue || homeStat.value || '-'}</td>
+                            <td colSpan={2} className="boxscore-bar-cell">
+                              <div className="boxscore-row-bar">
+                                <div
+                                  className="boxscore-row-bar-segment away"
+                                  style={{ width: `${awayPercent}%` }}
+                                >
+                                  <span className="boxscore-row-bar-label left">
+                                    {awayDisplay}
+                                  </span>
+                                </div>
+                                <div
+                                  className="boxscore-row-bar-segment home"
+                                  style={{ width: `${homePercent}%` }}
+                                >
+                                  <span className="boxscore-row-bar-label right">
+                                    {homeDisplay}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
                           </tr>
                         )
                       })}
