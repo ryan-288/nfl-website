@@ -1445,7 +1445,7 @@ body.pwa-mode {
 .team-score {
     font-size: 1rem;
     font-weight: 700;
-    color: #007bff;
+    color: var(--text-primary);
 }
 
 .game-info {
@@ -1517,7 +1517,7 @@ body.pwa-mode {
 }
 
 .team.winner .team-score {
-    color: #007bff;
+    color: var(--text-primary);
     font-weight: 700;
 }
 
@@ -1541,7 +1541,7 @@ body.pwa-mode {
 
 .team.possession .team-score,
 .team.at-bat .team-score {
-    color: #007bff;
+    color: var(--text-primary);
     font-weight: inherit;
     text-shadow: none;
 }
