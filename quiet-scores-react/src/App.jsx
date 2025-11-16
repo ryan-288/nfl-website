@@ -630,23 +630,19 @@ function GameSummary({ game, onBack }) {
                           <tr key={idx}>
                             <td className="stat-label">{stat.label || stat.name}</td>
                             <td colSpan={2} className="boxscore-bar-cell">
-                              <div className="boxscore-row-bar">
-                                <div
-                                  className="boxscore-row-bar-segment away"
-                                  style={{ width: `${awayPercent}%` }}
-                                >
-                                  <span className="boxscore-row-bar-label left">
-                                    {awayDisplay}
-                                  </span>
+                              <div className="boxscore-row-with-values">
+                                <span className="boxscore-value away">{awayDisplay}</span>
+                                <div className="boxscore-row-bar">
+                                  <div
+                                    className="boxscore-row-bar-segment away"
+                                    style={{ width: `${awayPercent}%` }}
+                                  />
+                                  <div
+                                    className="boxscore-row-bar-segment home"
+                                    style={{ width: `${homePercent}%` }}
+                                  />
                                 </div>
-                                <div
-                                  className="boxscore-row-bar-segment home"
-                                  style={{ width: `${homePercent}%` }}
-                                >
-                                  <span className="boxscore-row-bar-label right">
-                                    {homeDisplay}
-                                  </span>
-                                </div>
+                                <span className="boxscore-value home">{homeDisplay}</span>
                               </div>
                             </td>
                           </tr>

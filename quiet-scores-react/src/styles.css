@@ -3113,11 +3113,17 @@ body.pwa-mode {
     padding-bottom: 10px;
 }
 
+.boxscore-row-with-values {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .boxscore-row-bar {
     display: flex;
     width: 100%;
     height: 10px;
-    border-radius: 999px;
+    border-radius: 2px; /* square-style bar */
     overflow: hidden;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3140,24 +3146,20 @@ body.pwa-mode {
     background: linear-gradient(90deg, rgba(220, 53, 69, 0.9), rgba(220, 53, 69, 0.6));
 }
 
-.boxscore-row-bar-label {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
+.boxscore-value {
+    font-size: 0.8rem;
     font-weight: 600;
-    color: #ffffff;
-    white-space: nowrap;
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
+    color: var(--text-secondary);
+    min-width: 36px;
+    text-align: center;
 }
 
-.boxscore-row-bar-label.left {
-    left: 8px;
+.boxscore-value.away {
+    color: #79b4ff;
 }
 
-.boxscore-row-bar-label.right {
-    right: 8px;
+.boxscore-value.home {
+    color: #ff9ea8;
 }
 
 .plays-list {
