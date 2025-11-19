@@ -428,9 +428,9 @@ function ScoreCard({ game, onOpenSummary }) {
       <div className="game-content">
         <div className="teams">
           <TeamRow game={game} side="away" />
-          {game.status === 'scheduled' && game.odds?.overUnder !== null && (
+          {game.status === 'scheduled' && game.odds?.overUnder !== null && game.odds?.overUnder !== undefined && (
             <div className="over-under-display">
-              O/U: {game.odds.overUnder}
+              O/U: {game.odds?.overUnder}
             </div>
           )}
           <TeamRow game={game} side="home" />
