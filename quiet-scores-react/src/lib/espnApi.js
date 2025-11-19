@@ -209,7 +209,7 @@ function transformEvent(event, sportKey) {
   }
   
   // Debug: Log possession data for first live game (after extraction)
-  if (normalizedStatus === 'live' && (sportKey === 'nfl' || sportKey === 'college-football') && !window._loggedPossessionDebug) {
+  if (normalizedStatus === 'live' && !window._loggedPossessionDebug) {
     window._loggedPossessionDebug = true
     console.log('=== POSSESSION DEBUG ===')
     console.log('Sport:', sportKey)

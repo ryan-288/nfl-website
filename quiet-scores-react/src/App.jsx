@@ -345,7 +345,7 @@ function TeamRow({ game, side }) {
       hasPossession = game.possessionTeam && teamId && String(game.possessionTeam) === String(teamId)
       
       // Debug: Log possession check for first live game
-      if (game.status === 'live' && !window._loggedPossessionCheck) {
+      if (game.status === 'live' && (game.sport === 'nfl' || game.sport === 'college-football') && !window._loggedPossessionCheck) {
         window._loggedPossessionCheck = true
         console.log('=== POSSESSION CHECK DEBUG ===')
         console.log('Game possessionTeam:', game.possessionTeam, typeof game.possessionTeam)
