@@ -76,7 +76,7 @@ function TeamRow({game, side, scheduled}) {
   // Check for possession/at-bat highlighting
   let hasPossession = false;
   if (game.status === 'live' || game.status === 'halftime') {
-    if (game.sport === 'nfl' || game.sport === 'college-football') {
+    if (game.sport === 'nfl' || game.sport === 'college-football' || game.sport === 'nba' || game.sport === 'college-basketball') {
       const teamId = isAway ? game.awayTeamId : game.homeTeamId;
       // Compare as strings to ensure type matching
       hasPossession =
