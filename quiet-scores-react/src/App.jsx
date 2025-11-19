@@ -341,7 +341,8 @@ function TeamRow({ game, side }) {
   if (game.status === 'live' || game.status === 'halftime') {
     if (game.sport === 'nfl' || game.sport === 'college-football') {
       const teamId = isAway ? game.awayTeamId : game.homeTeamId
-      hasPossession = game.possessionTeam && teamId && game.possessionTeam === teamId
+      // Compare as strings to ensure type matching
+      hasPossession = game.possessionTeam && teamId && String(game.possessionTeam) === String(teamId)
     } else if (game.sport === 'mlb') {
       hasPossession = game.atBatTeam === side
     }

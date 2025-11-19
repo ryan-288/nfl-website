@@ -80,8 +80,6 @@ function extractRecord(competitor) {
 function pickTeamLogo(team) {
   if (!team) return null
   if (Array.isArray(team.logos) && team.logos.length > 0) {
-    // Prefer alternate logos (often lighter versions) if available
-    // ESPN sometimes provides multiple variants - look for alternates first
     const alternates = team.logos.filter((entry) => 
       Boolean(entry.href) && (
         entry.href.toLowerCase().includes('alternate') ||
@@ -91,13 +89,10 @@ function pickTeamLogo(team) {
       )
     )
     
-    // If alternates found, use the first one
     if (alternates.length > 0 && alternates[0]?.href) {
       return alternates[0].href
     }
     
-    // Otherwise, try to find a logo that's not the primary dark one
-    // Look for logos that might be lighter variants
     const nonPrimary = team.logos.find((entry) => 
       Boolean(entry.href) && 
       !entry.href.toLowerCase().includes('dark') &&
@@ -106,7 +101,6 @@ function pickTeamLogo(team) {
     
     if (nonPrimary?.href) return nonPrimary.href
     
-    // Fallback to first available logo
     const primary = team.logos.find((entry) => Boolean(entry.href)) ?? team.logos[0]
     if (primary?.href) return primary.href
   }
@@ -128,25 +122,6 @@ function transformEvent(event, sportKey) {
     competitors.find((comp) => comp.homeAway === 'away') ?? competitors[0] ?? null
 
   if (!home || !away) return null
-
-  // Debug: Log team structure for college sports to find conference data
-  if (sportKey === 'college-football' || sportKey === 'college-basketball') {
-    // Log first game only to avoid spam
-    if (!window._loggedConferenceDebug) {
-      window._loggedConferenceDebug = true
-      console.log('=== CONFERENCE DEBUG ===')
-      console.log('Home competitor:', home)
-      console.log('Home team:', home.team)
-      console.log('Home team keys:', home.team ? Object.keys(home.team) : 'no team')
-      console.log('Competitor keys:', Object.keys(home))
-      if (home.team) {
-        console.log('Team group:', home.team.group)
-        console.log('Team conference:', home.team.conference)
-        console.log('Team groups:', home.team.groups)
-        console.log('Full team object:', JSON.stringify(home.team, null, 2).substring(0, 1000))
-      }
-    }
-  }
 
   const status = event.status ?? {}
   const statusType = status.type ?? {}
@@ -174,13 +149,6 @@ function transformEvent(event, sportKey) {
   const homeAbbreviation = home.team?.abbreviation || null
   const awayAbbreviation = away.team?.abbreviation || null
 
-  // Extract conference information for college sports
-  // ESPN API doesn't reliably provide conference data in scoreboard endpoint
-  // We'll use hardcoded team lists for filtering instead
-  const homeConference = null
-  const awayConference = null
-
-  // Extract possession/at-bat information
   let possessionTeam = null
   const situation = competition?.situation
   if (situation?.possession) {
@@ -210,7 +178,6 @@ function transformEvent(event, sportKey) {
     }
   }
 
-  // For baseball, determine at-bat team and extract MLB-specific data
   let atBatTeam = null
   let inningNumber = null
   let topBottom = null
@@ -224,14 +191,12 @@ function transformEvent(event, sportKey) {
       atBatTeam = situation.inningHalf === 'top' ? 'away' : 'home'
     }
 
-    // Extract inning information
     if (situation?.inning !== undefined && situation.inning !== null) {
       inningNumber = situation.inning
     } else if (status.period) {
       inningNumber = status.period
     }
 
-    // Extract top/bottom
     if (situation?.topOfInning !== undefined && situation.topOfInning !== null) {
       topBottom = situation.topOfInning ? 'top' : 'bot'
     } else if (situation?.inningHalf !== undefined && situation.inningHalf !== null) {
@@ -244,7 +209,6 @@ function transformEvent(event, sportKey) {
       topBottom = situation.inningHalf === 'top' ? 'top' : 'bot'
     }
 
-    // Extract count (balls, strikes, outs)
     if (situation?.balls !== undefined && situation.balls !== null) {
       balls = situation.balls
     }
@@ -255,7 +219,6 @@ function transformEvent(event, sportKey) {
       outs = situation.outs
     }
 
-    // Extract base runners
     const onFirst = situation?.onFirst
     const onSecond = situation?.onSecond
     const onThird = situation?.onThird
@@ -302,13 +265,10 @@ function transformEvent(event, sportKey) {
     awayShortName,
     homeAbbreviation,
     awayAbbreviation,
-    homeConference,
-    awayConference,
     possessionTeam: possessionTeam ? String(possessionTeam) : null,
     awayTeamId: away.team?.id ? String(away.team.id) : null,
     homeTeamId: home.team?.id ? String(home.team.id) : null,
     atBatTeam,
-    // MLB-specific fields
     inningNumber,
     topBottom,
     bases,
@@ -317,33 +277,26 @@ function transformEvent(event, sportKey) {
     outs,
   }
 
-  // Extract broadcast information - check multiple possible locations
   let broadcastChannel = null
   
-  // Try direct broadcast field first
   if (event.broadcast) {
     broadcastChannel = event.broadcast
   }
-  // Try competitions[0].broadcasts array (most common location)
   else if (competition?.broadcasts && competition.broadcasts.length > 0) {
     const broadcast = competition.broadcasts[0]
-    // Check for names array first
     if (broadcast.names && broadcast.names.length > 0) {
       broadcastChannel = broadcast.names[0]
     }
-    // Fallback to media.shortName
     else if (broadcast.media?.shortName) {
       broadcastChannel = broadcast.media.shortName
     }
   }
-  // Fallback to geoBroadcasts array
   else if (event.geoBroadcasts && event.geoBroadcasts.length > 0) {
     const geoBroadcast = event.geoBroadcasts[0]
     if (geoBroadcast.media?.shortName) {
       broadcastChannel = geoBroadcast.media.shortName
     }
   }
-  // Legacy broadcasts array fallback
   else if (event.broadcasts && event.broadcasts.length > 0) {
     const broadcast = event.broadcasts[0]
     if (broadcast.names && broadcast.names.length > 0) {
@@ -355,7 +308,6 @@ function transformEvent(event, sportKey) {
     baseGame.broadcastChannel = broadcastChannel
   }
 
-  // Extract betting odds for all sports
   let spread = null
   let overUnder = null
   let awayMoneyline = null
@@ -364,18 +316,15 @@ function transformEvent(event, sportKey) {
   if (competition?.odds && competition.odds.length > 0) {
     const odds = competition.odds[0]
 
-    // Extract point spread
     if (odds.pointSpread) {
       const pointSpread = odds.pointSpread
       if (pointSpread.away?.close?.line !== undefined) {
         spread = pointSpread.away.close.line
       } else if (pointSpread.home?.close?.line !== undefined) {
-        // If away doesn't have it, use home and negate it
         spread = -pointSpread.home.close.line
       }
     }
 
-    // Extract over/under (total)
     if (odds.overUnder) {
       const total = odds.overUnder
       if (total.close?.line !== undefined) {
@@ -383,7 +332,6 @@ function transformEvent(event, sportKey) {
       }
     }
 
-    // Extract moneyline
     if (odds.moneyline) {
       const moneyline = odds.moneyline
       if (moneyline.away?.close?.line !== undefined) {
@@ -460,80 +408,5 @@ async function fetchGameSummary(sportKey, gameId, { signal } = {}) {
   return data
 }
 
-// Cache for team-to-conference mappings
-const conferenceCache = new Map()
-
-async function fetchTeamConferences(sportKey, { signal } = {}) {
-  // Check cache first
-  if (conferenceCache.has(sportKey)) {
-    return conferenceCache.get(sportKey)
-  }
-
-  try {
-    let teamsEndpoint
-    if (sportKey === 'college-football') {
-      teamsEndpoint = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams'
-    } else if (sportKey === 'college-basketball') {
-      teamsEndpoint = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams'
-    } else {
-      return {}
-    }
-
-    const response = await fetch(teamsEndpoint, { signal })
-    if (!response.ok) {
-      console.warn(`Failed to fetch teams for ${sportKey}:`, response.status)
-      return {}
-    }
-
-    const data = await response.json()
-    
-    // Debug: log the structure to see what we get
-    if (!window._loggedTeamsDebug) {
-      window._loggedTeamsDebug = true
-      console.log('=== TEAMS ENDPOINT DEBUG ===')
-      console.log('Full response structure:', Object.keys(data))
-      console.log('Sports:', data?.sports)
-      console.log('Sample team structure:', data?.sports?.[0]?.leagues?.[0]?.teams?.[0] || data?.teams?.[0])
-      if (data?.sports?.[0]?.leagues?.[0]?.teams?.[0]) {
-        const sampleTeam = data.sports[0].leagues[0].teams[0]
-        console.log('Sample team keys:', Object.keys(sampleTeam))
-        console.log('Sample team.team keys:', sampleTeam.team ? Object.keys(sampleTeam.team) : 'no team')
-        console.log('Sample team.team.group:', sampleTeam.team?.group)
-        console.log('Sample team.team.conference:', sampleTeam.team?.conference)
-        console.log('Full sample team:', JSON.stringify(sampleTeam, null, 2).substring(0, 2000))
-      }
-    }
-    
-    const teams = data?.sports?.[0]?.leagues?.[0]?.teams || data?.teams || []
-    
-    const conferenceMap = {}
-    teams.forEach((teamData) => {
-      const team = teamData.team || teamData
-      const teamName = team.displayName || team.name
-      const conference = 
-        team.group?.name || 
-        team.conference?.name || 
-        team.groups?.[0]?.name ||
-        team.conferences?.[0]?.name ||
-        null
-      
-      if (teamName && conference) {
-        conferenceMap[teamName] = conference
-        // Also map by ID if available
-        if (team.id) {
-          conferenceMap[team.id] = conference
-        }
-      }
-    })
-
-    console.log('Conference map created:', Object.keys(conferenceMap).length, 'teams mapped')
-    conferenceCache.set(sportKey, conferenceMap)
-    return conferenceMap
-  } catch (error) {
-    console.warn(`Error fetching conferences for ${sportKey}:`, error)
-    return {}
-  }
-}
-
-export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary, fetchTeamConferences }
+export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary }
 
