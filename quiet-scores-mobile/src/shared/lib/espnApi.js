@@ -159,23 +159,20 @@ function transformEvent(event, sportKey) {
       possessionTeam = situation.possession
     }
   }
-  // Also check for possession in the lastPlay if situation doesn't have it
-  if (!possessionTeam && competition?.lastPlay) {
-    const lastPlay = competition.lastPlay
-    if (lastPlay?.team?.id) {
-      possessionTeam = lastPlay.team.id
-    } else if (lastPlay?.possessionTeam) {
-      possessionTeam = lastPlay.possessionTeam
-    }
+  // Check situation.lastPlay first (most common location for possession)
+  if (!possessionTeam && situation?.lastPlay?.team?.id) {
+    possessionTeam = situation.lastPlay.team.id
   }
-  // Check if possession is stored in situation.lastPlay
-  if (!possessionTeam && situation?.lastPlay) {
-    const lastPlay = situation.lastPlay
-    if (lastPlay?.team?.id) {
-      possessionTeam = lastPlay.team.id
-    } else if (lastPlay?.possessionTeam) {
-      possessionTeam = lastPlay.possessionTeam
-    }
+  // Also check for possession in competition.lastPlay
+  if (!possessionTeam && competition?.lastPlay?.team?.id) {
+    possessionTeam = competition.lastPlay.team.id
+  }
+  // Check for possessionTeam property in lastPlay
+  if (!possessionTeam && situation?.lastPlay?.possessionTeam) {
+    possessionTeam = situation.lastPlay.possessionTeam
+  }
+  if (!possessionTeam && competition?.lastPlay?.possessionTeam) {
+    possessionTeam = competition.lastPlay.possessionTeam
   }
 
   let atBatTeam = null

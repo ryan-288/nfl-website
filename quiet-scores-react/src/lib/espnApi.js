@@ -184,17 +184,6 @@ function transformEvent(event, sportKey) {
   let possessionTeam = null
   const situation = competition?.situation
   
-  // Debug: Log possession data for first live game
-  if (normalizedStatus === 'live' && !window._loggedPossessionDebug) {
-    window._loggedPossessionDebug = true
-    console.log('=== POSSESSION DEBUG ===')
-    console.log('Situation:', situation)
-    console.log('Situation possession:', situation?.possession)
-    console.log('Competition lastPlay:', competition?.lastPlay)
-    console.log('Away team ID:', away.team?.id)
-    console.log('Home team ID:', home.team?.id)
-  }
-  
   if (situation?.possession) {
     // Possession might be an ID string/number or an object with team/id
     if (typeof situation.possession === 'object') {
@@ -203,23 +192,35 @@ function transformEvent(event, sportKey) {
       possessionTeam = situation.possession
     }
   }
-  // Also check for possession in the lastPlay if situation doesn't have it
-  if (!possessionTeam && competition?.lastPlay) {
-    const lastPlay = competition.lastPlay
-    if (lastPlay?.team?.id) {
-      possessionTeam = lastPlay.team.id
-    } else if (lastPlay?.possessionTeam) {
-      possessionTeam = lastPlay.possessionTeam
-    }
+  // Check situation.lastPlay first (most common location for possession)
+  if (!possessionTeam && situation?.lastPlay?.team?.id) {
+    possessionTeam = situation.lastPlay.team.id
   }
-  // Check if possession is stored in situation.lastPlay
-  if (!possessionTeam && situation?.lastPlay) {
-    const lastPlay = situation.lastPlay
-    if (lastPlay?.team?.id) {
-      possessionTeam = lastPlay.team.id
-    } else if (lastPlay?.possessionTeam) {
-      possessionTeam = lastPlay.possessionTeam
-    }
+  // Also check for possession in competition.lastPlay
+  if (!possessionTeam && competition?.lastPlay?.team?.id) {
+    possessionTeam = competition.lastPlay.team.id
+  }
+  // Check for possessionTeam property in lastPlay
+  if (!possessionTeam && situation?.lastPlay?.possessionTeam) {
+    possessionTeam = situation.lastPlay.possessionTeam
+  }
+  if (!possessionTeam && competition?.lastPlay?.possessionTeam) {
+    possessionTeam = competition.lastPlay.possessionTeam
+  }
+  
+  // Debug: Log possession data for first live game (after extraction)
+  if (normalizedStatus === 'live' && (sportKey === 'nfl' || sportKey === 'college-football') && !window._loggedPossessionDebug) {
+    window._loggedPossessionDebug = true
+    console.log('=== POSSESSION DEBUG ===')
+    console.log('Situation:', situation)
+    console.log('Situation possession:', situation?.possession)
+    console.log('Situation lastPlay:', situation?.lastPlay)
+    console.log('Situation lastPlay team:', situation?.lastPlay?.team)
+    console.log('Situation lastPlay team ID:', situation?.lastPlay?.team?.id)
+    console.log('Competition lastPlay:', competition?.lastPlay)
+    console.log('Away team ID:', away.team?.id)
+    console.log('Home team ID:', home.team?.id)
+    console.log('Extracted possessionTeam:', possessionTeam)
   }
 
   // For baseball, determine at-bat team and extract MLB-specific data
