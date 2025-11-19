@@ -183,6 +183,18 @@ function transformEvent(event, sportKey) {
   // Extract possession/at-bat information
   let possessionTeam = null
   const situation = competition?.situation
+  
+  // Debug: Log possession data for first live game
+  if (normalizedStatus === 'live' && !window._loggedPossessionDebug) {
+    window._loggedPossessionDebug = true
+    console.log('=== POSSESSION DEBUG ===')
+    console.log('Situation:', situation)
+    console.log('Situation possession:', situation?.possession)
+    console.log('Competition lastPlay:', competition?.lastPlay)
+    console.log('Away team ID:', away.team?.id)
+    console.log('Home team ID:', home.team?.id)
+  }
+  
   if (situation?.possession) {
     // Possession might be an ID string/number or an object with team/id
     if (typeof situation.possession === 'object') {

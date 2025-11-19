@@ -343,6 +343,17 @@ function TeamRow({ game, side }) {
       const teamId = isAway ? game.awayTeamId : game.homeTeamId
       // Compare as strings to ensure type matching
       hasPossession = game.possessionTeam && teamId && String(game.possessionTeam) === String(teamId)
+      
+      // Debug: Log possession check for first live game
+      if (game.status === 'live' && !window._loggedPossessionCheck) {
+        window._loggedPossessionCheck = true
+        console.log('=== POSSESSION CHECK DEBUG ===')
+        console.log('Game possessionTeam:', game.possessionTeam, typeof game.possessionTeam)
+        console.log('Team ID:', teamId, typeof teamId)
+        console.log('Side:', side, 'isAway:', isAway)
+        console.log('Has possession:', hasPossession)
+        console.log('Comparison:', String(game.possessionTeam), '===', String(teamId))
+      }
     } else if (game.sport === 'mlb') {
       hasPossession = game.atBatTeam === side
     }
