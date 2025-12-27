@@ -750,8 +750,8 @@ function GameSummary({ game, onBack }) {
                       <tr>
                         <th></th>
                         <th colSpan={2}>
-                          <div className="boxscore-header-teams">
-                            <div className="boxscore-header-team">
+                          <div className="boxscore-header-teams-unified">
+                            <div className="boxscore-header-team-unified">
                               <div className="boxscore-header-logo">
                                 <TeamLogo 
                                   name={awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam} 
@@ -763,7 +763,7 @@ function GameSummary({ game, onBack }) {
                                 {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
                               </span>
                             </div>
-                            <div className="boxscore-header-team">
+                            <div className="boxscore-header-team-unified">
                               <div className="boxscore-header-logo">
                                 <TeamLogo 
                                   name={homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam} 

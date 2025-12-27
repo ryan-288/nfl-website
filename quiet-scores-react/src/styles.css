@@ -3321,6 +3321,25 @@ body.pwa-mode {
     flex: 1;
 }
 
+.boxscore-header-teams-unified {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 0.8rem;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.boxscore-header-team-unified {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
 .boxscore-header-logo {
     width: 32px;
     height: 32px;
