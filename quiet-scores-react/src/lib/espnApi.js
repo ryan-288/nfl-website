@@ -27,6 +27,10 @@ function formatDateParam(date) {
   return `${year}${month}${day}`
 }
 
+function stripTime(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
 function normalizeStatus(status, detail, shortDetail) {
   const detailLower = (detail || '').toLowerCase()
   const shortLower = (shortDetail || '').toLowerCase()
@@ -437,7 +441,29 @@ async function fetchSportScoreboard(sportKey, date, { signal } = {}) {
   const data = await response.json()
   const events = data?.events ?? []
 
-  return events
+  // Filter events to only include games on the selected date
+  // ESPN API sometimes returns games from adjacent dates
+  const targetDateStr = formatDateParam(date)
+  const targetDateObj = stripTime(new Date(date))
+  
+  const filteredEvents = events.filter((event) => {
+    if (!event.date) return false
+    
+    // Compare dates by stripping time and comparing date strings
+    const eventDate = new Date(event.date)
+    const eventDateStr = formatDateParam(eventDate)
+    
+    // For college football, be more strict - only exact date matches
+    if (sportKey === 'college-football' || sportKey === 'college-basketball') {
+      return eventDateStr === targetDateStr
+    }
+    
+    // For other sports, allow same day (in case of timezone issues)
+    const eventDateObj = stripTime(eventDate)
+    return eventDateObj.getTime() === targetDateObj.getTime()
+  })
+
+  return filteredEvents
     .map((event) => transformEvent(event, sportKey))
     .filter(Boolean)
 }
@@ -466,6 +492,12 @@ async function fetchGameSummary(sportKey, gameId, { signal } = {}) {
   }
 
   const url = `${endpoint}?event=${gameId}`
+  
+  // Log the URL for Postman testing
+  console.log('=== API URL FOR POSTMAN ===')
+  console.log('GET', url)
+  console.log('Copy this URL to test in Postman')
+  
   const response = await fetch(url, { signal })
 
   if (!response.ok) {
