@@ -183,6 +183,40 @@ function getFallbackText(fullName, shortName, abbreviation) {
   return getTeamInitials(fullName)
 }
 
+function getTeamColor(team, fallbackColor = '#007bff') {
+  if (!team) return fallbackColor
+  // ESPN API provides color in team.color or team.alternateColor
+  if (team.color) return team.color
+  if (team.alternateColor) return team.alternateColor
+  // Check if colors are nested in team object
+  if (team.team?.color) return team.team.color
+  if (team.team?.alternateColor) return team.team.alternateColor
+  return fallbackColor
+}
+
+function hexToRgba(hex, alpha = 0.9) {
+  if (!hex || typeof hex !== 'string') return `rgba(0, 123, 255, ${alpha})`
+  // Remove # if present
+  const cleaned = hex.replace('#', '')
+  // Handle 3-character hex codes
+  if (cleaned.length === 3) {
+    const r = parseInt(cleaned[0] + cleaned[0], 16)
+    const g = parseInt(cleaned[1] + cleaned[1], 16)
+    const b = parseInt(cleaned[2] + cleaned[2], 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  // Handle 6-character hex codes
+  if (cleaned.length === 6) {
+    const r = parseInt(cleaned.slice(0, 2), 16)
+    const g = parseInt(cleaned.slice(2, 4), 16)
+    const b = parseInt(cleaned.slice(4, 6), 16)
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(0, 123, 255, ${alpha})`
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  // Fallback for invalid hex
+  return `rgba(0, 123, 255, ${alpha})`
+}
+
 function getWinner(game) {
   const awayScore = Number(game.awayScore)
   const homeScore = Number(game.homeScore)
@@ -571,6 +605,12 @@ function GameSummary({ game, onBack }) {
   const awayPercent = totalScore > 0 ? (awayScore / totalScore) * 100 : 50
   const homePercent = totalScore > 0 ? (homeScore / totalScore) * 100 : 50
 
+  // Get team colors and logos from boxscore data if available, otherwise use game data
+  const awayTeamColor = getTeamColor(awayTeam?.team, '#007bff')
+  const homeTeamColor = getTeamColor(homeTeam?.team, '#dc3545')
+  const awayTeamLogo = awayTeam?.team?.logos?.[0]?.href || awayTeam?.team?.logo || game.awayLogo
+  const homeTeamLogo = homeTeam?.team?.logos?.[0]?.href || homeTeam?.team?.logo || game.homeLogo
+
   return (
     <div className="container">
       <div className="site-header">
@@ -591,14 +631,28 @@ function GameSummary({ game, onBack }) {
             {/* Game Header */}
             <div className="game-info-header">
               <div className="game-teams-header">
-                <div className="team-header">
-                  <div className="team-name-large">{game.awayTeam}</div>
-                  <div className="team-score-large">{game.awayScore || '-'}</div>
+                <div className="team-header" style={{ borderLeft: `4px solid ${awayTeamColor}` }}>
+                  <div className="team-logo-large">
+                    <TeamLogo 
+                      name={game.awayTeam} 
+                      logoUrl={awayTeamLogo} 
+                      fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
+                    />
+                  </div>
+                  <div className="team-name-large" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
+                  <div className="team-score-large" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
                 </div>
                 <div className="vs-divider">@</div>
-                <div className="team-header">
-                  <div className="team-name-large">{game.homeTeam}</div>
-                  <div className="team-score-large">{game.homeScore || '-'}</div>
+                <div className="team-header" style={{ borderLeft: `4px solid ${homeTeamColor}` }}>
+                  <div className="team-logo-large">
+                    <TeamLogo 
+                      name={game.homeTeam} 
+                      logoUrl={homeTeamLogo} 
+                      fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
+                    />
+                  </div>
+                  <div className="team-name-large" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
+                  <div className="team-score-large" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
                 </div>
               </div>
               <div className="game-status-badge">
@@ -618,12 +672,30 @@ function GameSummary({ game, onBack }) {
                         <th></th>
                         <th colSpan={2}>
                           <div className="boxscore-header-teams">
-                            <span className="boxscore-header-away">
-                              {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
-                            </span>
-                            <span className="boxscore-header-home">
-                              {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
-                            </span>
+                            <div className="boxscore-header-team">
+                              <div className="boxscore-header-logo">
+                                <TeamLogo 
+                                  name={awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam} 
+                                  logoUrl={awayTeamLogo} 
+                                  fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
+                                />
+                              </div>
+                              <span className="boxscore-header-away" style={{ color: awayTeamColor }}>
+                                {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
+                              </span>
+                            </div>
+                            <div className="boxscore-header-team">
+                              <div className="boxscore-header-logo">
+                                <TeamLogo 
+                                  name={homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam} 
+                                  logoUrl={homeTeamLogo} 
+                                  fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
+                                />
+                              </div>
+                              <span className="boxscore-header-home" style={{ color: homeTeamColor }}>
+                                {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
+                              </span>
+                            </div>
                           </div>
                         </th>
                       </tr>
@@ -639,23 +711,36 @@ function GameSummary({ game, onBack }) {
                         const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
                         const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
                         const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
+                        const awayColor = getTeamColor(awayTeam?.team, '#007bff')
+                        const homeColor = getTeamColor(homeTeam?.team, '#dc3545')
+                        // Convert hex to rgba for gradient
+                        const awayColorLight = hexToRgba(awayColor, 0.6)
+                        const awayColorDark = hexToRgba(awayColor, 0.9)
+                        const homeColorLight = hexToRgba(homeColor, 0.6)
+                        const homeColorDark = hexToRgba(homeColor, 0.9)
                         return (
                           <tr key={idx}>
                             <td className="stat-label">{stat.label || stat.name}</td>
                             <td colSpan={2} className="boxscore-bar-cell">
                               <div className="boxscore-row-with-values">
-                                <span className="boxscore-value away">{awayDisplay}</span>
+                                <span className="boxscore-value away" style={{ color: awayColor }}>{awayDisplay}</span>
                                 <div className="boxscore-row-bar">
                                   <div
                                     className="boxscore-row-bar-segment away"
-                                    style={{ width: `${awayPercent}%` }}
+                                    style={{ 
+                                      width: `${awayPercent}%`,
+                                      background: `linear-gradient(90deg, ${awayColorDark}, ${awayColorLight})`
+                                    }}
                                   />
                                   <div
                                     className="boxscore-row-bar-segment home"
-                                    style={{ width: `${homePercent}%` }}
+                                    style={{ 
+                                      width: `${homePercent}%`,
+                                      background: `linear-gradient(90deg, ${homeColorDark}, ${homeColorLight})`
+                                    }}
                                   />
                                 </div>
-                                <span className="boxscore-value home">{homeDisplay}</span>
+                                <span className="boxscore-value home" style={{ color: homeColor }}>{homeDisplay}</span>
                               </div>
                             </td>
                           </tr>
