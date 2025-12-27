@@ -572,17 +572,100 @@ function GameSummary({ game, onBack }) {
   }) || teams[1] || (teams[0] === awayTeam ? null : teams[0])
   
   // Extract quarter/period scores from linescores
-  const awayLinescores = awayTeam?.linescores || []
-  const homeLinescores = homeTeam?.linescores || []
+  // Check multiple possible locations for linescores data
+  const awayLinescores = awayTeam?.linescores || 
+                         boxscore?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(awayTeam?.team?.id))?.linescores ||
+                         summaryData?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(awayTeam?.team?.id))?.linescores ||
+                         []
+  const homeLinescores = homeTeam?.linescores || 
+                         boxscore?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(homeTeam?.team?.id))?.linescores ||
+                         summaryData?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(homeTeam?.team?.id))?.linescores ||
+                         []
+  
+  // Debug: log the structure to understand the data format
+  if (summaryData && !window._loggedLinescoresDebug) {
+    window._loggedLinescoresDebug = true
+    console.log('=== LINESCORES DEBUG ===')
+    console.log('summaryData keys:', Object.keys(summaryData))
+    console.log('boxscore keys:', boxscore ? Object.keys(boxscore) : 'no boxscore')
+    console.log('awayTeam keys:', awayTeam ? Object.keys(awayTeam) : 'no awayTeam')
+    console.log('awayTeam.linescores:', awayTeam?.linescores)
+    console.log('boxscore.linescores:', boxscore?.linescores)
+    console.log('summaryData.linescores:', summaryData?.linescores)
+  }
   
   // Helper to get score for a specific period
   const getPeriodScore = (linescores, periodNumber) => {
-    const periodScore = linescores.find(ls => ls.period === periodNumber || ls.period?.number === periodNumber)
-    return periodScore?.value || periodScore?.displayValue || '-'
+    if (!linescores || linescores.length === 0) return '-'
+    
+    // If linescores is an array, try index-based access (0-based, so period 1 = index 0)
+    if (Array.isArray(linescores)) {
+      const scoreEntry = linescores[periodNumber - 1]
+      if (scoreEntry) {
+        // Handle different data structures
+        if (typeof scoreEntry === 'number') {
+          return String(scoreEntry)
+        }
+        if (typeof scoreEntry === 'object') {
+          return scoreEntry.value || scoreEntry.displayValue || scoreEntry.score || scoreEntry.text || '-'
+        }
+        return String(scoreEntry)
+      }
+      
+      // Also try finding by period number
+      const found = linescores.find(ls => {
+        if (typeof ls === 'object' && ls !== null) {
+          return ls.period === periodNumber || 
+                 ls.period?.number === periodNumber || 
+                 ls.period?.displayValue === String(periodNumber) ||
+                 ls.period?.value === periodNumber
+        }
+        return false
+      })
+      if (found) {
+        return found.value || found.displayValue || found.score || found.text || '-'
+      }
+    }
+    
+    return '-'
   }
   const plays = summaryData?.plays || []
   const headlines = summaryData?.headlines || []
   const commentary = summaryData?.commentary || []
+  
+  // Calculate quarter scores from scoring plays if linescores aren't available
+  const calculateQuarterScores = () => {
+    const awayScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    const homeScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    let lastAwayScore = 0
+    let lastHomeScore = 0
+    
+    // Sort plays by period and time
+    const sortedPlays = [...plays].sort((a, b) => {
+      const periodA = a.period?.number || a.period || 0
+      const periodB = b.period?.number || b.period || 0
+      if (periodA !== periodB) return periodA - periodB
+      return 0
+    })
+    
+    sortedPlays.forEach(play => {
+      if (play.awayScore !== undefined && play.homeScore !== undefined) {
+        const period = play.period?.number || play.period || 1
+        if (period >= 1 && period <= 5) {
+          const awayDiff = play.awayScore - lastAwayScore
+          const homeDiff = play.homeScore - lastHomeScore
+          if (awayDiff > 0) awayScores[period] += awayDiff
+          if (homeDiff > 0) homeScores[period] += homeDiff
+          lastAwayScore = play.awayScore
+          lastHomeScore = play.homeScore
+        }
+      }
+    })
+    
+    return { away: awayScores, home: homeScores }
+  }
+  
+  const calculatedScores = calculateQuarterScores()
   
   // Extract player stats and leaders
   const leaders = summaryData?.leaders || boxscore?.leaders || []
@@ -708,20 +791,20 @@ function GameSummary({ game, onBack }) {
                       <tbody>
                         <tr>
                           <td className="team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</td>
-                          <td>{getPeriodScore(awayLinescores, 1)}</td>
-                          <td>{getPeriodScore(awayLinescores, 2)}</td>
-                          <td>{getPeriodScore(awayLinescores, 3)}</td>
-                          <td>{getPeriodScore(awayLinescores, 4)}</td>
-                          {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescores, 5) || '-'}</td>}
+                          <td>{getPeriodScore(awayLinescoresFinal, 1, 'away')}</td>
+                          <td>{getPeriodScore(awayLinescoresFinal, 2, 'away')}</td>
+                          <td>{getPeriodScore(awayLinescoresFinal, 3, 'away')}</td>
+                          <td>{getPeriodScore(awayLinescoresFinal, 4, 'away')}</td>
+                          {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescoresFinal, 5, 'away') || '-'}</td>}
                           <td className="total-score">{game.awayScore || '0'}</td>
                         </tr>
                         <tr>
                           <td className="team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</td>
-                          <td>{getPeriodScore(homeLinescores, 1)}</td>
-                          <td>{getPeriodScore(homeLinescores, 2)}</td>
-                          <td>{getPeriodScore(homeLinescores, 3)}</td>
-                          <td>{getPeriodScore(homeLinescores, 4)}</td>
-                          {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescores, 5) || '-'}</td>}
+                          <td>{getPeriodScore(homeLinescoresFinal, 1, 'home')}</td>
+                          <td>{getPeriodScore(homeLinescoresFinal, 2, 'home')}</td>
+                          <td>{getPeriodScore(homeLinescoresFinal, 3, 'home')}</td>
+                          <td>{getPeriodScore(homeLinescoresFinal, 4, 'home')}</td>
+                          {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescoresFinal, 5, 'home') || '-'}</td>}
                           <td className="total-score">{game.homeScore || '0'}</td>
                         </tr>
                       </tbody>
