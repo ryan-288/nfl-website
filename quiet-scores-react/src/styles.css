@@ -2957,6 +2957,222 @@ body.pwa-mode {
     right: 8px;
 }
 
+/* New Game Header Layout */
+.game-info-header-new {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.game-header-top {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.game-time-status {
+    display: inline-block;
+}
+
+.game-clock,
+.game-status-live,
+.game-status-final,
+.game-status-scheduled {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.game-status-live {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.game-teams-header-new {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+.team-header-new {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.team-away {
+    justify-content: flex-start;
+}
+
+.team-home {
+    justify-content: flex-end;
+    flex-direction: row-reverse;
+}
+
+.team-logo-side {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.team-logo-side img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.team-logo-side .fallback-logo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    background: var(--bg-secondary);
+}
+
+.team-info-side {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.team-name-side {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.team-record-side {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.team-score-side {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 50px;
+    text-align: center;
+}
+
+.game-center-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 280px;
+}
+
+.quarter-scores-table {
+    width: 100%;
+}
+
+.quarter-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.quarter-table thead th {
+    padding: 8px 6px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quarter-table tbody td {
+    padding: 8px 6px;
+    text-align: center;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.quarter-table .team-abbr {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-left: 0;
+}
+
+.quarter-table .total-score {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.broadcast-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive styles for new game header */
+@media (max-width: 768px) {
+    .game-teams-header-new {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .team-header-new {
+        justify-content: center !important;
+        flex-direction: row !important;
+    }
+
+    .team-home {
+        flex-direction: row !important;
+    }
+
+    .game-center-section {
+        min-width: 100%;
+        order: -1;
+    }
+
+    .team-logo-side {
+        width: 48px;
+        height: 48px;
+    }
+
+    .team-name-side {
+        font-size: 1rem;
+    }
+
+    .team-score-side {
+        font-size: 1.8rem;
+        min-width: 40px;
+    }
+
+    .quarter-table {
+        font-size: 0.8rem;
+    }
+
+    .quarter-table thead th,
+    .quarter-table tbody td {
+        padding: 6px 4px;
+    }
+}
+
+/* Legacy styles kept for backwards compatibility */
 .game-teams-header {
     display: flex;
     align-items: center;
@@ -3143,12 +3359,14 @@ body.pwa-mode {
     font-weight: 600;
     text-align: center;
     font-size: 0.75rem;
+    /* Color is set via inline style in App.jsx */
 }
 
 .boxscore-header-home {
     font-weight: 600;
     text-align: center;
     font-size: 0.75rem;
+    /* Color is set via inline style in App.jsx */
 }
 
 .boxscore-table th {

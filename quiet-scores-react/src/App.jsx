@@ -629,35 +629,94 @@ function GameSummary({ game, onBack }) {
         {summaryData && (
           <div>
             {/* Game Header */}
-            <div className="game-info-header">
-              <div className="game-teams-header">
-                <div className="team-header" style={{ borderLeft: `4px solid ${awayTeamColor}` }}>
-                  <div className="team-logo-large">
+            <div className="game-info-header-new">
+              <div className="game-header-top">
+                <div className="game-time-status">
+                  {game.clock && game.period ? (
+                    <span className="game-clock">{game.clock} - {game.period}</span>
+                  ) : game.status === 'live' ? (
+                    <span className="game-status-live">LIVE</span>
+                  ) : game.status === 'final' ? (
+                    <span className="game-status-final">FINAL</span>
+                  ) : (
+                    <span className="game-status-scheduled">{game.displayTime || 'SCHEDULED'}</span>
+                  )}
+                </div>
+              </div>
+              <div className="game-teams-header-new">
+                {/* Away Team - Left Side */}
+                <div className="team-header-new team-away">
+                  <div className="team-logo-side">
                     <TeamLogo 
                       name={game.awayTeam} 
                       logoUrl={awayTeamLogo} 
                       fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
                     />
                   </div>
-                  <div className="team-name-large" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
-                  <div className="team-score-large" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
+                  <div className="team-info-side">
+                    <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
+                    <div className="team-record-side">{game.awayTeamRecord || ''}</div>
+                  </div>
+                  <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
                 </div>
-                <div className="vs-divider">@</div>
-                <div className="team-header" style={{ borderLeft: `4px solid ${homeTeamColor}` }}>
-                  <div className="team-logo-large">
+
+                {/* Center - Score Breakdown */}
+                <div className="game-center-section">
+                  <div className="quarter-scores-table">
+                    <table className="quarter-table">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>1</th>
+                          <th>2</th>
+                          <th>3</th>
+                          <th>4</th>
+                          {game.sport === 'nfl' && <th>OT</th>}
+                          <th>T</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</td>
+                          <td>-</td>
+                          <td>-</td>
+                          <td>-</td>
+                          <td>-</td>
+                          {game.sport === 'nfl' && <td>-</td>}
+                          <td className="total-score">{game.awayScore || '0'}</td>
+                        </tr>
+                        <tr>
+                          <td className="team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</td>
+                          <td>-</td>
+                          <td>-</td>
+                          <td>-</td>
+                          <td>-</td>
+                          {game.sport === 'nfl' && <td>-</td>}
+                          <td className="total-score">{game.homeScore || '0'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  {game.broadcastChannel && (
+                    <div className="broadcast-info">{abbreviateNetwork(game.broadcastChannel)}</div>
+                  )}
+                </div>
+
+                {/* Home Team - Right Side */}
+                <div className="team-header-new team-home">
+                  <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
+                  <div className="team-info-side">
+                    <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
+                    <div className="team-record-side">{game.homeTeamRecord || ''}</div>
+                  </div>
+                  <div className="team-logo-side">
                     <TeamLogo 
                       name={game.homeTeam} 
                       logoUrl={homeTeamLogo} 
                       fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
                     />
                   </div>
-                  <div className="team-name-large" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
-                  <div className="team-score-large" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
                 </div>
-              </div>
-              <div className="game-status-badge">
-                <span className="sport-badge">{getSportDisplayName(game.sport)}</span>
-                <span className="status-text">{game.status === 'live' ? 'LIVE' : game.status === 'final' ? 'FINAL' : 'SCHEDULED'}</span>
               </div>
             </div>
 
