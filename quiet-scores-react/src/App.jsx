@@ -742,43 +742,41 @@ function GameSummary({ game, onBack }) {
 
             {/* Team Stats */}
             {boxscore && awayTeam && homeTeam && (
-              <div className="summary-section">
-                <h3>Team Stats</h3>
-                <div className="boxscore-container">
-                  <table className="boxscore-table">
-                    <thead>
-                      <tr>
-                        <th></th>
-                        <th colSpan={2}>
-                          <div className="boxscore-header-teams-unified">
-                            <div className="boxscore-header-team-unified">
-                              <div className="boxscore-header-logo">
-                                <TeamLogo 
-                                  name={awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam} 
-                                  logoUrl={awayTeamLogo} 
-                                  fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
-                                />
-                              </div>
-                              <span className="boxscore-header-away" style={{ color: awayTeamColor }}>
-                                {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
-                              </span>
+              <div className="boxscore-container">
+                <table className="boxscore-table">
+                  <thead>
+                    <tr>
+                      <th colSpan={3} className="boxscore-title-header">
+                        <div className="boxscore-title">Team Stats</div>
+                        <div className="boxscore-header-teams-unified">
+                          <div className="boxscore-header-team-unified">
+                            <div className="boxscore-header-logo">
+                              <TeamLogo 
+                                name={awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam} 
+                                logoUrl={awayTeamLogo} 
+                                fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
+                              />
                             </div>
-                            <div className="boxscore-header-team-unified">
-                              <div className="boxscore-header-logo">
-                                <TeamLogo 
-                                  name={homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam} 
-                                  logoUrl={homeTeamLogo} 
-                                  fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
-                                />
-                              </div>
-                              <span className="boxscore-header-home" style={{ color: homeTeamColor }}>
-                                {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
-                              </span>
-                            </div>
+                            <span className="boxscore-header-away" style={{ color: awayTeamColor }}>
+                              {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
+                            </span>
                           </div>
-                        </th>
-                      </tr>
-                    </thead>
+                          <div className="boxscore-header-team-unified">
+                            <div className="boxscore-header-logo">
+                              <TeamLogo 
+                                name={homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam} 
+                                logoUrl={homeTeamLogo} 
+                                fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
+                              />
+                            </div>
+                            <span className="boxscore-header-home" style={{ color: homeTeamColor }}>
+                              {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
+                            </span>
+                          </div>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
                     <tbody>
                       {awayTeam.statistics && homeTeam.statistics && awayTeam.statistics.map((stat, idx) => {
                         const homeStat = homeTeam.statistics[idx]
@@ -828,7 +826,6 @@ function GameSummary({ game, onBack }) {
                     </tbody>
                   </table>
                 </div>
-              </div>
             )}
 
             {/* Top Player Stats */}

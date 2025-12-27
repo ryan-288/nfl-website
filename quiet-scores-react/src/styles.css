@@ -3305,6 +3305,20 @@ body.pwa-mode {
     border-bottom: 2px solid rgba(0, 123, 255, 0.3);
 }
 
+.boxscore-title-header {
+    padding: 16px 20px !important;
+    text-align: center;
+}
+
+.boxscore-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    border-bottom: 2px solid var(--accent-primary);
+    padding-bottom: 8px;
+}
+
 .boxscore-header-teams {
     display: flex;
     justify-content: space-between;
