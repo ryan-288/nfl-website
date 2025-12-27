@@ -632,14 +632,29 @@ function GameSummary({ game, onBack }) {
             <div className="game-info-header-new">
               <div className="game-header-top">
                 <div className="game-time-status">
-                  {game.clock && game.period ? (
-                    <span className="game-clock">{game.clock} - {game.period}</span>
-                  ) : game.status === 'live' ? (
+                  {game.status === 'live' && game.clock && game.period ? (() => {
+                    let formattedClock = game.clock
+                    // If clock is a number (seconds), convert to MM:SS
+                    if (!isNaN(Number(game.clock)) && !game.clock.includes(':')) {
+                      const totalSeconds = Number(game.clock)
+                      const minutes = Math.floor(totalSeconds / 60)
+                      const seconds = totalSeconds % 60
+                      formattedClock = `${minutes}:${String(seconds).padStart(2, '0')}`
+                    }
+                    const periodText = game.period === 1 ? '1st' : game.period === 2 ? '2nd' : game.period === 3 ? '3rd' : game.period === 4 ? '4th' : game.period ? `${game.period}th` : ''
+                    return (
+                      <span className="game-clock">
+                        {formattedClock} - {periodText}
+                      </span>
+                    )
+                  })() : game.status === 'live' ? (
                     <span className="game-status-live">LIVE</span>
                   ) : game.status === 'final' ? (
                     <span className="game-status-final">FINAL</span>
+                  ) : game.displayTime ? (
+                    <span className="game-status-scheduled">{game.displayTime}</span>
                   ) : (
-                    <span className="game-status-scheduled">{game.displayTime || 'SCHEDULED'}</span>
+                    <span className="game-status-scheduled">SCHEDULED</span>
                   )}
                 </div>
               </div>
