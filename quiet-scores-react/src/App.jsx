@@ -358,10 +358,20 @@ function TeamLogo({ name, logoUrl, fallbackText }) {
 }
 
 function TimeoutDots({ timeouts, maxTimeouts = 3 }) {
-  if (timeouts === null || timeouts === undefined) return null
+  // For debugging: always show if timeouts is a number, even if 0
+  if (timeouts === null || timeouts === undefined) {
+    // Debug: log why we're not showing
+    console.log('TimeoutDots: timeouts is null/undefined, not rendering')
+    return null
+  }
   
   const timeoutCount = Number(timeouts)
-  if (isNaN(timeoutCount) || timeoutCount < 0) return null
+  if (isNaN(timeoutCount) || timeoutCount < 0) {
+    console.log('TimeoutDots: invalid timeout count', timeouts)
+    return null
+  }
+  
+  console.log('TimeoutDots: Rendering with', timeoutCount, 'timeouts out of', maxTimeouts)
   
   return (
     <div className="timeout-dots">
@@ -666,7 +676,7 @@ function GameSummary({ game, onBack }) {
     return results
   }
   
-  // Debug: Find all timeout fields
+  // Debug: Find all timeout fields (run after competitors are defined)
   if (summaryData && !window._loggedTimeoutsDebug) {
     window._loggedTimeoutsDebug = true
     const allTimeouts = findAllTimeouts(summaryData)
@@ -707,8 +717,10 @@ function GameSummary({ game, onBack }) {
   if (summaryData && !window._loggedTimeoutValues) {
     window._loggedTimeoutValues = true
     console.log('=== EXTRACTED TIMEOUT VALUES ===')
-    console.log('Away timeouts:', awayTimeouts)
-    console.log('Home timeouts:', homeTimeouts)
+    console.log('Away timeouts:', awayTimeouts, typeof awayTimeouts)
+    console.log('Home timeouts:', homeTimeouts, typeof homeTimeouts)
+    console.log('Will show away timeouts?', awayTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball'))
+    console.log('Will show home timeouts?', homeTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball'))
   }
   
   const awayLinescores = headerAwayCompetitor?.linescores ||

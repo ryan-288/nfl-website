@@ -3059,22 +3059,25 @@ body.pwa-mode {
 
 .timeout-dots {
   display: flex;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 6px;
   align-items: center;
+  min-height: 16px;
 }
 
 .timeout-dot {
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1;
   color: #999;
-  opacity: 0.3;
-  transition: opacity 0.2s;
+  opacity: 0.4;
+  transition: all 0.2s;
+  display: inline-block;
 }
 
 .timeout-dot.active {
   color: #333;
   opacity: 1;
+  font-weight: bold;
 }
 
 .timeout-dot.used {
