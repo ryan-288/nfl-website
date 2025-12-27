@@ -852,22 +852,17 @@ function GameSummary({ game, onBack }) {
   const homePercent = totalScore > 0 ? (homeScore / totalScore) * 100 : 50
 
   // Get team colors and logos from boxscore data if available, otherwise use game data
-  const awayTeamColor = getTeamColor(awayTeam?.team, '#007bff')
-  const homeTeamColor = getTeamColor(homeTeam?.team, '#dc3545')
+  // Use more neutral colors for team stats section
+  const awayTeamColor = getTeamColor(awayTeam?.team, '#e0e0e0')
+  const homeTeamColor = getTeamColor(homeTeam?.team, '#e0e0e0')
   const awayTeamLogo = awayTeam?.team?.logos?.[0]?.href || awayTeam?.team?.logo || game.awayLogo
   const homeTeamLogo = homeTeam?.team?.logos?.[0]?.href || homeTeam?.team?.logo || game.homeLogo
 
   return (
     <div className="container">
-      <div className="site-header">
-        <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
-          <h1>Game Summary</h1>
-        </div>
-        <button className="back-btn" onClick={onBack}>
-          ← Back to Scores
-        </button>
-      </div>
+      <button className="back-btn floating" onClick={onBack}>
+        ← Back
+      </button>
 
       <div className="game-summary-content">
         {isLoading && <div className="info">Loading game summary...</div>}
