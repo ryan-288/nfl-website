@@ -570,6 +570,16 @@ function GameSummary({ game, onBack }) {
            t.team?.displayName === game.homeTeam ||
            t.team?.name === game.homeTeam
   }) || teams[1] || (teams[0] === awayTeam ? null : teams[0])
+  
+  // Extract quarter/period scores from linescores
+  const awayLinescores = awayTeam?.linescores || []
+  const homeLinescores = homeTeam?.linescores || []
+  
+  // Helper to get score for a specific period
+  const getPeriodScore = (linescores, periodNumber) => {
+    const periodScore = linescores.find(ls => ls.period === periodNumber || ls.period?.number === periodNumber)
+    return periodScore?.value || periodScore?.displayValue || '-'
+  }
   const plays = summaryData?.plays || []
   const headlines = summaryData?.headlines || []
   const commentary = summaryData?.commentary || []
@@ -698,20 +708,20 @@ function GameSummary({ game, onBack }) {
                       <tbody>
                         <tr>
                           <td className="team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</td>
-                          <td>-</td>
-                          <td>-</td>
-                          <td>-</td>
-                          <td>-</td>
-                          {game.sport === 'nfl' && <td>-</td>}
+                          <td>{getPeriodScore(awayLinescores, 1)}</td>
+                          <td>{getPeriodScore(awayLinescores, 2)}</td>
+                          <td>{getPeriodScore(awayLinescores, 3)}</td>
+                          <td>{getPeriodScore(awayLinescores, 4)}</td>
+                          {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescores, 5) || '-'}</td>}
                           <td className="total-score">{game.awayScore || '0'}</td>
                         </tr>
                         <tr>
                           <td className="team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</td>
-                          <td>-</td>
-                          <td>-</td>
-                          <td>-</td>
-                          <td>-</td>
-                          {game.sport === 'nfl' && <td>-</td>}
+                          <td>{getPeriodScore(homeLinescores, 1)}</td>
+                          <td>{getPeriodScore(homeLinescores, 2)}</td>
+                          <td>{getPeriodScore(homeLinescores, 3)}</td>
+                          <td>{getPeriodScore(homeLinescores, 4)}</td>
+                          {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescores, 5) || '-'}</td>}
                           <td className="total-score">{game.homeScore || '0'}</td>
                         </tr>
                       </tbody>
