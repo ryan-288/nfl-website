@@ -605,8 +605,19 @@ function GameSummary({ game, onBack }) {
     let lastAwayScore = 0
     let lastHomeScore = 0
     
+    // Filter to only scoring plays and sort by period
+    const scoringPlays = plays.filter(play => 
+      play.scoringPlay || 
+      play.type?.text?.toLowerCase().includes('touchdown') ||
+      play.type?.text?.toLowerCase().includes('field goal') ||
+      play.type?.text?.toLowerCase().includes('safety') ||
+      play.type?.text?.toLowerCase().includes('goal') ||
+      (play.awayScore !== undefined && play.homeScore !== undefined && 
+       (play.awayScore !== lastAwayScore || play.homeScore !== lastHomeScore))
+    )
+    
     // Sort plays by period and time
-    const sortedPlays = [...plays].sort((a, b) => {
+    const sortedPlays = [...scoringPlays].sort((a, b) => {
       const periodA = a.period?.number || a.period || 0
       const periodB = b.period?.number || b.period || 0
       if (periodA !== periodB) return periodA - periodB
@@ -614,18 +625,34 @@ function GameSummary({ game, onBack }) {
     })
     
     sortedPlays.forEach(play => {
-      if (play.awayScore !== undefined && play.homeScore !== undefined) {
-        const period = play.period?.number || play.period || 1
-        if (period >= 1 && period <= 5) {
-          const awayDiff = play.awayScore - lastAwayScore
-          const homeDiff = play.homeScore - lastHomeScore
-          if (awayDiff > 0) awayScores[period] += awayDiff
-          if (homeDiff > 0) homeScores[period] += homeDiff
-          lastAwayScore = play.awayScore
-          lastHomeScore = play.homeScore
+      // Try multiple ways to get scores from play
+      const awayScore = Number(play.awayScore ?? play.score?.away ?? play.scores?.away ?? 0)
+      const homeScore = Number(play.homeScore ?? play.score?.home ?? play.scores?.home ?? 0)
+      
+      if (!isNaN(awayScore) && !isNaN(homeScore) && (awayScore !== lastAwayScore || homeScore !== lastHomeScore)) {
+        const period = play.period?.number ?? play.period ?? play.periodNumber ?? 1
+        const periodNum = Number(period)
+        
+        if (periodNum >= 1 && periodNum <= 5) {
+          const awayDiff = awayScore - lastAwayScore
+          const homeDiff = homeScore - lastHomeScore
+          if (awayDiff > 0) awayScores[periodNum] += awayDiff
+          if (homeDiff > 0) homeScores[periodNum] += homeDiff
+          lastAwayScore = awayScore
+          lastHomeScore = homeScore
         }
       }
     })
+    
+    // Debug logging
+    if (sortedPlays.length > 0 && !window._loggedQuarterCalc) {
+      window._loggedQuarterCalc = true
+      console.log('=== QUARTER SCORES CALCULATION ===')
+      console.log('Scoring plays count:', sortedPlays.length)
+      console.log('Calculated away scores:', awayScores)
+      console.log('Calculated home scores:', homeScores)
+      console.log('Sample play:', sortedPlays[0])
+    }
     
     return { away: awayScores, home: homeScores }
   }
@@ -641,11 +668,13 @@ function GameSummary({ game, onBack }) {
   
   // Helper to get score for a specific period
   const getPeriodScore = (linescores, periodNumber, teamType) => {
+    // First try calculated scores from plays (more reliable if API doesn't provide linescores)
+    if (calculatedScores && calculatedScores[teamType] && calculatedScores[teamType][periodNumber] > 0) {
+      return String(calculatedScores[teamType][periodNumber])
+    }
+    
+    // Then try linescores if available
     if (!linescores || linescores.length === 0) {
-      // Fallback to calculated scores from plays
-      if (calculatedScores && calculatedScores[teamType] && calculatedScores[teamType][periodNumber] > 0) {
-        return String(calculatedScores[teamType][periodNumber])
-      }
       return '-'
     }
     
