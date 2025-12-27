@@ -1035,14 +1035,16 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
                     <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && (
+                  </div>
+                  <div className="team-score-container">
+                    <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
+                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && awayTimeouts !== null && (
                       <TimeoutDots 
-                        timeouts={awayTimeouts !== null ? awayTimeouts : (game.status === 'live' ? 3 : null)} 
+                        timeouts={awayTimeouts} 
                         maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} 
                       />
                     )}
                   </div>
-                  <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
                 </div>
 
                 {/* Center - Score Breakdown */}
@@ -1089,16 +1091,18 @@ function GameSummary({ game, onBack }) {
 
                 {/* Home Team - Right Side */}
                 <div className="team-header-new team-home">
-                  <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
-                  <div className="team-info-side">
-                    <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
-                    <div className="team-record-side">{game.homeTeamRecord || ''}</div>
-                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && (
+                  <div className="team-score-container">
+                    <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
+                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && homeTimeouts !== null && (
                       <TimeoutDots 
-                        timeouts={homeTimeouts !== null ? homeTimeouts : (game.status === 'live' ? 3 : null)} 
+                        timeouts={homeTimeouts} 
                         maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} 
                       />
                     )}
+                  </div>
+                  <div className="team-info-side">
+                    <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
+                    <div className="team-record-side">{game.homeTeamRecord || ''}</div>
                   </div>
                   <div className="team-logo-side">
                     <TeamLogo 
