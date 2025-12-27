@@ -573,11 +573,24 @@ function GameSummary({ game, onBack }) {
   
   // Extract quarter/period scores from linescores
   // Check multiple possible locations for linescores data
-  const awayLinescores = awayTeam?.linescores || 
+  // First check header.competitions (most common ESPN API location)
+  const headerCompetitors = summaryData?.header?.competitions?.[0]?.competitors || []
+  const headerAwayCompetitor = headerCompetitors.find(c => 
+    String(c.team?.id) === String(game.awayTeamId) || 
+    c.homeAway === 'away'
+  )
+  const headerHomeCompetitor = headerCompetitors.find(c => 
+    String(c.team?.id) === String(game.homeTeamId) || 
+    c.homeAway === 'home'
+  )
+  
+  const awayLinescores = headerAwayCompetitor?.linescores ||
+                         awayTeam?.linescores || 
                          boxscore?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(awayTeam?.team?.id))?.linescores ||
                          summaryData?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(awayTeam?.team?.id))?.linescores ||
                          []
-  const homeLinescores = homeTeam?.linescores || 
+  const homeLinescores = headerHomeCompetitor?.linescores ||
+                         homeTeam?.linescores || 
                          boxscore?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(homeTeam?.team?.id))?.linescores ||
                          summaryData?.linescores?.find(ls => String(ls.teamId || ls.team?.id) === String(homeTeam?.team?.id))?.linescores ||
                          []
@@ -592,6 +605,69 @@ function GameSummary({ game, onBack }) {
     console.log('awayTeam.linescores:', awayTeam?.linescores)
     console.log('boxscore.linescores:', boxscore?.linescores)
     console.log('summaryData.linescores:', summaryData?.linescores)
+    
+    // Check header.competitions for linescores (common ESPN API location)
+    const header = summaryData?.header
+    console.log('header:', header)
+    console.log('header.competitions:', header?.competitions)
+    if (header?.competitions?.[0]?.competitors) {
+      console.log('header.competitions[0].competitors:', header.competitions[0].competitors)
+      header.competitions[0].competitors.forEach((comp, idx) => {
+        console.log(`competitor[${idx}].linescores:`, comp.linescores)
+        console.log(`competitor[${idx}].team.id:`, comp.team?.id)
+        console.log(`competitor[${idx}].homeAway:`, comp.homeAway)
+        if (comp.linescores) {
+          console.log(`competitor[${idx}].linescores FULL:`, JSON.stringify(comp.linescores, null, 2))
+        }
+      })
+    }
+    
+    // Recursively search for all "linescores" in the response
+    const findAllLinescores = (obj, path = 'root') => {
+      const results = []
+      if (!obj || typeof obj !== 'object') return results
+      
+      if (Array.isArray(obj)) {
+        obj.forEach((item, idx) => {
+          if (item && typeof item === 'object') {
+            if ('linescores' in item) {
+              results.push({ path: `${path}[${idx}].linescores`, value: item.linescores })
+            }
+            results.push(...findAllLinescores(item, `${path}[${idx}]`))
+          }
+        })
+      } else {
+        if ('linescores' in obj) {
+          results.push({ path: `${path}.linescores`, value: obj.linescores })
+        }
+        Object.keys(obj).forEach(key => {
+          if (obj[key] && typeof obj[key] === 'object') {
+            results.push(...findAllLinescores(obj[key], `${path}.${key}`))
+          }
+        })
+      }
+      return results
+    }
+    
+    const allLinescores = findAllLinescores(summaryData)
+    console.log('=== ALL LINESCORES FOUND IN RESPONSE ===')
+    if (allLinescores.length > 0) {
+      allLinescores.forEach((result, idx) => {
+        console.log(`Location ${idx + 1}: ${result.path}`)
+        console.log(`Value:`, result.value)
+        console.log(`Type:`, Array.isArray(result.value) ? 'array' : typeof result.value)
+        if (Array.isArray(result.value) && result.value.length > 0) {
+          console.log(`First item:`, result.value[0])
+          console.log(`Full array:`, JSON.stringify(result.value, null, 2))
+        }
+        console.log('---')
+      })
+    } else {
+      console.log('NO LINESCORES FOUND ANYWHERE IN RESPONSE!')
+    }
+    
+    // Log full summaryData structure (first 10000 chars)
+    console.log('Full summaryData (first 10000 chars):', JSON.stringify(summaryData, null, 2).substring(0, 10000))
   }
   
   const plays = summaryData?.plays || []
