@@ -1029,8 +1029,8 @@ function GameSummary({ game, onBack }) {
                         const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
                         const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
                         const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
-                        const awayColor = getTeamColor(awayTeam?.team, '#007bff')
-                        const homeColor = getTeamColor(homeTeam?.team, '#dc3545')
+                        const awayColor = getTeamColor(awayTeam?.team, '#e0e0e0')
+                        const homeColor = getTeamColor(homeTeam?.team, '#e0e0e0')
                         // Convert hex to rgba for gradient
                         const awayColorLight = hexToRgba(awayColor, 0.6)
                         const awayColorDark = hexToRgba(awayColor, 0.9)
