@@ -661,10 +661,10 @@ function GameSummary({ game, onBack }) {
               </div>
             </div>
 
-            {/* Box Score */}
+            {/* Team Stats */}
             {boxscore && awayTeam && homeTeam && (
               <div className="summary-section">
-                <h3>Box Score</h3>
+                <h3>Team Stats</h3>
                 <div className="boxscore-container">
                   <table className="boxscore-table">
                     <thead>
