@@ -536,6 +536,23 @@ function GameSummary({ game, onBack }) {
       try {
         const data = await fetchGameSummary(game.sport, game.id)
         if (!cancelled) {
+          // Immediate debug - log the raw response structure
+          console.log('=== SUMMARY API RESPONSE RECEIVED ===')
+          console.log('Response keys:', Object.keys(data))
+          console.log('Has header?', !!data.header)
+          console.log('Has boxscore?', !!data.boxscore)
+          if (data.header?.competitions?.[0]?.competitors) {
+            data.header.competitions[0].competitors.forEach((comp, idx) => {
+              console.log(`Header competitor[${idx}] has linescores:`, !!comp.linescores, comp.linescores)
+            })
+          }
+          if (data.boxscore?.teams) {
+            data.boxscore.teams.forEach((team, idx) => {
+              console.log(`Boxscore team[${idx}] has linescores:`, !!team.linescores, team.linescores)
+            })
+          }
+          console.log('Full response structure:', JSON.stringify(data, null, 2).substring(0, 15000))
+          
           setSummaryData(data)
           setIsLoading(false)
         }
