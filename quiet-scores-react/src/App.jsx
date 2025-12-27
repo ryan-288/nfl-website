@@ -632,15 +632,20 @@ function GameSummary({ game, onBack }) {
             <div className="game-info-header-new">
               <div className="game-header-top">
                 <div className="game-time-status">
-                  {game.status === 'live' && game.clock && game.period ? (() => {
-                    let formattedClock = game.clock
+                  {game.status === 'live' && game.clock != null && game.period ? (() => {
+                    // Safely convert clock to string
+                    const clockStr = game.clock != null ? String(game.clock) : ''
+                    let formattedClock = clockStr
+                    
                     // If clock is a number (seconds), convert to MM:SS
-                    if (!isNaN(Number(game.clock)) && !game.clock.includes(':')) {
-                      const totalSeconds = Number(game.clock)
+                    const clockNum = Number(game.clock)
+                    if (!isNaN(clockNum) && typeof clockStr === 'string' && clockStr.indexOf(':') === -1) {
+                      const totalSeconds = Math.abs(clockNum)
                       const minutes = Math.floor(totalSeconds / 60)
                       const seconds = totalSeconds % 60
                       formattedClock = `${minutes}:${String(seconds).padStart(2, '0')}`
                     }
+                    
                     const periodText = game.period === 1 ? '1st' : game.period === 2 ? '2nd' : game.period === 3 ? '3rd' : game.period === 4 ? '4th' : game.period ? `${game.period}th` : ''
                     return (
                       <span className="game-clock">
