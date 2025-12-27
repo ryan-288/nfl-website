@@ -3234,13 +3234,7 @@ body.pwa-mode {
     text-align: center;
 }
 
-.boxscore-value.away {
-    color: #79b4ff;
-}
-
-.boxscore-value.home {
-    color: #ff9ea8;
-}
+/* Team colors are applied via inline styles in App.jsx */
 
 .plays-list {
     display: flex;
