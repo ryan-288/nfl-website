@@ -634,16 +634,82 @@ function GameSummary({ game, onBack }) {
   // Extract timeout information
   // Timeouts are typically in situation or competition data
   const situation = summaryData?.boxscore?.situation || summaryData?.header?.competitions?.[0]?.situation
+  
+  // Recursively search for timeout-related fields
+  const findAllTimeouts = (obj, path = 'root') => {
+    const results = []
+    if (!obj || typeof obj !== 'object') return results
+    
+    // Check for timeout-related keys
+    const timeoutKeys = Object.keys(obj).filter(key => 
+      key.toLowerCase().includes('timeout') || 
+      key.toLowerCase().includes('timeouts')
+    )
+    
+    timeoutKeys.forEach(key => {
+      results.push({ path: `${path}.${key}`, value: obj[key] })
+    })
+    
+    if (Array.isArray(obj)) {
+      obj.forEach((item, idx) => {
+        if (item && typeof item === 'object') {
+          results.push(...findAllTimeouts(item, `${path}[${idx}]`))
+        }
+      })
+    } else {
+      Object.keys(obj).forEach(key => {
+        if (obj[key] && typeof obj[key] === 'object') {
+          results.push(...findAllTimeouts(obj[key], `${path}.${key}`))
+        }
+      })
+    }
+    return results
+  }
+  
+  // Debug: Find all timeout fields
+  if (summaryData && !window._loggedTimeoutsDebug) {
+    window._loggedTimeoutsDebug = true
+    const allTimeouts = findAllTimeouts(summaryData)
+    console.log('=== TIMEOUT SEARCH ===')
+    if (allTimeouts.length > 0) {
+      allTimeouts.forEach((result, idx) => {
+        console.log(`Timeout location ${idx + 1}: ${result.path}`, result.value)
+      })
+    } else {
+      console.log('NO TIMEOUT FIELDS FOUND IN RESPONSE')
+    }
+    console.log('Situation object:', situation)
+    console.log('Situation keys:', situation ? Object.keys(situation) : 'no situation')
+    console.log('Header away competitor:', headerAwayCompetitor)
+    console.log('Header home competitor:', headerHomeCompetitor)
+    console.log('Away team:', awayTeam)
+    console.log('Home team:', homeTeam)
+  }
+  
   const awayTimeouts = situation?.awayTimeoutsRemaining ?? 
                        situation?.away?.timeoutsRemaining ?? 
+                       situation?.awayTimeouts ??
                        headerAwayCompetitor?.timeoutsRemaining ?? 
+                       headerAwayCompetitor?.timeouts ??
                        awayTeam?.timeoutsRemaining ?? 
+                       awayTeam?.timeouts ??
                        null
   const homeTimeouts = situation?.homeTimeoutsRemaining ?? 
                        situation?.home?.timeoutsRemaining ?? 
+                       situation?.homeTimeouts ??
                        headerHomeCompetitor?.timeoutsRemaining ?? 
+                       headerHomeCompetitor?.timeouts ??
                        homeTeam?.timeoutsRemaining ?? 
+                       homeTeam?.timeouts ??
                        null
+  
+  // Debug: Log extracted timeout values
+  if (summaryData && !window._loggedTimeoutValues) {
+    window._loggedTimeoutValues = true
+    console.log('=== EXTRACTED TIMEOUT VALUES ===')
+    console.log('Away timeouts:', awayTimeouts)
+    console.log('Home timeouts:', homeTimeouts)
+  }
   
   const awayLinescores = headerAwayCompetitor?.linescores ||
                          awayTeam?.linescores || 
@@ -957,8 +1023,11 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
                     <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-                    {(awayTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball')) && (
-                      <TimeoutDots timeouts={awayTimeouts} maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} />
+                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && (
+                      <TimeoutDots 
+                        timeouts={awayTimeouts !== null ? awayTimeouts : (game.status === 'live' ? 3 : null)} 
+                        maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} 
+                      />
                     )}
                   </div>
                   <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
@@ -1012,8 +1081,11 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
                     <div className="team-record-side">{game.homeTeamRecord || ''}</div>
-                    {(homeTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball')) && (
-                      <TimeoutDots timeouts={homeTimeouts} maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} />
+                    {(game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball') && (
+                      <TimeoutDots 
+                        timeouts={homeTimeouts !== null ? homeTimeouts : (game.status === 'live' ? 3 : null)} 
+                        maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} 
+                      />
                     )}
                   </div>
                   <div className="team-logo-side">
