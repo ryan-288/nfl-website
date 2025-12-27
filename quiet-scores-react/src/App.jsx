@@ -357,6 +357,26 @@ function TeamLogo({ name, logoUrl, fallbackText }) {
   )
 }
 
+function TimeoutDots({ timeouts, maxTimeouts = 3 }) {
+  if (timeouts === null || timeouts === undefined) return null
+  
+  const timeoutCount = Number(timeouts)
+  if (isNaN(timeoutCount) || timeoutCount < 0) return null
+  
+  return (
+    <div className="timeout-dots">
+      {Array.from({ length: maxTimeouts }, (_, i) => (
+        <span 
+          key={i} 
+          className={`timeout-dot ${i < timeoutCount ? 'active' : 'used'}`}
+        >
+          ●
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function TeamRow({ game, side }) {
   const isAway = side === 'away'
   const teamName = isAway ? game.awayTeam : game.homeTeam
@@ -544,12 +564,22 @@ function GameSummary({ game, onBack }) {
           if (data.header?.competitions?.[0]?.competitors) {
             data.header.competitions[0].competitors.forEach((comp, idx) => {
               console.log(`Header competitor[${idx}] has linescores:`, !!comp.linescores, comp.linescores)
+              console.log(`Header competitor[${idx}] has timeoutsRemaining:`, !!comp.timeoutsRemaining, comp.timeoutsRemaining)
             })
           }
           if (data.boxscore?.teams) {
             data.boxscore.teams.forEach((team, idx) => {
               console.log(`Boxscore team[${idx}] has linescores:`, !!team.linescores, team.linescores)
+              console.log(`Boxscore team[${idx}] has timeoutsRemaining:`, !!team.timeoutsRemaining, team.timeoutsRemaining)
             })
+          }
+          if (data.boxscore?.situation) {
+            console.log('Boxscore situation:', data.boxscore.situation)
+            console.log('Situation keys:', Object.keys(data.boxscore.situation))
+          }
+          if (data.header?.competitions?.[0]?.situation) {
+            console.log('Header situation:', data.header.competitions[0].situation)
+            console.log('Header situation keys:', Object.keys(data.header.competitions[0].situation))
           }
           console.log('Full response structure:', JSON.stringify(data, null, 2).substring(0, 15000))
           
@@ -600,6 +630,20 @@ function GameSummary({ game, onBack }) {
     String(c.team?.id) === String(game.homeTeamId) || 
     c.homeAway === 'home'
   )
+  
+  // Extract timeout information
+  // Timeouts are typically in situation or competition data
+  const situation = summaryData?.boxscore?.situation || summaryData?.header?.competitions?.[0]?.situation
+  const awayTimeouts = situation?.awayTimeoutsRemaining ?? 
+                       situation?.away?.timeoutsRemaining ?? 
+                       headerAwayCompetitor?.timeoutsRemaining ?? 
+                       awayTeam?.timeoutsRemaining ?? 
+                       null
+  const homeTimeouts = situation?.homeTimeoutsRemaining ?? 
+                       situation?.home?.timeoutsRemaining ?? 
+                       headerHomeCompetitor?.timeoutsRemaining ?? 
+                       homeTeam?.timeoutsRemaining ?? 
+                       null
   
   const awayLinescores = headerAwayCompetitor?.linescores ||
                          awayTeam?.linescores || 
@@ -913,6 +957,9 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
                     <div className="team-record-side">{game.awayTeamRecord || ''}</div>
+                    {(awayTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball')) && (
+                      <TimeoutDots timeouts={awayTimeouts} maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} />
+                    )}
                   </div>
                   <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
                 </div>
@@ -965,6 +1012,9 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
                     <div className="team-record-side">{game.homeTeamRecord || ''}</div>
+                    {(homeTimeouts !== null && (game.sport === 'nfl' || game.sport === 'nba' || game.sport === 'college-football' || game.sport === 'college-basketball')) && (
+                      <TimeoutDots timeouts={homeTimeouts} maxTimeouts={game.sport === 'nfl' ? 3 : (game.sport === 'nba' ? 7 : 3)} />
+                    )}
                   </div>
                   <div className="team-logo-side">
                     <TeamLogo 

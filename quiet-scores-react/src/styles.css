@@ -3057,6 +3057,31 @@ body.pwa-mode {
     line-height: 1.2;
 }
 
+.timeout-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.timeout-dot {
+  font-size: 10px;
+  line-height: 1;
+  color: #999;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+
+.timeout-dot.active {
+  color: #333;
+  opacity: 1;
+}
+
+.timeout-dot.used {
+  color: #ccc;
+  opacity: 0.3;
+}
+
 .team-record-side {
     font-size: 0.85rem;
     color: var(--text-secondary);
