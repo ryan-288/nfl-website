@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "cd quiet-scores-react && npm install && npm run build",
   "outputDirectory": "quiet-scores-react/dist",
+  "installCommand": "cd quiet-scores-react && npm install",
   "rewrites": [
     {
       "source": "/(.*)",
