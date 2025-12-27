@@ -594,41 +594,6 @@ function GameSummary({ game, onBack }) {
     console.log('summaryData.linescores:', summaryData?.linescores)
   }
   
-  // Helper to get score for a specific period
-  const getPeriodScore = (linescores, periodNumber) => {
-    if (!linescores || linescores.length === 0) return '-'
-    
-    // If linescores is an array, try index-based access (0-based, so period 1 = index 0)
-    if (Array.isArray(linescores)) {
-      const scoreEntry = linescores[periodNumber - 1]
-      if (scoreEntry) {
-        // Handle different data structures
-        if (typeof scoreEntry === 'number') {
-          return String(scoreEntry)
-        }
-        if (typeof scoreEntry === 'object') {
-          return scoreEntry.value || scoreEntry.displayValue || scoreEntry.score || scoreEntry.text || '-'
-        }
-        return String(scoreEntry)
-      }
-      
-      // Also try finding by period number
-      const found = linescores.find(ls => {
-        if (typeof ls === 'object' && ls !== null) {
-          return ls.period === periodNumber || 
-                 ls.period?.number === periodNumber || 
-                 ls.period?.displayValue === String(periodNumber) ||
-                 ls.period?.value === periodNumber
-        }
-        return false
-      })
-      if (found) {
-        return found.value || found.displayValue || found.score || found.text || '-'
-      }
-    }
-    
-    return '-'
-  }
   const plays = summaryData?.plays || []
   const headlines = summaryData?.headlines || []
   const commentary = summaryData?.commentary || []
@@ -666,6 +631,63 @@ function GameSummary({ game, onBack }) {
   }
   
   const calculatedScores = calculateQuarterScores()
+  
+  // Try to get linescores from event data if not found in team data
+  const eventLinescores = summaryData?.boxscore?.linescores || summaryData?.linescores || []
+  const awayLinescoresFinal = awayLinescores.length > 0 ? awayLinescores : 
+    (eventLinescores.find(ls => ls.teamId === awayTeam?.team?.id || ls.team?.id === awayTeam?.team?.id)?.linescores || [])
+  const homeLinescoresFinal = homeLinescores.length > 0 ? homeLinescores : 
+    (eventLinescores.find(ls => ls.teamId === homeTeam?.team?.id || ls.team?.id === homeTeam?.team?.id)?.linescores || [])
+  
+  // Helper to get score for a specific period
+  const getPeriodScore = (linescores, periodNumber, teamType) => {
+    if (!linescores || linescores.length === 0) {
+      // Fallback to calculated scores from plays
+      if (calculatedScores && calculatedScores[teamType] && calculatedScores[teamType][periodNumber] > 0) {
+        return String(calculatedScores[teamType][periodNumber])
+      }
+      return '-'
+    }
+    
+    // If linescores is an array, try index-based access (0-based, so period 1 = index 0)
+    if (Array.isArray(linescores)) {
+      const scoreEntry = linescores[periodNumber - 1]
+      if (scoreEntry) {
+        // Handle different data structures
+        if (typeof scoreEntry === 'number') {
+          return String(scoreEntry)
+        }
+        if (typeof scoreEntry === 'object') {
+          const result = scoreEntry.value || scoreEntry.displayValue || scoreEntry.score || scoreEntry.text || '-'
+          if (result !== '-') return result
+        } else {
+          return String(scoreEntry)
+        }
+      }
+      
+      // Also try finding by period number
+      const found = linescores.find(ls => {
+        if (typeof ls === 'object' && ls !== null) {
+          return ls.period === periodNumber || 
+                 ls.period?.number === periodNumber || 
+                 ls.period?.displayValue === String(periodNumber) ||
+                 ls.period?.value === periodNumber
+        }
+        return false
+      })
+      if (found) {
+        const result = found.value || found.displayValue || found.score || found.text || '-'
+        if (result !== '-') return result
+      }
+    }
+    
+    // Fallback to calculated scores from plays
+    if (calculatedScores && calculatedScores[teamType] && calculatedScores[teamType][periodNumber] > 0) {
+      return String(calculatedScores[teamType][periodNumber])
+    }
+    
+    return '-'
+  }
   
   // Extract player stats and leaders
   const leaders = summaryData?.leaders || boxscore?.leaders || []
