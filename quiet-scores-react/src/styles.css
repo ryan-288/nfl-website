@@ -4182,21 +4182,21 @@ body.pwa-mode {
 .football-field-wrapper {
     margin: 30px auto 40px;
     position: relative;
-    padding: 0 40px;
-    max-width: 900px;
-    perspective: 1000px; /* Enable 3D perspective */
+    padding: 0 10px; /* Reduced padding from 40px to make it wider */
+    max-width: 950px;
+    perspective: 1200px; /* Increased perspective for fat look */
 }
 
 .football-field {
-    height: 80px; /* Reduced from 100px */
+    height: 140px; /* Increased from 80px to make it "fatter" */
     background: #2e7d32;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
     display: flex;
     position: relative;
-    overflow: visible; /* Allow goal posts to stick out */
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    transform: rotateX(20deg); /* Reduced from 25deg */
+    overflow: visible;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    transform: rotateX(28deg); /* Slightly more tilt for the fatter height */
     transform-style: preserve-3d;
 }
 
@@ -4256,7 +4256,7 @@ body.pwa-mode {
 .endzone-text {
     color: white;
     font-weight: 900;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* Increased from 1.2rem */
     text-transform: uppercase;
     letter-spacing: 2px;
     opacity: 0.6;
@@ -4330,11 +4330,11 @@ body.pwa-mode {
 
 .yard-num {
     position: absolute;
-    bottom: -22px;
-    font-size: 0.7rem;
+    bottom: -28px; /* Adjusted for taller field */
+    font-size: 0.75rem;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.4);
-    transform: rotateX(-25deg); /* Un-tilt numbers */
+    transform: rotateX(-28deg); /* Matches new field tilt */
 }
 
 .ball-marker-container {
@@ -4342,7 +4342,7 @@ body.pwa-mode {
     top: 50%;
     z-index: 10;
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(-50%) translateZ(30px);
+    transform: translateY(-50%) translateZ(40px); /* Increased Z translation */
 }
 
 .ball-marker-icon {
@@ -4365,9 +4365,9 @@ body.pwa-mode {
 .marker-pointer {
     width: 0;
     height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 10px solid #333;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid #333;
     margin-top: -2px;
 }
 
@@ -4383,19 +4383,19 @@ body.pwa-mode {
 
 @media (max-width: 600px) {
     .football-field-wrapper {
-        padding: 0 20px;
+        padding: 0 10px;
         perspective: 800px;
     }
     .football-field {
-        height: 70px;
+        height: 100px; /* Fat on mobile too */
         rotate: 0deg;
     }
     .marker-logo {
-        width: 26px;
-        height: 26px;
+        width: 30px; /* Slightly larger on mobile */
+        height: 30px;
     }
     .endzone-text {
-        font-size: 0.8rem;
+        font-size: 1rem;
     }
 }
 

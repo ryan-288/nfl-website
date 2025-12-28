@@ -1238,8 +1238,9 @@ function GameSummary({ game, onBack }) {
               </div>
             </div>
 
-              {/* Football Field Visualization - 3D Perspective */}
-              {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && (
+              {/* Football Field Visualization - 3D Perspective - Only for Live Games */}
+              {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && 
+               (game.status === 'live' || game.status === 'halftime') && (
                 <div className="football-field-wrapper">
                   <div className="football-field">
                     <div 
