@@ -1235,18 +1235,68 @@ function GameSummary({ game, onBack }) {
               </div>
             </div>
 
-              {/* Football Field Visualization */}
+              {/* Football Field Visualization - 3D Perspective */}
               {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && (
                 <div className="football-field-wrapper">
                   <div className="football-field">
+                    {/* Goal Posts */}
+                    <div className="goal-post away">
+                      <div className="goal-post-base"></div>
+                      <div className="goal-post-crossbar"></div>
+                    </div>
+                    
                     <div 
                       className="field-endzone away-endzone" 
                       style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}
                     >
-                      <span className="endzone-text">{game.awayAbbreviation || 'AWAY'}</span>
+                      <span className="endzone-text">{game.awayShortName || game.awayAbbreviation}</span>
                     </div>
                     
                     <div className="field-grid">
+                      {/* Drive Progress Lines */}
+                      {normalizedYardLine !== null && (
+                        <div className="drive-line-container">
+                          {(() => {
+                            const startYL = situation?.startYardLine || situation?.yardLine || 0;
+                            // Need to normalize startYL too
+                            const startPos = (startYL > 50 && isAwayPossession) || (startYL < 50 && isHomePossession) ? 100 - startYL : startYL;
+                            const currentPos = normalizedYardLine;
+                            
+                            // 1. Solid line from drive start to current ball
+                            const solidLeft = Math.min(startPos, currentPos);
+                            const solidWidth = Math.abs(currentPos - startPos);
+                            
+                            // 2. Dashed line for distance to first down
+                            const yardsToGo = situation?.distance || 0;
+                            const direction = isHomePossession ? -1 : 1;
+                            const firstDownPos = currentPos + (yardsToGo * direction);
+                            const dashLeft = direction === 1 ? currentPos : firstDownPos;
+                            const dashWidth = yardsToGo;
+
+                            return (
+                              <>
+                                <div 
+                                  className="drive-line-solid" 
+                                  style={{ 
+                                    left: `${solidLeft}%`, 
+                                    width: `${solidWidth}%` 
+                                  }}
+                                />
+                                {yardsToGo > 0 && (
+                                  <div 
+                                    className="drive-line-dashed" 
+                                    style={{ 
+                                      left: `${dashLeft}%`, 
+                                      width: `${dashWidth}%` 
+                                    }}
+                                  />
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+
                       <div className="yard-line-container">
                         {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(line => (
                           <div key={line} className="field-yard-line" style={{ left: `${line}%` }}>
@@ -1260,8 +1310,7 @@ function GameSummary({ game, onBack }) {
                         <div 
                           className="ball-marker-container" 
                           style={{ 
-                            left: `${normalizedYardLine}%`,
-                            transform: `translateX(-50%)`
+                            left: `${normalizedYardLine}%`
                           }}
                         >
                           <div className="ball-marker-icon">
@@ -1270,13 +1319,7 @@ function GameSummary({ game, onBack }) {
                               alt="" 
                               className="marker-logo" 
                             />
-                            {(isAwayPossession || isHomePossession) && (
-                              <div className={`drive-arrow ${isHomePossession ? 'reverse' : ''}`}>
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z" />
-                                </svg>
-                              </div>
-                            )}
+                            <div className="marker-pointer"></div>
                           </div>
                         </div>
                       )}
@@ -1286,7 +1329,12 @@ function GameSummary({ game, onBack }) {
                       className="field-endzone home-endzone" 
                       style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}
                     >
-                      <span className="endzone-text">{game.homeAbbreviation || 'HOME'}</span>
+                      <span className="endzone-text">{game.homeShortName || game.homeAbbreviation}</span>
+                    </div>
+
+                    <div className="goal-post home">
+                      <div className="goal-post-base"></div>
+                      <div className="goal-post-crossbar"></div>
                     </div>
                   </div>
                   <div className="field-labels-row">

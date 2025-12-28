@@ -4178,61 +4178,125 @@ body.pwa-mode {
     color: var(--text-primary);
 }
 
-/* Football Field Visualization */
+/* Football Field Visualization - 3D Perspective */
 .football-field-wrapper {
-    margin: 10px 0 25px;
+    margin: 30px auto 40px;
     position: relative;
-    padding: 0 5px;
+    padding: 0 40px;
+    max-width: 900px;
+    perspective: 1000px; /* Enable 3D perspective */
 }
 
 .football-field {
-    height: 70px;
-    background: #2e7d32; /* Green grass */
-    border: 2px solid #ffffff33;
+    height: 100px;
+    background: #2e7d32;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
     display: flex;
     position: relative;
-    overflow: hidden;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.2);
+    overflow: visible; /* Allow goal posts to stick out */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    transform: rotateX(25deg); /* Tilt the field for 3D look */
+    transform-style: preserve-3d;
+}
+
+/* Goal Posts */
+.goal-post {
+    position: absolute;
+    bottom: 20px;
+    width: 20px;
+    height: 60px;
+    z-index: 5;
+    transform: translateZ(20px);
+}
+
+.goal-post.away { left: -25px; }
+.goal-post.home { right: -25px; }
+
+.goal-post::before, .goal-post::after {
+    content: '';
+    position: absolute;
+    background: #ffd600; /* Goal post yellow */
+    width: 3px;
+    height: 100%;
+}
+
+.goal-post::before { left: 0; }
+.goal-post::after { right: 0; }
+
+.goal-post-base {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 20px;
+    background: #ffd600;
+}
+
+.goal-post-crossbar {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #ffd600;
 }
 
 .field-endzone {
-    width: 8%;
+    width: 10%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 2;
+    padding: 0 5px;
 }
 
 .endzone-text {
     color: white;
     font-weight: 900;
-    font-size: 0.7rem;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    letter-spacing: 1px;
-    opacity: 0.8;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.6;
+    white-space: nowrap;
+    user-select: none;
 }
 
-.field-endzone.home-endzone .endzone-text {
-    transform: rotate(0deg);
-}
+.away-endzone .endzone-text { transform: rotate(-90deg); }
+.home-endzone .endzone-text { transform: rotate(90deg); }
 
 .field-grid {
     flex: 1;
     position: relative;
     background-image: 
-        linear-gradient(90deg, #ffffff22 1px, transparent 1px);
-    background-size: 10% 100%; /* 10 yard lines */
+        linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
+    background-size: 10% 100%;
 }
 
-.yard-line-container {
+/* Drive Line */
+.drive-line-container {
     position: absolute;
-    top: 0;
+    top: 50%;
     left: 0;
     right: 0;
-    bottom: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+.drive-line-solid {
+    position: absolute;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 5px rgba(255,255,255,0.2);
+}
+
+.drive-line-dashed {
+    position: absolute;
+    height: 3px;
+    border-top: 3px dashed rgba(0, 0, 0, 0.6);
 }
 
 .field-yard-line {
@@ -4240,67 +4304,80 @@ body.pwa-mode {
     top: 0;
     bottom: 0;
     width: 1px;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
     display: flex;
     justify-content: center;
 }
 
 .yard-num {
     position: absolute;
-    bottom: 4px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.5);
+    bottom: -22px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.4);
+    transform: rotateX(-25deg); /* Un-tilt numbers */
 }
 
 .ball-marker-container {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 50%;
     z-index: 10;
-    transition: left 0.5s ease-in-out;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-50%) translateZ(30px);
 }
 
 .ball-marker-icon {
     position: relative;
-    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
 .marker-logo {
-    width: 24px;
-    height: 24px;
-    background: white;
+    width: 34px;
+    height: 34px;
+    background: #f0f0f0;
+    border: 2px solid #333;
     border-radius: 50%;
-    padding: 2px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-    z-index: 2;
+    padding: 4px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
-.drive-arrow {
-    width: 20px;
-    height: 20px;
-    color: white;
-    filter: drop-shadow(0 0 2px black);
+.marker-pointer {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #333;
     margin-top: -2px;
-}
-
-.drive-arrow.reverse {
-    transform: rotate(180deg);
 }
 
 .field-labels-row {
     display: flex;
     justify-content: space-between;
-    padding: 4px 10% 0;
-    font-size: 0.6rem;
-    font-weight: 700;
+    padding: 15px 12% 0;
+    font-size: 0.75rem;
+    font-weight: 800;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
+}
+
+@media (max-width: 600px) {
+    .football-field-wrapper {
+        padding: 0 20px;
+        perspective: 800px;
+    }
+    .football-field {
+        height: 70px;
+        rotate: 0deg;
+    }
+    .marker-logo {
+        width: 26px;
+        height: 26px;
+    }
+    .endzone-text {
+        font-size: 0.8rem;
+    }
 }
 
 .snapshot-status-card {
