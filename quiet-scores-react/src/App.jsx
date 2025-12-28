@@ -953,7 +953,9 @@ function GameSummary({ game, onBack }) {
   const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
   
   const getTeamStat = (team, statName) => {
-    return team?.statistics?.find(s => s.name === statName)?.displayValue || '0'
+    const stat = team?.statistics?.find(s => s.name === statName)
+    if (!stat) return '0'
+    return typeof stat.displayValue === 'string' ? stat.displayValue : String(stat.value || '0')
   }
 
   return (
@@ -1082,18 +1084,22 @@ function GameSummary({ game, onBack }) {
                   <div className="current-drive-section">
                     <span className="current-drive-label">CURRENT DRIVE</span>
                     <span className="current-drive-info">
-                      {currentDrive.plays} plays, {currentDrive.yards} yards, {currentDrive.displayTime}
+                      {Array.isArray(currentDrive.plays) ? currentDrive.plays.length : (currentDrive.plays || 0)} plays, {currentDrive.yards || 0} yards, {currentDrive.displayTime || ''}
                     </span>
                   </div>
                 )}
                 <div className="snapshot-situation">
                   <div className="situation-item">
                     <span className="snapshot-label">Down:</span>
-                    <span className="snapshot-value">{situation?.downDistanceText || '-'}</span>
+                    <span className="snapshot-value">
+                      {typeof situation?.downDistanceText === 'string' ? situation.downDistanceText : '-'}
+                    </span>
                   </div>
                   <div className="situation-item">
                     <span className="snapshot-label">Ball on:</span>
-                    <span className="snapshot-value">{situation?.yardLineText || '-'}</span>
+                    <span className="snapshot-value">
+                      {typeof situation?.yardLineText === 'string' ? situation.yardLineText : '-'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1466,10 +1472,10 @@ function GameSummary({ game, onBack }) {
                       return Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
                         <div key={period} className="period-group">
                           <div className="period-header">
-                            {period === '1' ? '1ST QUARTER' : 
-                             period === '2' ? '2ND QUARTER' : 
-                             period === '3' ? '3RD QUARTER' : 
-                             period === '4' ? '4TH QUARTER' : 
+                            {String(period) === '1' ? '1ST QUARTER' : 
+                             String(period) === '2' ? '2ND QUARTER' : 
+                             String(period) === '3' ? '3RD QUARTER' : 
+                             String(period) === '4' ? '4TH QUARTER' : 
                              `PERIOD ${period}`}
                           </div>
                           {groupedPlays[period].map((play, idx) => {
@@ -1485,17 +1491,23 @@ function GameSummary({ game, onBack }) {
                                   </div>
                                   <div className="play-content">
                                     <div className="play-type-row">
-                                      <span className="play-type-text">{play.type?.text || 'Play'}</span>
+                                      <span className="play-type-text">
+                                        {typeof play.type?.text === 'string' ? play.type.text : 'Play'}
+                                      </span>
                                       <span className="play-time-text">
-                                        {play.clock?.displayValue || ''}
+                                        {typeof play.clock?.displayValue === 'string' ? play.clock.displayValue : ''}
                                         {play.clock?.displayValue && ' - '}
                                         {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
                                       </span>
                                     </div>
-                                    <div className="play-description">{play.text}</div>
+                                    <div className="play-description">
+                                      {typeof play.text === 'string' ? play.text : (play.text?.displayValue || play.shortText || '')}
+                                    </div>
                                     {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
                                       <div className="play-drive-info">
-                                        {play.drive?.description || play.drive?.displayValue || `${play.statYardage} yards`}
+                                        {typeof (play.drive?.description || play.drive?.displayValue) === 'string' 
+                                          ? (play.drive?.description || play.drive?.displayValue) 
+                                          : `${play.statYardage || 0} yards`}
                                       </div>
                                     )}
                                   </div>
@@ -1503,8 +1515,12 @@ function GameSummary({ game, onBack }) {
                                 <div className="play-card-right">
                                   <div className="play-score-update">
                                     <div className="score-numbers">
-                                      <span className="score-away">{play.awayScore ?? '-'}</span>
-                                      <span className="score-home">{play.homeScore ?? '-'}</span>
+                                      <span className="score-away">
+                                        {typeof play.awayScore === 'object' ? (play.awayScore?.value ?? '-') : (play.awayScore ?? '-')}
+                                      </span>
+                                      <span className="score-home">
+                                        {typeof play.homeScore === 'object' ? (play.homeScore?.value ?? '-') : (play.homeScore ?? '-')}
+                                      </span>
                                     </div>
                                     <div className="score-labels">
                                       <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
