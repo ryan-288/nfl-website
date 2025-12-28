@@ -186,11 +186,11 @@ function getFallbackText(fullName, shortName, abbreviation) {
 function getTeamColor(team, fallbackColor = '#007bff') {
   if (!team) return fallbackColor
   // ESPN API provides color in team.color or team.alternateColor
-  if (team.color) return team.color
-  if (team.alternateColor) return team.alternateColor
-  // Check if colors are nested in team object
-  if (team.team?.color) return team.team.color
-  if (team.team?.alternateColor) return team.team.alternateColor
+  const color = team.color || team.alternateColor || team.team?.color || team.team?.alternateColor
+  if (color) {
+    // Ensure it has a # at the start
+    return color.startsWith('#') ? color : `#${color}`
+  }
   return fallbackColor
 }
 
@@ -944,9 +944,10 @@ function GameSummary({ game, onBack }) {
   const homePercent = totalScore > 0 ? (homeScore / totalScore) * 100 : 50
 
   // Get team colors and logos from boxscore data if available, otherwise use game data
-  // Use more neutral colors for team stats section
-  const awayTeamColor = getTeamColor(awayTeam?.team, '#e0e0e0')
-  const homeTeamColor = getTeamColor(homeTeam?.team, '#e0e0e0')
+  const awayColor = getTeamColor(awayTeam?.team, '#888888')
+  const homeColor = getTeamColor(homeTeam?.team, '#888888')
+  const awayTeamColor = '#e0e0e0' // Keep headers neutral as requested
+  const homeTeamColor = '#e0e0e0'
   const awayTeamLogo = awayTeam?.team?.logos?.[0]?.href || awayTeam?.team?.logo || game.awayLogo
   const homeTeamLogo = homeTeam?.team?.logos?.[0]?.href || homeTeam?.team?.logo || game.homeLogo
 
@@ -1463,9 +1464,9 @@ function GameSummary({ game, onBack }) {
                             <span>{homeStat?.displayValue}</span>
                           </div>
                           <div className="boxscore-row-bar" style={{ height: '4px' }}>
-                            <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayTeamColor }} />
-                            <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeTeamColor }} />
-                        </div>
+                            <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayColor }} />
+                            <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeColor }} />
+                          </div>
                       </div>
                     )
                   })}
@@ -1656,8 +1657,8 @@ function GameSummary({ game, onBack }) {
                               <div className="boxscore-row-with-values">
                                 <span className="boxscore-value away">{stat.displayValue}</span>
                                 <div className="boxscore-row-bar">
-                                  <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayTeamColor }} />
-                                  <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeTeamColor }} />
+                                  <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayColor }} />
+                                  <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeColor }} />
                                 </div>
                                 <span className="boxscore-value home">{homeStat?.displayValue}</span>
                               </div>
