@@ -3476,13 +3476,7 @@ body.pwa-mode {
     transition: width 0.3s ease;
 }
 
-.boxscore-row-bar-segment.away {
-    background: rgba(224, 224, 224, 0.3) !important;
-}
-
-.boxscore-row-bar-segment.home {
-    background: rgba(224, 224, 224, 0.3) !important;
-}
+/* Bar segment colors are set via inline styles in App.jsx using team colors */
 
 .boxscore-value {
     font-size: 0.8rem;

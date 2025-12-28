@@ -1029,9 +1029,9 @@ function GameSummary({ game, onBack }) {
                         const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
                         const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
                         const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
-                        // Use neutral gray colors for team stats section
-                        const awayColor = '#e0e0e0'
-                        const homeColor = '#e0e0e0'
+                        // Use team colors from API, but fallback to neutral gray instead of blue/red
+                        const awayColor = getTeamColor(awayTeam?.team, '#888888')
+                        const homeColor = getTeamColor(homeTeam?.team, '#888888')
                         // Convert hex to rgba for gradient
                         const awayColorLight = hexToRgba(awayColor, 0.6)
                         const awayColorDark = hexToRgba(awayColor, 0.9)
