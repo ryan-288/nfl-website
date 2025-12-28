@@ -1205,10 +1205,11 @@ function GameSummary({ game, onBack }) {
 
       const x = padding + (Math.min(secondsElapsed, totalGameSeconds) / totalGameSeconds) * chartWidth;
       
-      let prob = d.homeWinPercentage ?? d.homeWinProbability ?? d.homeProbability ?? d.homeTeamProbability ?? 0.5;
-      if (prob > 1) prob = prob / 100;
+      let homeProb = d.homeWinPercentage ?? d.homeWinProbability ?? d.homeProbability ?? d.homeTeamProbability ?? 0.5;
+      if (homeProb > 1) homeProb = homeProb / 100;
       
-      // Home win prob 1.0 is top (Y = padding), Home win prob 0.0 is bottom (Y = height - padding)
+      // Away win prob 1.0 is top (Y = padding), Away win prob 0.0 is bottom (Y = height - padding)
+      const prob = 1 - homeProb; 
       const y = height - (padding + (prob * chartHeight));
       return { x, y, prob };
     });
@@ -1219,22 +1220,22 @@ function GameSummary({ game, onBack }) {
     const hColor = getTeamColor(homeTeam?.team, '#888888');
     const aColor = getTeamColor(awayTeam?.team, '#444444');
 
-    return (
+  return (
       <div className="win-prob-chart-container" style={{ height: '220px' }}>
         <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
           <defs>
-            <linearGradient id="homeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={hColor} stopOpacity="0.4" />
-              <stop offset="100%" stopColor={hColor} stopOpacity="0.1" />
-            </linearGradient>
             <linearGradient id="awayGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={aColor} stopOpacity="0.1" />
-              <stop offset="100%" stopColor={aColor} stopOpacity="0.4" />
+              <stop offset="0%" stopColor={aColor} stopOpacity="0.4" />
+              <stop offset="100%" stopColor={aColor} stopOpacity="0.1" />
             </linearGradient>
-            <clipPath id="clip-home">
+            <linearGradient id="homeGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={hColor} stopOpacity="0.1" />
+              <stop offset="100%" stopColor={hColor} stopOpacity="0.4" />
+            </linearGradient>
+            <clipPath id="clip-away">
               <rect x="0" y="0" width={width} height={centerLineY} />
             </clipPath>
-            <clipPath id="clip-away">
+            <clipPath id="clip-home">
               <rect x="0" y={centerLineY} width={width} height={height - centerLineY} />
             </clipPath>
           </defs>
@@ -1264,16 +1265,15 @@ function GameSummary({ game, onBack }) {
           <text x={width-padding + 15} y={height-padding + 8} fill="var(--text-muted)" fontSize="26" fontWeight="600">100</text>
 
           {/* Shaded Areas */}
-          <path d={areaPath} fill="url(#homeGradient)" clipPath="url(#clip-home)" />
           <path d={areaPath} fill="url(#awayGradient)" clipPath="url(#clip-away)" />
+          <path d={areaPath} fill="url(#homeGradient)" clipPath="url(#clip-home)" />
           
-          {/* The Data Path (Dotted White) */}
+          {/* The Data Path (Solid White) */}
           <path 
             d={pathD} 
             fill="none" 
             stroke="#fff" 
             strokeWidth="5" 
-            strokeDasharray="10 10"
             strokeLinecap="round" 
             style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.5))' }}
           />
