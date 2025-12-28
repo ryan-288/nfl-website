@@ -1002,8 +1002,11 @@ function GameSummary({ game, onBack }) {
   const isAwayPossession = possessionTeamId !== '' && possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
   const isHomePossession = possessionTeamId !== '' && possessionTeamId === String(homeTeam?.team?.id || game.homeTeamId)
   
+  // Is it currently halftime?
+  const isHalftime = game.status === 'halftime' || game.statusName?.toLowerCase() === 'halftime'
+
   // Robust extraction of down and distance
-  const downDistanceText = situation?.downDistanceText || 
+  const downDistanceText = isHalftime ? 'HALFTIME' : situation?.downDistanceText || 
                           situation?.shortDownDistanceText ||
                           (situation?.down !== undefined && situation?.distance !== undefined && situation?.down > 0 ? 
                             `${situation.down}${situation.down === 1 ? 'st' : situation.down === 2 ? 'nd' : situation.down === 3 ? 'rd' : 'th'} & ${situation.distance}` : null) ||
@@ -1239,12 +1242,6 @@ function GameSummary({ game, onBack }) {
               {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && (
                 <div className="football-field-wrapper">
                   <div className="football-field">
-                    {/* Goal Posts */}
-                    <div className="goal-post away">
-                      <div className="goal-post-base"></div>
-                      <div className="goal-post-crossbar"></div>
-                    </div>
-                    
                     <div 
                       className="field-endzone away-endzone" 
                       style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}
@@ -1330,11 +1327,6 @@ function GameSummary({ game, onBack }) {
                       style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}
                     >
                       <span className="endzone-text">{game.homeShortName || game.homeAbbreviation}</span>
-                    </div>
-
-                    <div className="goal-post home">
-                      <div className="goal-post-base"></div>
-                      <div className="goal-post-crossbar"></div>
                     </div>
                   </div>
                   <div className="field-labels-row">
@@ -1668,115 +1660,123 @@ function GameSummary({ game, onBack }) {
                   <div className="header-title-group">
                     <h3>PLAY-BY-PLAY</h3>
                     <span className={`expand-icon ${showPlayByPlay ? 'expanded' : ''}`}>▼</span>
-                        </div>
-                  {showPlayByPlay && (
-                    <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
-                      <button 
-                        className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
-                        onClick={() => setPlayFilter('scoring')}
-                      >
-                        Scoring Plays
-                      </button>
-                      <button 
-                        className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
-                        onClick={() => setPlayFilter('all')}
-                      >
-                        All Plays
-                      </button>
-                        </div>
-                  )}
-                        </div>
-
-                {showPlayByPlay && (
-                  <div className="play-by-play-list">
-                    {(() => {
-                      const filteredPlays = plays.filter(play => {
-                        if (playFilter === 'all') return true;
-                        return play.scoringPlay || 
-                               play.type?.text?.toLowerCase().includes('touchdown') || 
-                               play.type?.text?.toLowerCase().includes('field goal') ||
-                               play.type?.text?.toLowerCase().includes('safety');
-                      }).reverse();
-
-                      if (filteredPlays.length === 0) {
-                        return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
-                      }
-
-                      // Group plays by period
-                      const groupedPlays = filteredPlays.reduce((groups, play) => {
-                        const period = play.period?.number || play.period || 1;
-                        if (!groups[period]) groups[period] = [];
-                        groups[period].push(play);
-                        return groups;
-                      }, {});
-
-                      return Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
-                        <div key={period} className="period-group">
-                          <div className="period-header">
-                            {String(period) === '1' ? '1ST QUARTER' : 
-                             String(period) === '2' ? '2ND QUARTER' : 
-                             String(period) === '3' ? '3RD QUARTER' : 
-                             String(period) === '4' ? '4TH QUARTER' : 
-                             `PERIOD ${period}`}
-                      </div>
-                          {groupedPlays[period].map((play, idx) => {
-                            const playTeamId = String(play.team?.id || '');
-                            const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
-                            const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
-                            
-                            return (
-                              <div key={idx} className="play-card">
-                                <div className="play-card-left">
-                                  <div className="play-team-logo">
-                                    {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
-                </div>
-                                  <div className="play-content">
-                                    <div className="play-type-row">
-                                      <span className="play-type-text">
-                                        {typeof play.type?.text === 'string' ? play.type.text : 'Play'}
-                                      </span>
-                                      <span className="play-time-text">
-                                        {typeof play.clock?.displayValue === 'string' ? play.clock.displayValue : ''}
-                                        {play.clock?.displayValue && ' - '}
-                                        {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
-                                      </span>
-                                    </div>
-                                    <div className="play-description">
-                                      {typeof play.text === 'string' ? play.text : (play.text?.displayValue || play.shortText || '')}
-                                    </div>
-                                    {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
-                                      <div className="play-drive-info">
-                                        {typeof (play.drive?.description || play.drive?.displayValue) === 'string' 
-                                          ? (play.drive?.description || play.drive?.displayValue) 
-                                          : `${play.statYardage || 0} yards`}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="play-card-right">
-                                  <div className="play-score-update">
-                                    <div className="score-numbers">
-                                      <span className="score-away">
-                                        {typeof play.awayScore === 'object' ? (play.awayScore?.value ?? '-') : (play.awayScore ?? '-')}
-                                      </span>
-                                      <span className="score-home">
-                                        {typeof play.homeScore === 'object' ? (play.homeScore?.value ?? '-') : (play.homeScore ?? '-')}
-                                      </span>
-                                    </div>
-                                    <div className="score-labels">
-                                      <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
-                                      <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ));
-                    })()}
                   </div>
-                )}
+                  <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
+                    <button 
+                      className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
+                      onClick={() => setPlayFilter('scoring')}
+                    >
+                      Scoring Plays
+                    </button>
+                    <button 
+                      className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setPlayFilter('all')}
+                    >
+                      All Plays
+                    </button>
+                  </div>
+                </div>
+
+                <div className="play-by-play-list">
+                  {(() => {
+                    const filteredPlays = plays.filter(play => {
+                      if (playFilter === 'all') return true;
+                      return play.scoringPlay || 
+                             play.type?.text?.toLowerCase().includes('touchdown') || 
+                             play.type?.text?.toLowerCase().includes('field goal') ||
+                             play.type?.text?.toLowerCase().includes('safety');
+                    }).reverse();
+
+                    if (filteredPlays.length === 0) {
+                      return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
+                    }
+
+                    // Only show latest 5 if not expanded
+                    const displayPlays = showPlayByPlay ? filteredPlays : filteredPlays.slice(0, 5);
+
+                    // Group plays by period
+                    const groupedPlays = displayPlays.reduce((groups, play) => {
+                      const period = play.period?.number || play.period || 1;
+                      if (!groups[period]) groups[period] = [];
+                      groups[period].push(play);
+                      return groups;
+                    }, {});
+
+                    return (
+                      <>
+                        {Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
+                          <div key={period} className="period-group">
+                            <div className="period-header">
+                              {String(period) === '1' ? '1ST QUARTER' : 
+                               String(period) === '2' ? '2ND QUARTER' : 
+                               String(period) === '3' ? '3RD QUARTER' : 
+                               String(period) === '4' ? '4TH QUARTER' : 
+                               `PERIOD ${period}`}
+                            </div>
+                            {groupedPlays[period].map((play, idx) => {
+                              const playTeamId = String(play.team?.id || '');
+                              const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
+                              const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
+                              
+                              return (
+                                <div key={idx} className="play-card">
+                                  <div className="play-card-left">
+                                    <div className="play-team-logo">
+                                      {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
+                                    </div>
+                                    <div className="play-content">
+                                      <div className="play-type-row">
+                                        <span className="play-type-text">
+                                          {typeof play.type?.text === 'string' ? play.type.text : 'Play'}
+                                        </span>
+                                        <span className="play-time-text">
+                                          {typeof play.clock?.displayValue === 'string' ? play.clock.displayValue : ''}
+                                          {play.clock?.displayValue && ' - '}
+                                          {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
+                                        </span>
+                                      </div>
+                                      <div className="play-description">
+                                        {typeof play.text === 'string' ? play.text : (play.text?.displayValue || play.shortText || '')}
+                                      </div>
+                                      {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
+                                        <div className="play-drive-info">
+                                          {typeof (play.drive?.description || play.drive?.displayValue) === 'string' 
+                                            ? (play.drive?.description || play.drive?.displayValue) 
+                                            : `${play.statYardage || 0} yards`}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="play-card-right">
+                                    <div className="play-score-update">
+                                      <div className="score-numbers">
+                                        <span className="score-away">
+                                          {typeof play.awayScore === 'object' ? (play.awayScore?.value ?? '-') : (play.awayScore ?? '-')}
+                                        </span>
+                                        <span className="score-home">
+                                          {typeof play.homeScore === 'object' ? (play.homeScore?.value ?? '-') : (play.homeScore ?? '-')}
+                                        </span>
+                                      </div>
+                                      <div className="score-labels">
+                                        <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
+                                        <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                        {!showPlayByPlay && filteredPlays.length > 5 && (
+                          <div className="show-more-indicator" onClick={() => setShowPlayByPlay(true)}>
+                            + {filteredPlays.length - 5} more plays. Click to expand full Play-by-Play.
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             )}
 
