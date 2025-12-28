@@ -1169,46 +1169,67 @@ function GameSummary({ game, onBack }) {
     if (!data || !Array.isArray(data) || data.length < 2) return null;
 
     const width = 1000;
-    const height = 200;
-    const padding = 20;
+    const height = 280; // Slightly taller for labels
+    const padding = 45;
     const chartWidth = width - (padding * 2);
     const chartHeight = height - (padding * 2);
     const centerLineY = height / 2;
 
-    // Filter and normalize data
-    const points = data.map((d, i) => {
-      const x = padding + (i / (data.length - 1)) * chartWidth;
-      // Robust percentage extraction
-      let prob = d.homeWinPercentage ?? d.homeWinProbability ?? d.homeProbability ?? d.homeTeamProbability ?? 0.5;
+    // Helper to calculate seconds elapsed in a standard football game (60 mins)
+    const getSecondsElapsed = (point) => {
+      // Check for period and clock in various locations
+      const period = point.period?.number || point.play?.period?.number || 1;
+      const clockStr = point.clock?.displayValue || point.play?.clock?.displayValue || "15:00";
       
-      // If it's on a 0-100 scale, convert to 0-1
+      try {
+        const [mins, secs] = clockStr.split(':').map(Number);
+        const secondsInPeriod = (15 * 60) - (mins * 60 + secs);
+        return ((period - 1) * 15 * 60) + secondsInPeriod;
+      } catch (e) {
+        return 0;
+      }
+    };
+
+    const totalGameSeconds = 3600; // 60 minutes for NFL/CFB
+
+    // Map points to SVG coordinates
+    const points = data.map((d, i) => {
+      // Calculate X based on game time elapsed
+      let secondsElapsed = getSecondsElapsed(d);
+      
+      // Fallback if seconds calculation fails or is obviously wrong (e.g. all points at 0)
+      if (isNaN(secondsElapsed) || (secondsElapsed === 0 && i > 0)) {
+        // Linear fallback: assume points are spread across time up to current game clock
+        secondsElapsed = (i / (data.length - 1)) * totalGameSeconds * 0.75;
+      }
+
+      const x = padding + (Math.min(secondsElapsed, totalGameSeconds) / totalGameSeconds) * chartWidth;
+      
+      let prob = d.homeWinPercentage ?? d.homeWinProbability ?? d.homeProbability ?? d.homeTeamProbability ?? 0.5;
       if (prob > 1) prob = prob / 100;
       
-      // Y is inverted in SVG: 0 is top (100% home), height is bottom (100% away)
+      // Home win prob 1.0 is top (Y = padding), Home win prob 0.0 is bottom (Y = height - padding)
       const y = height - (padding + (prob * chartHeight));
       return { x, y, prob };
     });
 
-    // Create the path for the line
     const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
-    
-    // Create fill paths for home and away areas
-    const homeAreaPath = `${pathD} L ${points[points.length-1].x},${centerLineY} L ${points[0].x},${centerLineY} Z`;
+    const areaPath = `${pathD} L ${points[points.length-1].x},${centerLineY} L ${points[0].x},${centerLineY} Z`;
     
     const hColor = getTeamColor(homeTeam?.team, '#888888');
     const aColor = getTeamColor(awayTeam?.team, '#444444');
 
-  return (
-      <div className="win-prob-chart-container">
-        <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg" preserveAspectRatio="none">
+    return (
+      <div className="win-prob-chart-container" style={{ height: '220px' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
           <defs>
             <linearGradient id="homeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={hColor} stopOpacity="0.3" />
-              <stop offset="100%" stopColor={hColor} stopOpacity="0.05" />
+              <stop offset="0%" stopColor={hColor} stopOpacity="0.4" />
+              <stop offset="100%" stopColor={hColor} stopOpacity="0.1" />
             </linearGradient>
             <linearGradient id="awayGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={aColor} stopOpacity="0.05" />
-              <stop offset="100%" stopColor={aColor} stopOpacity="0.3" />
+              <stop offset="0%" stopColor={aColor} stopOpacity="0.1" />
+              <stop offset="100%" stopColor={aColor} stopOpacity="0.4" />
             </linearGradient>
             <clipPath id="clip-home">
               <rect x="0" y="0" width={width} height={centerLineY} />
@@ -1218,24 +1239,43 @@ function GameSummary({ game, onBack }) {
             </clipPath>
           </defs>
 
-          {/* Grid Lines */}
-          <line x1={padding} y1={centerLineY} x2={width-padding} y2={centerLineY} className="chart-center-line" strokeOpacity="0.2" stroke="#fff" />
-          <line x1={padding} y1={padding} x2={width-padding} y2={padding} className="chart-grid-line" strokeOpacity="0.1" stroke="#fff" />
-          <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} className="chart-grid-line" strokeOpacity="0.1" stroke="#fff" />
+          {/* Vertical Grid Lines (Quarter Markers) */}
+          {[0, 0.25, 0.5, 0.75, 1].map(p => (
+            <line 
+              key={p} 
+              x1={padding + (chartWidth * p)} 
+              y1={padding} 
+              x2={padding + (chartWidth * p)} 
+              y2={height-padding} 
+              stroke="rgba(255,255,255,0.15)" 
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+          ))}
+
+          {/* Horizontal Grid Lines */}
+          <line x1={padding} y1={centerLineY} x2={width-padding} y2={centerLineY} stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
+          <line x1={padding} y1={padding} x2={width-padding} y2={padding} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+          <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+
+          {/* Right side labels */}
+          <text x={width-padding + 15} y={padding + 8} fill="var(--text-muted)" fontSize="26" fontWeight="600">100</text>
+          <text x={width-padding + 15} y={centerLineY + 10} fill="var(--text-muted)" fontSize="26" fontWeight="600">50</text>
+          <text x={width-padding + 15} y={height-padding + 8} fill="var(--text-muted)" fontSize="26" fontWeight="600">100</text>
 
           {/* Shaded Areas */}
-          <path d={homeAreaPath} fill="url(#homeGradient)" clipPath="url(#clip-home)" />
-          <path d={homeAreaPath} fill="url(#awayGradient)" clipPath="url(#clip-away)" />
+          <path d={areaPath} fill="url(#homeGradient)" clipPath="url(#clip-home)" />
+          <path d={areaPath} fill="url(#awayGradient)" clipPath="url(#clip-away)" />
           
-          {/* The Data Path */}
+          {/* The Data Path (Dotted White) */}
           <path 
             d={pathD} 
             fill="none" 
             stroke="#fff" 
-            strokeWidth="3" 
+            strokeWidth="5" 
+            strokeDasharray="10 10"
             strokeLinecap="round" 
-            strokeLinejoin="round"
-            style={{ filter: 'drop-shadow(0px 0px 2px rgba(0,0,0,0.5))' }}
+            style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.5))' }}
           />
           
           {/* Current Position Marker */}
@@ -1243,17 +1283,25 @@ function GameSummary({ game, onBack }) {
             <circle 
               cx={points[points.length-1].x} 
               cy={points[points.length-1].y} 
-              r="4" 
+              r="7" 
               fill="#fff" 
-              style={{ filter: 'drop-shadow(0px 0px 3px rgba(255,255,255,0.8))' }}
+              style={{ filter: 'drop-shadow(0px 0px 8px rgba(255,255,255,1))' }}
             />
           )}
         </svg>
-        <div className="chart-labels">
-          <span>1ST</span>
-          <span>2ND</span>
-          <span>3RD</span>
-          <span>4TH</span>
+        <div className="chart-labels" style={{ 
+          display: 'flex', 
+          width: '100%', 
+          padding: `0 ${padding}px`, 
+          marginTop: '15px',
+          justifyContent: 'space-between'
+        }}>
+          <span style={{ width: '0', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}></span>
+          <span style={{ flex: '1', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', transform: 'translateX(-50%)' }}>1ST</span>
+          <span style={{ flex: '1', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', transform: 'translateX(-50%)' }}>2ND</span>
+          <span style={{ flex: '1', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', transform: 'translateX(-50%)' }}>3RD</span>
+          <span style={{ flex: '1', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600', transform: 'translateX(-50%)' }}>4TH</span>
+          <span style={{ width: '0' }}></span>
         </div>
       </div>
     );
@@ -1711,34 +1759,43 @@ function GameSummary({ game, onBack }) {
               {/* Win Probability */}
               {winProbability && (
                 <div className="win-probability-section">
-                  <div className="section-header">
-                    <h3>WIN PROBABILITY</h3>
+                  <div className="section-header-row" style={{ borderBottom: '1px dotted rgba(255,255,255,0.2)', paddingBottom: '10px' }}>
+                    <span className="section-title-main" style={{ fontSize: '0.9rem', fontWeight: '800', letterSpacing: '1px' }}>WIN PROBABILITY</span>
                   </div>
-                  <div className="win-prob-header" style={{ padding: 0 }}>
-                    <div className="win-prob-team away" style={{ gap: '10px' }}>
-                      <div className="win-prob-logo" style={{ width: '32px', height: '32px' }}><img src={awayTeamLogo} alt="" /></div>
-                      <div className="win-prob-info">
-                        <span className="win-prob-percent" style={{ fontSize: '1.2rem' }}>{((winProbability.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                        <span className="win-prob-abbr">{game.awayAbbreviation}</span>
+                  
+                  <div className="win-prob-header-new" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0' }}>
+                    <div className="win-prob-side away" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <img src={awayTeamLogo} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                      <div className="win-prob-data" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: '800', lineHeight: '1' }}>{((winProbability.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '4px' }}>
+                          <span style={{ width: '12px', height: '3px', borderRadius: '1.5px', backgroundColor: getTeamColor(awayTeam?.team, '#888888') }}></span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>{game.awayAbbreviation}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="win-prob-team home" style={{ gap: '10px' }}>
-                      <div className="win-prob-logo" style={{ width: '32px', height: '32px' }}><img src={homeTeamLogo} alt="" /></div>
-                      <div className="win-prob-info">
-                        <span className="win-prob-percent" style={{ fontSize: '1.2rem' }}>{((winProbability.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                        <span className="win-prob-abbr">{game.homeAbbreviation}</span>
+
+                    <div className="win-prob-side home" style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'right' }}>
+                      <div className="win-prob-data" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: '800', lineHeight: '1' }}>{((winProbability.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>{game.homeAbbreviation}</span>
+                          <span style={{ width: '12px', height: '3px', borderRadius: '1.5px', backgroundColor: getTeamColor(homeTeam?.team, '#888888') }}></span>
+                        </div>
                       </div>
+                      <img src={homeTeamLogo} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
                     </div>
                   </div>
+
                   {Array.isArray(winProbabilityData) && <WinProbabilityChart data={winProbabilityData} />}
                   
                   {winProbability.play && (
-                    <div className="last-play-card" style={{ padding: '15px', border: 'none', background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="last-play-situation" style={{ fontSize: '0.85rem' }}>{winProbability.play.text?.match(/\d[a-z]{2}\s&\s\d+/) || 'Last Play'}</div>
-                      <div className="last-play-text" style={{ fontSize: '0.75rem', border: 'none', padding: 0 }}>{winProbability.play.text}</div>
+                    <div className="last-play-card-simple" style={{ marginTop: '15px', padding: '10px', borderRadius: '4px', background: 'rgba(255,255,255,0.03)' }}>
+                      <div className="last-play-summary-text" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                        <strong style={{ color: 'var(--text-muted)' }}>Last Play:</strong> {winProbability.play.text}
+                      </div>
                     </div>
                   )}
-                  <div className="espn-analytics-footer" style={{ marginTop: '10px' }}>According to ESPN Analytics</div>
                 </div>
               )}
 
