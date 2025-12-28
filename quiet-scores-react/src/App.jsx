@@ -865,7 +865,19 @@ function GameSummary({ game, onBack }) {
     })
     
     // Convert map to array
-    statCategories.push(...Array.from(categoryMap.values()))
+    const categories = Array.from(categoryMap.values())
+    
+    // Enforce specific order: Passing, Rushing, Receiving, Sacks, Tackles
+    const order = ['passingYards', 'rushingYards', 'receivingYards', 'sacks', 'totalTackles']
+    
+    statCategories.push(...categories.sort((a, b) => {
+      const indexA = order.indexOf(a.name)
+      const indexB = order.indexOf(b.name)
+      if (indexA === -1 && indexB === -1) return 0
+      if (indexA === -1) return 1
+      if (indexB === -1) return -1
+      return indexA - indexB
+    }))
   }
   
   // Debug: Log leaders structure
@@ -1158,26 +1170,12 @@ function GameSummary({ game, onBack }) {
                   {/* Leader Categories */}
                   {statCategories.slice(0, 5).map((category, idx) => {
                     const categoryLeaders = category.leaders || []
-                    if (categoryLeaders.length === 0) return null
                     
-                    // Match leaders by team ID
                     const awayTeamId = String(awayTeam?.team?.id || game.awayTeamId || '')
                     const homeTeamId = String(homeTeam?.team?.id || game.homeTeamId || '')
                     
-                    let awayLeader = categoryLeaders.find((l) => String(l.teamId || '') === awayTeamId)
-                    let homeLeader = categoryLeaders.find((l) => String(l.teamId || '') === homeTeamId)
-                    
-                    // Fallback: use first two if team matching fails
-                    if (!awayLeader && categoryLeaders.length > 0) {
-                      awayLeader = categoryLeaders[0]
-                    }
-                    if (!homeLeader) {
-                      if (categoryLeaders.length > 1 && categoryLeaders[1] !== awayLeader) {
-                        homeLeader = categoryLeaders[1]
-                      } else if (categoryLeaders.length > 0 && categoryLeaders[0] !== awayLeader) {
-                        homeLeader = categoryLeaders[0]
-                      }
-                    }
+                    const awayLeader = categoryLeaders.find((l) => String(l.teamId || '') === awayTeamId)
+                    const homeLeader = categoryLeaders.find((l) => String(l.teamId || '') === homeTeamId)
                     
                     const categoryName = category.displayName || category.name || 'Stat'
                     
@@ -1185,38 +1183,27 @@ function GameSummary({ game, onBack }) {
                       <div key={idx} className="game-leaders-row">
                         {/* Away Team Leader */}
                         <div className="game-leaders-player game-leaders-away">
-                            {awayLeader ? (
-                              <>
-                                <div className="game-leaders-player-image">
-                                  {awayLeader.athlete?.headshot?.href ? (
-                                    <img src={awayLeader.athlete.headshot.href} alt={awayLeader.athlete.displayName || ''} />
-                                  ) : (
-                                    <div className="game-leaders-player-placeholder"></div>
-                                  )}
-                                </div>
-                                <div className="game-leaders-player-info">
-                                  <div className="game-leaders-player-name">
-                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || 'Player'}
-                                  </div>
-                                  <div className="game-leaders-player-position">
-                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || ''}
-                                  </div>
-                                  {awayLeader.summary ? (
-                                    <div className="game-leaders-player-details">
-                                      {awayLeader.summary}
-                                    </div>
-                                  ) : null}
-                                </div>
-                                <div className="game-leaders-player-stat-large">
-                                  {awayLeader.mainStat?.value || awayLeader.displayValue || '-'}
-                                </div>
-                              </>
-                            ) : (
-                              <div className="game-leaders-empty">
+                          <div className="player-headshot-stat-group">
+                            <div className="game-leaders-player-image">
+                              {awayLeader?.athlete?.headshot?.href ? (
+                                <img src={awayLeader.athlete.headshot.href} alt="" />
+                              ) : (
                                 <div className="game-leaders-player-placeholder"></div>
-                                <span>--</span>
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            <div className="game-leaders-player-stat-large">
+                              {awayLeader?.mainStat?.value || '-'}
+                            </div>
+                          </div>
+                          <div className="game-leaders-player-info">
+                            <div className="game-leaders-player-name">
+                              {awayLeader?.athlete?.shortName || awayLeader?.athlete?.displayName || '-'}
+                              <span className="game-leaders-player-position"> {awayLeader?.athlete?.position?.abbreviation || ''}</span>
+                            </div>
+                            <div className="game-leaders-player-details">
+                              {awayLeader?.summary || '-'}
+                            </div>
+                          </div>
                         </div>
 
                         {/* Stat Title in Middle */}
@@ -1224,38 +1211,27 @@ function GameSummary({ game, onBack }) {
 
                         {/* Home Team Leader */}
                         <div className="game-leaders-player game-leaders-home">
-                            {homeLeader ? (
-                              <>
-                                <div className="game-leaders-player-stat-large">
-                                  {homeLeader.mainStat?.value || homeLeader.displayValue || '-'}
-                                </div>
-                                <div className="game-leaders-player-image">
-                                  {homeLeader.athlete?.headshot?.href ? (
-                                    <img src={homeLeader.athlete.headshot.href} alt={homeLeader.athlete.displayName || ''} />
-                                  ) : (
-                                    <div className="game-leaders-player-placeholder"></div>
-                                  )}
-                                </div>
-                                <div className="game-leaders-player-info">
-                                  <div className="game-leaders-player-name">
-                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || 'Player'}
-                                  </div>
-                                  <div className="game-leaders-player-position">
-                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || ''}
-                                  </div>
-                                  {homeLeader.summary ? (
-                                    <div className="game-leaders-player-details">
-                                      {homeLeader.summary}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </>
-                            ) : (
-                              <div className="game-leaders-empty">
+                          <div className="player-headshot-stat-group">
+                            <div className="game-leaders-player-stat-large">
+                              {homeLeader?.mainStat?.value || '-'}
+                            </div>
+                            <div className="game-leaders-player-image">
+                              {homeLeader?.athlete?.headshot?.href ? (
+                                <img src={homeLeader.athlete.headshot.href} alt="" />
+                              ) : (
                                 <div className="game-leaders-player-placeholder"></div>
-                                <span>--</span>
-                              </div>
-                            )}
+                              )}
+                            </div>
+                          </div>
+                          <div className="game-leaders-player-info">
+                            <div className="game-leaders-player-name">
+                              {homeLeader?.athlete?.shortName || homeLeader?.athlete?.displayName || '-'}
+                              <span className="game-leaders-player-position"> {homeLeader?.athlete?.position?.abbreviation || ''}</span>
+                            </div>
+                            <div className="game-leaders-player-details">
+                              {homeLeader?.summary || '-'}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )
