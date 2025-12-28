@@ -927,10 +927,6 @@ function GameSummary({ game, onBack }) {
 
   return (
     <>
-      <button className="back-btn floating" onClick={onBack}>
-        ← Back
-      </button>
-
       <div className="game-summary-content">
         {isLoading && <div className="info">Loading game summary...</div>}
         {error && <div className="error">Error loading summary: {error}</div>}
@@ -1496,8 +1492,18 @@ function App() {
     <div className="container">
       <div className="site-header">
         <div className="header-left" onClick={handleBackToScores} style={{ cursor: 'pointer' }}>
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
-          <h1>Quiet Scores</h1>
+          {selectedGame ? (
+            <div className="back-nav">
+              <span className="back-icon">←</span>
+              <img src="helmet logo.png" alt="Logo" className="site-logo-small" />
+              <h1 className="back-text">Back</h1>
+            </div>
+          ) : (
+            <>
+              <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
+              <h1>Quiet Scores</h1>
+            </>
+          )}
         </div>
 
         <div className="header-center">
