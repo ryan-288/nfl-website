@@ -1760,37 +1760,40 @@ function ScoreTicker({ scores, onOpenSummary, tickerSports }) {
 
   if (!filteredScores || filteredScores.length === 0) return null;
 
-  // Duplicate scores to create seamless infinite scroll effect
-  const tickerScores = [...filteredScores, ...filteredScores];
+  // Only scroll if we have more than 8 games (about half a desktop screen width)
+  const isScrolling = filteredScores.length > 8;
+  const tickerScores = isScrolling ? [...filteredScores, ...filteredScores] : filteredScores;
 
   return (
     <div className="score-ticker-container">
-      <div className="score-ticker-track">
-        {tickerScores.map((game, idx) => (
-          <div 
-            key={`${game.id}-${idx}`} 
-            className="ticker-item"
-            onClick={() => onOpenSummary(game)}
-          >
-            <div className="ticker-teams">
-              <div className="ticker-team-row">
-                <img src={game.awayLogo} alt="" className="ticker-logo" />
-                <span>{game.awayAbbreviation}</span>
-                <span className="ticker-score">{game.awayScore}</span>
+      <div className="score-ticker-track-container">
+        <div className={`score-ticker-track ${isScrolling ? 'scrolling' : ''}`}>
+          {tickerScores.map((game, idx) => (
+            <div 
+              key={`${game.id}-${idx}`} 
+              className="ticker-item"
+              onClick={() => onOpenSummary(game)}
+            >
+              <div className="ticker-teams">
+                <div className="ticker-team-row">
+                  <img src={game.awayLogo} alt="" className="ticker-logo" />
+                  <span>{game.awayAbbreviation}</span>
+                  <span className="ticker-score">{game.awayScore}</span>
+                </div>
+                <div className="ticker-team-row">
+                  <img src={game.homeLogo} alt="" className="ticker-logo" />
+                  <span>{game.homeAbbreviation}</span>
+                  <span className="ticker-score">{game.homeScore}</span>
+                </div>
               </div>
-              <div className="ticker-team-row">
-                <img src={game.homeLogo} alt="" className="ticker-logo" />
-                <span>{game.homeAbbreviation}</span>
-                <span className="ticker-score">{game.homeScore}</span>
+              <div className={`ticker-status ${game.status === 'final' ? 'final' : ''} ${game.status === 'scheduled' ? 'scheduled' : ''}`}>
+                {game.status === 'live' ? (game.time || 'LIVE') : 
+                 game.status === 'scheduled' ? (game.displayTime || 'TBD') : 
+                 game.status.toUpperCase()}
               </div>
             </div>
-            <div className={`ticker-status ${game.status === 'final' ? 'final' : ''} ${game.status === 'scheduled' ? 'scheduled' : ''}`}>
-              {game.status === 'live' ? (game.time || 'LIVE') : 
-               game.status === 'scheduled' ? (game.displayTime || 'TBD') : 
-               game.status.toUpperCase()}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

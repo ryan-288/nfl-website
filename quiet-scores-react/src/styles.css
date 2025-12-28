@@ -76,8 +76,11 @@ body {
     display: flex;
     gap: 0;
     padding: 0;
-    animation: ticker-scroll 60s linear infinite;
     width: max-content;
+}
+
+.score-ticker-track.scrolling {
+    animation: ticker-scroll 60s linear infinite;
 }
 
 .score-ticker-track:hover {
