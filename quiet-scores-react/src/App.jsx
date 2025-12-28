@@ -828,13 +828,23 @@ function GameSummary({ game, onBack }) {
     window._loggedLeadersDebug = true
     console.log('=== GAME LEADERS DEBUG ===')
     console.log('Leaders count:', leaders.length)
-    console.log('First leader:', leaders[0])
-    if (leaders[0]?.leaders?.[0]) {
-      console.log('First leader player:', leaders[0].leaders[0])
-      console.log('Player athlete:', leaders[0].leaders[0].athlete)
-      console.log('Player headshot:', leaders[0].leaders[0].athlete?.headshot)
-      console.log('Player statistics:', leaders[0].leaders[0].athlete?.statistics)
-    }
+    console.log('All leaders:', leaders)
+    leaders.forEach((leader, idx) => {
+      console.log(`Leader[${idx}]:`, leader)
+      console.log(`Leader[${idx}].name:`, leader.name)
+      console.log(`Leader[${idx}].displayName:`, leader.displayName)
+      console.log(`Leader[${idx}].leaders:`, leader.leaders)
+      if (leader.leaders && leader.leaders.length > 0) {
+        leader.leaders.forEach((player, pIdx) => {
+          console.log(`  Player[${pIdx}]:`, player)
+          console.log(`  Player[${pIdx}].team:`, player.team)
+          console.log(`  Player[${pIdx}].team?.id:`, player.team?.id)
+          console.log(`  Player[${pIdx}].athlete:`, player.athlete)
+        })
+      }
+    })
+    console.log('Away team ID:', awayTeam?.team?.id, game.awayTeamId)
+    console.log('Home team ID:', homeTeam?.team?.id, game.homeTeamId)
   }
   const awayPlayers = awayTeam?.statistics?.[0]?.athletes || awayTeam?.players || []
   const homePlayers = homeTeam?.statistics?.[0]?.athletes || homeTeam?.players || []
@@ -1112,16 +1122,39 @@ function GameSummary({ game, onBack }) {
                   {/* Leader Categories */}
                   {leaders.slice(0, 5).map((leader, idx) => {
                     const categoryLeaders = leader.leaders || []
-                    if (categoryLeaders.length === 0) return null
+                    if (categoryLeaders.length === 0) {
+                      // Debug: log why we're skipping
+                      console.log(`Skipping leader[${idx}] - no leaders array:`, leader)
+                      return null
+                    }
                     
-                    const awayLeader = categoryLeaders.find((l) => 
-                      String(l.team?.id) === String(awayTeam?.team?.id) || 
-                      String(l.team?.id) === String(game.awayTeamId)
-                    )
-                    const homeLeader = categoryLeaders.find((l) => 
-                      String(l.team?.id) === String(homeTeam?.team?.id) || 
-                      String(l.team?.id) === String(game.homeTeamId)
-                    )
+                    // Try multiple ways to match teams
+                    const awayLeader = categoryLeaders.find((l) => {
+                      const playerTeamId = String(l.team?.id || l.teamId || '')
+                      const awayId1 = String(awayTeam?.team?.id || '')
+                      const awayId2 = String(game.awayTeamId || '')
+                      const matches = playerTeamId === awayId1 || playerTeamId === awayId2
+                      if (matches) {
+                        console.log(`Found away leader for ${leader.displayName || leader.name}:`, l)
+                      }
+                      return matches
+                    }) || (categoryLeaders.length > 0 && categoryLeaders[0]?.homeAway === 'away' ? categoryLeaders[0] : categoryLeaders[0])
+                    
+                    const homeLeader = categoryLeaders.find((l) => {
+                      const playerTeamId = String(l.team?.id || l.teamId || '')
+                      const homeId1 = String(homeTeam?.team?.id || '')
+                      const homeId2 = String(game.homeTeamId || '')
+                      const matches = playerTeamId === homeId1 || playerTeamId === homeId2
+                      if (matches) {
+                        console.log(`Found home leader for ${leader.displayName || leader.name}:`, l)
+                      }
+                      return matches
+                    }) || (categoryLeaders.length > 1 && categoryLeaders[1]?.homeAway === 'home' ? categoryLeaders[1] : (categoryLeaders.length > 1 ? categoryLeaders[1] : null))
+                    
+                    // Debug if no leaders found
+                    if (!awayLeader && !homeLeader) {
+                      console.log(`No leaders found for ${leader.displayName || leader.name}. Available:`, categoryLeaders)
+                    }
                     
                     const categoryName = leader.displayName || leader.name || 'Stat'
                     
