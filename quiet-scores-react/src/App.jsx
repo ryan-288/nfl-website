@@ -526,6 +526,7 @@ function GameSummary({ game, onBack }) {
   const [error, setError] = useState(null)
   const [showFullBoxScore, setShowFullBoxScore] = useState(false)
   const [playFilter, setPlayFilter] = useState('all') // Start with 'all' to ensure something is visible
+  const [showPlayByPlay, setShowPlayByPlay] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -946,6 +947,15 @@ function GameSummary({ game, onBack }) {
   const awayTeamLogo = awayTeam?.team?.logos?.[0]?.href || awayTeam?.team?.logo || game.awayLogo
   const homeTeamLogo = homeTeam?.team?.logos?.[0]?.href || homeTeam?.team?.logo || game.homeLogo
 
+  // Snapshot Data Extraction
+  const currentDrive = summaryData?.drives?.current
+  const situation = summaryData?.boxscore?.situation || summaryData?.header?.competitions?.[0]?.situation
+  const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
+  
+  const getTeamStat = (team, statName) => {
+    return team?.statistics?.find(s => s.name === statName)?.displayValue || '0'
+  }
+
   return (
     <>
       <div className="game-summary-content">
@@ -1061,6 +1071,91 @@ function GameSummary({ game, onBack }) {
                       fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Game Snapshot Section */}
+            <div className="game-snapshot-container">
+              <div className="snapshot-header-row">
+                {currentDrive && (
+                  <div className="current-drive-section">
+                    <span className="current-drive-label">CURRENT DRIVE</span>
+                    <span className="current-drive-info">
+                      {currentDrive.plays} plays, {currentDrive.yards} yards, {currentDrive.displayTime}
+                    </span>
+                  </div>
+                )}
+                <div className="snapshot-situation">
+                  <div className="situation-item">
+                    <span className="snapshot-label">Down:</span>
+                    <span className="snapshot-value">{situation?.downDistanceText || '-'}</span>
+                  </div>
+                  <div className="situation-item">
+                    <span className="snapshot-label">Ball on:</span>
+                    <span className="snapshot-value">{situation?.yardLineText || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Card */}
+              <div className="snapshot-status-card">
+                <div className="status-card-header">
+                  <div className="status-title-group">
+                    <span className="status-card-title">{game.status?.type?.detail || game.status?.type?.description || 'GAME STATUS'}</span>
+                  </div>
+                  {winProbability && (
+                    <div className="win-prob">
+                      Win %: 
+                      {winProbability.homeWinPercentage > winProbability.awayWinPercentage ? (
+                        <span className="win-prob-val">
+                          <img src={homeTeamLogo} alt="" className="tiny-logo" /> {(winProbability.homeWinPercentage * 100).toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="win-prob-val">
+                          <img src={awayTeamLogo} alt="" className="tiny-logo" /> {(winProbability.awayWinPercentage * 100).toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="team-snapshot-cards">
+                  {[awayTeam, homeTeam].map((team, idx) => {
+                    const isAway = idx === 0;
+                    const logo = isAway ? awayTeamLogo : homeTeamLogo;
+                    const teamName = isAway ? game.awayTeam : game.homeTeam;
+                    const record = isAway ? game.awayTeamRecord : game.homeTeamRecord;
+                    const conference = isAway ? game.awayConference : game.homeConference;
+                    
+                    return (
+                      <div key={idx} className="team-mini-card">
+                        <div className="team-mini-header">
+                          <div className="team-mini-logo">
+                            <img src={logo} alt="" />
+                          </div>
+                          <div className="team-mini-info">
+                            <div className="team-mini-name">{teamName}</div>
+                            <div className="team-mini-record">{record} {conference ? `in ${conference}` : ''}</div>
+                          </div>
+                        </div>
+                        <div className="team-mini-stats">
+                          <div className="mini-stat-item">
+                            <span className="mini-stat-label">YDS</span>
+                            <span className="mini-stat-value">{getTeamStat(team, 'totalYards')}</span>
+                          </div>
+                          <div className="mini-stat-item">
+                            <span className="mini-stat-label">T/O</span>
+                            <span className="mini-stat-value">{getTeamStat(team, 'turnovers')}</span>
+                          </div>
+                          <div className="mini-stat-item">
+                            <span className="mini-stat-label">TOP</span>
+                            <span className="mini-stat-value">{getTeamStat(team, 'possessionTime')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1318,103 +1413,113 @@ function GameSummary({ game, onBack }) {
 
             {/* Play-by-Play */}
             {plays.length > 0 && (
-              <div className="summary-section">
-                <div className="section-header-row">
-                  <h3>PLAY-BY-PLAY</h3>
-                  <div className="play-toggle-container">
-                    <button 
-                      className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
-                      onClick={() => setPlayFilter('scoring')}
-                    >
-                      Scoring Plays
-                    </button>
-                    <button 
-                      className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
-                      onClick={() => setPlayFilter('all')}
-                    >
-                      All Plays
-                    </button>
+              <div className="summary-section collapsible-section">
+                <div 
+                  className={`section-header-row clickable ${showPlayByPlay ? 'expanded' : ''}`}
+                  onClick={() => setShowPlayByPlay(!showPlayByPlay)}
+                >
+                  <div className="header-title-group">
+                    <h3>PLAY-BY-PLAY</h3>
+                    <span className={`expand-icon ${showPlayByPlay ? 'expanded' : ''}`}>▼</span>
                   </div>
+                  {showPlayByPlay && (
+                    <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
+                        onClick={() => setPlayFilter('scoring')}
+                      >
+                        Scoring Plays
+                      </button>
+                      <button 
+                        className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setPlayFilter('all')}
+                      >
+                        All Plays
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <div className="play-by-play-list">
-                  {(() => {
-                    const filteredPlays = plays.filter(play => {
-                      if (playFilter === 'all') return true;
-                      return play.scoringPlay || 
-                             play.type?.text?.toLowerCase().includes('touchdown') || 
-                             play.type?.text?.toLowerCase().includes('field goal') ||
-                             play.type?.text?.toLowerCase().includes('safety');
-                    }).reverse();
+                {showPlayByPlay && (
+                  <div className="play-by-play-list">
+                    {(() => {
+                      const filteredPlays = plays.filter(play => {
+                        if (playFilter === 'all') return true;
+                        return play.scoringPlay || 
+                               play.type?.text?.toLowerCase().includes('touchdown') || 
+                               play.type?.text?.toLowerCase().includes('field goal') ||
+                               play.type?.text?.toLowerCase().includes('safety');
+                      }).reverse();
 
-                    if (filteredPlays.length === 0) {
-                      return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
-                    }
+                      if (filteredPlays.length === 0) {
+                        return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
+                      }
 
-                    // Group plays by period
-                    const groupedPlays = filteredPlays.reduce((groups, play) => {
-                      const period = play.period?.number || play.period || 1;
-                      if (!groups[period]) groups[period] = [];
-                      groups[period].push(play);
-                      return groups;
-                    }, {});
+                      // Group plays by period
+                      const groupedPlays = filteredPlays.reduce((groups, play) => {
+                        const period = play.period?.number || play.period || 1;
+                        if (!groups[period]) groups[period] = [];
+                        groups[period].push(play);
+                        return groups;
+                      }, {});
 
-                    return Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
-                      <div key={period} className="period-group">
-                        <div className="period-header">
-                          {period === '1' ? '1ST QUARTER' : 
-                           period === '2' ? '2ND QUARTER' : 
-                           period === '3' ? '3RD QUARTER' : 
-                           period === '4' ? '4TH QUARTER' : 
-                           `PERIOD ${period}`}
-                        </div>
-                        {groupedPlays[period].map((play, idx) => {
-                          const playTeamId = String(play.team?.id || '');
-                          const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
-                          const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
-                          
-                          return (
-                            <div key={idx} className="play-card">
-                              <div className="play-card-left">
-                                <div className="play-team-logo">
-                                  {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
-                                </div>
-                                <div className="play-content">
-                                  <div className="play-type-row">
-                                    <span className="play-type-text">{play.type?.text || 'Play'}</span>
-                                    <span className="play-time-text">
-                                      {play.clock?.displayValue || ''}
-                                      {play.clock?.displayValue && ' - '}
-                                      {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
-                                    </span>
+                      return Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
+                        <div key={period} className="period-group">
+                          <div className="period-header">
+                            {period === '1' ? '1ST QUARTER' : 
+                             period === '2' ? '2ND QUARTER' : 
+                             period === '3' ? '3RD QUARTER' : 
+                             period === '4' ? '4TH QUARTER' : 
+                             `PERIOD ${period}`}
+                          </div>
+                          {groupedPlays[period].map((play, idx) => {
+                            const playTeamId = String(play.team?.id || '');
+                            const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
+                            const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
+                            
+                            return (
+                              <div key={idx} className="play-card">
+                                <div className="play-card-left">
+                                  <div className="play-team-logo">
+                                    {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
                                   </div>
-                                  <div className="play-description">{play.text}</div>
-                                  {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
-                                    <div className="play-drive-info">
-                                      {play.drive?.description || play.drive?.displayValue || `${play.statYardage} yards`}
+                                  <div className="play-content">
+                                    <div className="play-type-row">
+                                      <span className="play-type-text">{play.type?.text || 'Play'}</span>
+                                      <span className="play-time-text">
+                                        {play.clock?.displayValue || ''}
+                                        {play.clock?.displayValue && ' - '}
+                                        {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
+                                      </span>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="play-card-right">
-                                <div className="play-score-update">
-                                  <div className="score-numbers">
-                                    <span className="score-away">{play.awayScore ?? '-'}</span>
-                                    <span className="score-home">{play.homeScore ?? '-'}</span>
-                                  </div>
-                                  <div className="score-labels">
-                                    <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
-                                    <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
+                                    <div className="play-description">{play.text}</div>
+                                    {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
+                                      <div className="play-drive-info">
+                                        {play.drive?.description || play.drive?.displayValue || `${play.statYardage} yards`}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
+                                <div className="play-card-right">
+                                  <div className="play-score-update">
+                                    <div className="score-numbers">
+                                      <span className="score-away">{play.awayScore ?? '-'}</span>
+                                      <span className="score-home">{play.homeScore ?? '-'}</span>
+                                    </div>
+                                    <div className="score-labels">
+                                      <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
+                                      <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ));
-                  })()}
-                </div>
+                            );
+                          })}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
               </div>
             )}
 

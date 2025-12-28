@@ -4120,3 +4120,248 @@ body.pwa-mode {
     border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
+/* Game Snapshot Section */
+.game-snapshot-container {
+    margin: 20px auto;
+    max-width: 850px;
+    padding: 0 15px;
+}
+
+.snapshot-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 15px;
+    padding: 0 5px;
+}
+
+.current-drive-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.current-drive-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+}
+
+.current-drive-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.snapshot-situation {
+    display: flex;
+    gap: 30px;
+    border-left: 1px solid var(--border-primary);
+    padding-left: 30px;
+}
+
+.situation-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.snapshot-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.snapshot-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.snapshot-status-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.status-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.status-card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
+.win-prob {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.win-prob-val {
+    color: var(--text-primary);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tiny-logo {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.team-snapshot-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+}
+
+.team-mini-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.team-mini-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.team-mini-logo {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    padding: 4px;
+}
+
+.team-mini-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.team-mini-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.team-mini-record {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.team-mini-stats {
+    display: flex;
+    justify-content: space-between;
+}
+
+.mini-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.mini-stat-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.mini-stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Collapsible Play-by-Play */
+.collapsible-section {
+    cursor: default;
+}
+
+.section-header-row.clickable {
+    cursor: pointer;
+    transition: background 0.2s ease;
+    padding: 10px 15px;
+    margin: -10px -15px 10px;
+    border-radius: 8px 8px 0 0;
+}
+
+.section-header-row.clickable:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.expand-icon {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+}
+
+.expand-icon.expanded {
+    transform: rotate(180deg);
+}
+
+.section-header-row.clickable::after {
+    content: 'Click to expand';
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.section-header-row.clickable:hover::after {
+    opacity: 1;
+}
+
+.section-header-row.clickable.expanded::after {
+    content: 'Click to collapse';
+}
+
+@media (max-width: 600px) {
+    .snapshot-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .snapshot-situation {
+        border-left: none;
+        padding-left: 0;
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .team-snapshot-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
