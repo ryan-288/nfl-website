@@ -4110,3 +4110,13 @@ body.pwa-mode {
     text-align: center;
 }
 
+.no-plays-message {
+    padding: 30px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+

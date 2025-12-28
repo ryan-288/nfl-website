@@ -525,7 +525,7 @@ function GameSummary({ game, onBack }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showFullBoxScore, setShowFullBoxScore] = useState(false)
-  const [playFilter, setPlayFilter] = useState('scoring') // 'scoring' or 'all'
+  const [playFilter, setPlayFilter] = useState('all') // Start with 'all' to ensure something is visible
 
   useEffect(() => {
     let cancelled = false
@@ -698,7 +698,26 @@ function GameSummary({ game, onBack }) {
     console.log('Full summaryData (first 10000 chars):', JSON.stringify(summaryData, null, 2).substring(0, 10000))
   }
   
-  const plays = summaryData?.plays || []
+  const plays = summaryData?.plays || 
+                summaryData?.boxscore?.plays || 
+                summaryData?.drives?.previous?.flatMap(d => d.plays || []) ||
+                summaryData?.drives?.current?.plays ||
+                []
+
+  // Determine if we have any scoring plays to decide the default filter
+  const hasScoringPlays = plays.some(p => p.scoringPlay || p.type?.text?.toLowerCase().includes('touchdown') || p.type?.text?.toLowerCase().includes('field goal'))
+
+  // Debug plays
+  if (summaryData && !window._loggedPlaysDebug) {
+    window._loggedPlaysDebug = true
+    console.log('=== PLAYS DEBUG ===')
+    console.log('Plays count:', plays.length)
+    console.log('Has scoring plays:', hasScoringPlays)
+    if (plays.length > 0) {
+      console.log('Sample play keys:', Object.keys(plays[0]))
+      console.log('Sample play:', JSON.stringify(plays[0], null, 2))
+    }
+  }
   const headlines = summaryData?.headlines || []
   const commentary = summaryData?.commentary || []
   
@@ -1320,9 +1339,17 @@ function GameSummary({ game, onBack }) {
 
                 <div className="play-by-play-list">
                   {(() => {
-                    const filteredPlays = plays.filter(play => 
-                      playFilter === 'all' || play.scoringPlay
-                    ).reverse();
+                    const filteredPlays = plays.filter(play => {
+                      if (playFilter === 'all') return true;
+                      return play.scoringPlay || 
+                             play.type?.text?.toLowerCase().includes('touchdown') || 
+                             play.type?.text?.toLowerCase().includes('field goal') ||
+                             play.type?.text?.toLowerCase().includes('safety');
+                    }).reverse();
+
+                    if (filteredPlays.length === 0) {
+                      return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
+                    }
 
                     // Group plays by period
                     const groupedPlays = filteredPlays.reduce((groups, play) => {
