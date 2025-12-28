@@ -1185,7 +1185,7 @@ function GameSummary({ game, onBack }) {
     const homeColor = `#${homeTeam?.team?.color || '888888'}`;
     const awayColor = `#${awayTeam?.team?.color || '888888'}`;
 
-    return (
+  return (
       <div className="win-prob-chart-container">
         <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg">
           {/* Grid Lines */}
@@ -1268,91 +1268,12 @@ function GameSummary({ game, onBack }) {
     );
   };
 
-  const NewsSection = ({ articles }) => {
-    if (!articles || articles.length === 0) return null;
-    return (
-      <div className="news-section">
-        <div className="section-header">
-          <h3>LATEST NEWS</h3>
-        </div>
-        {articles.slice(0, 3).map((article, idx) => (
-          <a key={idx} href={article.links?.web?.href} target="_blank" rel="noopener noreferrer" className="news-item" style={{ textDecoration: 'none' }}>
-            <div className="news-thumb">
-              <img src={article.images?.[0]?.url} alt="" />
-            </div>
-            <div className="news-info">
-              <h4>{article.headline}</h4>
-              <p>{article.description}</p>
-            </div>
-          </a>
-        ))}
-      </div>
-    );
-  };
-
-  const OddsSection = ({ data }) => {
-    const odds = data?.[0];
-    if (!odds) return null;
-    return (
-      <div className="odds-section">
-        <div className="section-header">
-          <h3>GAME ODDS</h3>
-        </div>
-        <table className="odds-table">
-          <thead>
-            <tr>
-              <th className="odds-team-cell">TEAM</th>
-              <th>SPREAD</th>
-              <th>TOTAL</th>
-              <th>ML</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[awayTeam, homeTeam].map((team, idx) => {
-              const isAway = idx === 0;
-              const spread = isAway ? odds.awayTeamOdds?.spread : odds.homeTeamOdds?.spread;
-              const ml = isAway ? odds.awayTeamOdds?.moneyLine : odds.homeTeamOdds?.moneyLine;
-              const overUnder = odds.overUnder;
-              return (
-                <tr key={idx}>
-                  <td className="odds-team-cell">{team?.team?.displayName || (isAway ? game.awayTeam : game.homeTeam)}</td>
-                  <td>
-                    <div className="odds-box">
-                      <span className="odds-val">{spread > 0 ? `+${spread}` : spread}</span>
-                    </div>
-                  </td>
-                  <td>
-                    {idx === 0 && (
-                      <div className="odds-box">
-                        <span className="odds-val">o{overUnder}</span>
-                      </div>
-                    )}
-                    {idx === 1 && (
-                      <div className="odds-box">
-                        <span className="odds-val">u{overUnder}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <div className="odds-box">
-                      <span className="odds-val">{ml > 0 ? `+${ml}` : ml}</span>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
   return (
     <div className="game-summary-container">
-      {isLoading && <div className="info">Loading game summary...</div>}
-      {error && <div className="error">Error loading summary: {error}</div>}
+        {isLoading && <div className="info">Loading game summary...</div>}
+        {error && <div className="error">Error loading summary: {error}</div>}
       
-      {summaryData && (
+        {summaryData && (
         <>
           {/* Game Info Header - Top */}
           <div className="game-info-header-new" style={{ marginBottom: '20px' }}>
@@ -1373,80 +1294,67 @@ function GameSummary({ game, onBack }) {
                 })() : game.status === 'live' ? <span className="game-status-live">LIVE</span> : 
                        game.status === 'final' ? <span className="game-status-final">FINAL</span> : 
                        <span className="game-status-scheduled">{game.displayTime || 'SCHEDULED'}</span>}
+                  </div>
+                </div>
+
+          <div className="game-teams-header-new">
+            <div className="team-header-new team-away">
+              <div className="team-logo-side">
+                <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} />
               </div>
+              <div className="team-info-side">
+                <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
+                <div className="team-record-side">{game.awayTeamRecord || ''}</div>
+              </div>
+              <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '0'}</div>
             </div>
 
-            <div className="game-teams-header-new">
-              <div className="team-header-new team-away">
-                <div className="team-logo-side">
-                  <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} />
-                </div>
-                <div className="team-info-side">
-                  <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
-                  <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-                </div>
-                <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '0'}</div>
+            <div className="game-center-section">
+              <div className="quarter-scores-table">
+                <table className="quarter-table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {[1, 2, 3, 4].map(q => <th key={q}>{q}</th>)}
+                      {game.sport === 'nfl' && <th>OT</th>}
+                      <th className="total-score">T</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="team-abbr">{game.awayAbbreviation || 'AWY'}</td>
+                      {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(awayLinescoresFinal, q, 'away')}</td>)}
+                      {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescoresFinal, 5, 'away')}</td>}
+                      <td className="total-score">{game.awayScore || '0'}</td>
+                    </tr>
+                    <tr>
+                      <td className="team-abbr">{game.homeAbbreviation || 'HME'}</td>
+                      {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(homeLinescoresFinal, q, 'home')}</td>)}
+                      {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescoresFinal, 5, 'home')}</td>}
+                      <td className="total-score">{game.homeScore || '0'}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
+              {game.broadcastChannel && <div className="broadcast-info">{abbreviateNetwork(game.broadcastChannel)}</div>}
+            </div>
 
-              <div className="game-center-section">
-                <div className="quarter-scores-table">
-                  <table className="quarter-table">
-                    <thead>
-                      <tr>
-                        <th></th>
-                        {[1, 2, 3, 4].map(q => <th key={q}>{q}</th>)}
-                        {game.sport === 'nfl' && <th>OT</th>}
-                        <th className="total-score">T</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="team-abbr">{game.awayAbbreviation || 'AWY'}</td>
-                        {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(awayLinescoresFinal, q, 'away')}</td>)}
-                        {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescoresFinal, 5, 'away')}</td>}
-                        <td className="total-score">{game.awayScore || '0'}</td>
-                      </tr>
-                      <tr>
-                        <td className="team-abbr">{game.homeAbbreviation || 'HME'}</td>
-                        {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(homeLinescoresFinal, q, 'home')}</td>)}
-                        {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescoresFinal, 5, 'home')}</td>}
-                        <td className="total-score">{game.homeScore || '0'}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                {game.broadcastChannel && <div className="broadcast-info">{abbreviateNetwork(game.broadcastChannel)}</div>}
+            <div className="team-header-new team-home">
+              <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '0'}</div>
+              <div className="team-info-side">
+                <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
+                <div className="team-record-side">{game.homeTeamRecord || ''}</div>
               </div>
-
-              <div className="team-header-new team-home">
-                <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '0'}</div>
-                <div className="team-info-side">
-                  <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
-                  <div className="team-record-side">{game.homeTeamRecord || ''}</div>
-                </div>
-                <div className="team-logo-side">
-                  <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} />
-                </div>
+              <div className="team-logo-side">
+                <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Tabs Navigation */}
-          <div className="summary-tabs">
-            {['gamecast', 'boxscore', 'play-by-play', 'team-stats'].map(tab => (
-              <button 
-                key={tab} 
-                className={`summary-tab ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab.replace('-', ' ')}
-              </button>
-            ))}
-          </div>
+        {/* Main Grid Layout */}
+        <div className="game-summary-grid">
 
-          {/* Main Grid Layout */}
-          <div className="game-summary-grid">
-            
             {/* Left Sidebar */}
             <aside className="summary-sidebar-left">
               {/* Game Leaders */}
@@ -1475,15 +1383,15 @@ function GameSummary({ game, onBack }) {
                       const homeTeamId = String(homeTeam?.team?.id || game.homeTeamId || '')
                       const awayL = category.leaders?.find(l => String(l.teamId || '') === awayTeamId)
                       const homeL = category.leaders?.find(l => String(l.teamId || '') === homeTeamId)
-                      return (
+                        return (
                         <div key={idx} className="game-leaders-row" style={{ gridTemplateColumns: '1fr auto 1fr', padding: '10px 15px' }}>
                           <div className="game-leaders-player game-leaders-away" style={{ flexDirection: 'column', alignItems: 'center' }}>
                             <div className="player-headshot-stat-group" style={{ marginBottom: '5px' }}>
                               <div className="game-leaders-player-image" style={{ width: '40px', height: '40px' }}>
                                 {awayL?.athlete?.headshot?.href ? <img src={awayL.athlete.headshot.href} alt="" /> : <div className="game-leaders-player-placeholder" />}
-                              </div>
+                                </div>
                               <div className="game-leaders-player-stat-large" style={{ fontSize: '1.1rem' }}>{awayL?.mainStat?.value || '-'}</div>
-                            </div>
+                              </div>
                             <div className="game-leaders-player-name" style={{ fontSize: '0.75rem', textAlign: 'center' }}>{awayL?.athlete?.shortName}</div>
                           </div>
                           <div className="game-leaders-category-label" style={{ fontSize: '0.7rem' }}>{category.displayName || category.name}</div>
@@ -1502,29 +1410,29 @@ function GameSummary({ game, onBack }) {
                     <div style={{ textAlign: 'center', padding: '10px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                       <button className="summary-tab" style={{ fontSize: '0.7rem', padding: 0, border: 'none' }} onClick={() => setActiveTab('boxscore')}>Full Box Score</button>
                     </div>
-                  </div>
                 </div>
-              )}
+              </div>
+            )}
 
               {/* Team Stats Summary */}
               {awayTeam?.statistics && (
                 <div className="standings-section">
                   <div className="section-header">
                     <h3>TEAM STATS</h3>
-                  </div>
+                        </div>
                   <div className="boxscore-header-teams-unified" style={{ marginBottom: '15px' }}>
                     <div className="boxscore-header-team-unified">
                       <div className="boxscore-header-logo" style={{ width: '20px', height: '20px' }}>
                         <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} />
-                      </div>
+                              </div>
                       <span style={{ fontSize: '0.7rem', fontWeight: '700' }}>{game.awayAbbreviation}</span>
-                    </div>
+                              </div>
                     <div className="boxscore-header-team-unified">
                       <span style={{ fontSize: '0.7rem', fontWeight: '700' }}>{game.homeAbbreviation}</span>
                       <div className="boxscore-header-logo" style={{ width: '20px', height: '20px' }}>
                         <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} />
-                      </div>
-                    </div>
+                              </div>
+                            </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     {awayTeam.statistics.slice(0, 5).map((stat, idx) => {
@@ -1544,13 +1452,13 @@ function GameSummary({ game, onBack }) {
                           <div className="boxscore-row-bar" style={{ height: '4px' }}>
                             <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayTeamColor }} />
                             <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeTeamColor }} />
-                          </div>
                         </div>
-                      )
-                    })}
-                  </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              )}
+              </div>
+            )}
             </aside>
 
             {/* Middle Main Content */}
@@ -1592,17 +1500,17 @@ function GameSummary({ game, onBack }) {
                               {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(line => (
                                 <div key={line} className="field-yard-line" style={{ left: `${line}%` }}>
                                   <span className="yard-num">{line > 50 ? 100 - line : line}</span>
-                                </div>
-                              ))}
+                      </div>
+                    ))}
                             </div>
                             {normalizedYardLine !== null && (
                               <div className="ball-marker-container" style={{ left: `${normalizedYardLine}%` }}>
                                 <div className="ball-marker-icon">
                                   <img src={isAwayPossession ? awayTeamLogo : isHomePossession ? homeTeamLogo : awayTeamLogo} alt="" className="marker-logo" />
                                   <div className="marker-pointer" />
-                                </div>
-                              </div>
-                            )}
+                </div>
+              </div>
+            )}
                           </div>
                           <div className="field-endzone home-endzone" style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}>
                             <span className="endzone-text">{game.homeAbbreviation}</span>
@@ -1636,16 +1544,13 @@ function GameSummary({ game, onBack }) {
                               <div className="play-description" style={{ fontSize: '0.85rem' }}>{play.text}</div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                    </div>
+                  ))}
                       <div style={{ textAlign: 'center', padding: '15px' }}>
                         <button className="summary-tab" style={{ fontSize: '0.75rem' }} onClick={() => setActiveTab('play-by-play')}>Full Play-by-Play</button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Odds Section */}
-                  <OddsSection data={summaryData.pickcenter} />
                 </>
               )}
 
@@ -1678,12 +1583,12 @@ function GameSummary({ game, onBack }) {
                               </tbody>
                             </table>
                           </div>
-                        </div>
-                      ))}
                     </div>
                   ))}
                 </div>
-              )}
+                  ))}
+              </div>
+            )}
 
               {activeTab === 'play-by-play' && (
                 <div className="play-by-play-list" style={{ border: 'none', background: 'transparent' }}>
@@ -1701,8 +1606,8 @@ function GameSummary({ game, onBack }) {
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
+          </div>
+        )}
 
               {activeTab === 'team-stats' && (
                 <div className="boxscore-container">
@@ -1714,7 +1619,7 @@ function GameSummary({ game, onBack }) {
                             <div className="boxscore-header-team-unified">
                               <div className="boxscore-header-logo"><TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} /></div>
                               <span style={{ color: '#e0e0e0' }}>{game.awayTeam}</span>
-                            </div>
+      </div>
                             <div className="boxscore-header-team-unified">
                               <div className="boxscore-header-logo"><TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} /></div>
                               <span style={{ color: '#e0e0e0' }}>{game.homeTeam}</span>
@@ -1791,9 +1696,6 @@ function GameSummary({ game, onBack }) {
 
               {/* Standings */}
               {summaryData.standings && <StandingsSection data={summaryData.standings} />}
-
-              {/* News */}
-              {summaryData.news?.articles && <NewsSection articles={summaryData.news.articles} />}
             </aside>
 
           </div>
@@ -1995,7 +1897,7 @@ function App() {
 
         <div className="header-center">
           {!selectedGame && (
-            <div className="sport-filters">
+        <div className="sport-filters">
               <div
                 className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
                 style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
@@ -2010,21 +1912,21 @@ function App() {
                 <span>Live</span>
               </div>
               <div className="filter-divider"></div>
-              {SPORT_BUTTONS.map((button) => (
-                <button
-                  key={button.value}
-                  className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                    .filter(Boolean)
-                    .join(' ')}
-                  data-sport={button.value}
-                  onClick={() => handleSportClick(button.value)}
-                >
-                  {button.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {SPORT_BUTTONS.map((button) => (
+            <button
+              key={button.value}
+              className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                .filter(Boolean)
+                .join(' ')}
+              data-sport={button.value}
+              onClick={() => handleSportClick(button.value)}
+            >
+              {button.label}
+            </button>
+          ))}
         </div>
+          )}
+      </div>
 
         <div className="header-right">
           {/* Right side spacer for balance */}
