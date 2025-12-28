@@ -998,7 +998,7 @@ function GameSummary({ game, onBack }) {
                                 fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
                               />
                             </div>
-                            <span className="boxscore-header-away" style={{ color: awayTeamColor }}>
+                            <span className="boxscore-header-away" style={{ color: '#e0e0e0' }}>
                               {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
                             </span>
                           </div>
@@ -1010,7 +1010,7 @@ function GameSummary({ game, onBack }) {
                                 fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
                               />
                             </div>
-                            <span className="boxscore-header-home" style={{ color: homeTeamColor }}>
+                            <span className="boxscore-header-home" style={{ color: '#e0e0e0' }}>
                               {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
                             </span>
                           </div>
@@ -1029,8 +1029,9 @@ function GameSummary({ game, onBack }) {
                         const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
                         const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
                         const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
-                        const awayColor = getTeamColor(awayTeam?.team, '#e0e0e0')
-                        const homeColor = getTeamColor(homeTeam?.team, '#e0e0e0')
+                        // Use neutral gray colors for team stats section
+                        const awayColor = '#e0e0e0'
+                        const homeColor = '#e0e0e0'
                         // Convert hex to rgba for gradient
                         const awayColorLight = hexToRgba(awayColor, 0.6)
                         const awayColorDark = hexToRgba(awayColor, 0.9)

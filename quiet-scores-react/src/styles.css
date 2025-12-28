@@ -3391,14 +3391,22 @@ body.pwa-mode {
     font-weight: 600;
     text-align: center;
     font-size: 0.75rem;
-    /* Color is set via inline style in App.jsx */
+    color: #e0e0e0 !important;
 }
 
 .boxscore-header-home {
     font-weight: 600;
     text-align: center;
     font-size: 0.75rem;
-    /* Color is set via inline style in App.jsx */
+    color: #e0e0e0 !important;
+}
+
+.boxscore-value.away {
+    color: #e0e0e0 !important;
+}
+
+.boxscore-value.home {
+    color: #e0e0e0 !important;
 }
 
 .boxscore-table th {
