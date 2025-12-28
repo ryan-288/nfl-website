@@ -1344,6 +1344,7 @@ function App() {
   const [currentDate, setCurrentDate] = useState(() => new Date(today))
   const [selectedSport, setSelectedSport] = useState('all')
   const [selectedGame, setSelectedGame] = useState(null)
+  const [showLiveOnly, setShowLiveOnly] = useState(false)
 
   const { scores, isLoading, error } = useScores(currentDate)
 
@@ -1362,6 +1363,7 @@ function App() {
 
   const handleSportClick = (sport) => {
     setSelectedSport(sport)
+    setShowLiveOnly(false)
   }
 
   const handleDaySelect = (dayKey) => {
@@ -1369,6 +1371,7 @@ function App() {
     if (!targetDate) return
     setActiveDay(dayKey)
     setCurrentDate(targetDate)
+    setShowLiveOnly(false)
   }
 
   const goToWeek = (newOffset) => {
@@ -1427,17 +1430,22 @@ function App() {
         ? scores
         : scores.filter((game) => game.sport === selectedSport)
     
+    if (showLiveOnly) {
+      baseScores = baseScores.filter(game => game.status === 'live' || game.status === 'halftime')
+    }
     
     const copy = [...baseScores]
     copy.sort(compareGames)
     return copy
+  }, [scores, selectedSport, showLiveOnly])
+
+
+  const liveCount = useMemo(() => {
+    const sportScores = selectedSport === 'all'
+      ? scores
+      : scores.filter((game) => game.sport === selectedSport)
+    return sportScores.filter((game) => game.status === 'live' || game.status === 'halftime').length
   }, [scores, selectedSport])
-
-
-  const liveCount = useMemo(
-    () => sortedScores.filter((game) => game.status === 'live' || game.status === 'halftime').length,
-    [sortedScores],
-  )
 
   // Show game summary if a game is selected
   if (selectedGame) {
@@ -1471,8 +1479,9 @@ function App() {
 
         <div className="header-right">
           <div
-            className="live-games-indicator"
-            style={{ display: liveCount > 0 ? 'flex' : 'none' }}
+            className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
+            style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
+            onClick={() => setShowLiveOnly(!showLiveOnly)}
           >
             <span className="count" id="liveGamesCount">
               {liveCount}
