@@ -998,25 +998,32 @@ function GameSummary({ game, onBack }) {
   
   const getWinProbObj = (data) => {
     if (!data) return null;
+    
+    // If it's the array from ESPN's winprobability key
     if (Array.isArray(data) && data.length > 0) {
       const last = data[data.length - 1];
+      const hProb = last.homeWinPercentage ?? last.homeWinProbability ?? 0.5;
+      const aProb = last.awayWinPercentage ?? last.awayWinProbability ?? (1 - hProb);
       return {
-        homeWinPercentage: last.homeWinPercentage ?? last.homeWinProbability ?? 0.5,
-        awayWinPercentage: last.awayWinPercentage ?? last.awayWinProbability ?? 0.5,
+        homeWinPercentage: hProb,
+        awayWinPercentage: aProb,
         play: last.play
       };
     }
+    
+    // If it's a single number
     if (typeof data === 'number') {
       return { homeWinPercentage: data, awayWinPercentage: 1 - data };
     }
-    // Check various single object paths
-    const homeProb = data.homeWinPercentage ?? data.homeWinProbability ?? data.homeTeam?.winProbability;
-    const awayProb = data.awayWinPercentage ?? data.awayWinProbability ?? data.awayTeam?.winProbability;
     
-    if (homeProb !== undefined) {
+    // If it's a single object (like 'predictor' or 'analytics')
+    const hProb = data.homeWinPercentage ?? data.homeWinProbability ?? data.homeTeam?.winProbability;
+    const aProb = data.awayWinPercentage ?? data.awayWinProbability ?? data.awayTeam?.winProbability ?? (hProb !== undefined ? 1 - hProb : undefined);
+    
+    if (hProb !== undefined) {
       return { 
-        homeWinPercentage: homeProb, 
-        awayWinPercentage: awayProb !== undefined ? awayProb : 1 - homeProb 
+        homeWinPercentage: hProb, 
+        awayWinPercentage: aProb
       };
     }
     return null;
@@ -1026,6 +1033,21 @@ function GameSummary({ game, onBack }) {
                          getWinProbObj(summaryData?.predictor) || 
                          getWinProbObj(summaryData?.analytics) ||
                          getWinProbObj(summaryData?.header?.competitions?.[0]?.predictor);
+  
+  // Try to find the matching play if details are missing from the win prob object
+  if (winProbability && !winProbability.play) {
+    const allPlays = summaryData?.plays || [];
+    const targetPlayId = winProbability.playId;
+    
+    if (targetPlayId) {
+      winProbability.play = allPlays.find(p => String(p.id) === String(targetPlayId));
+    }
+    
+    // If still no play, use the absolute last play from the game summary data
+    if (!winProbability.play && allPlays.length > 0) {
+      winProbability.play = allPlays[allPlays.length - 1];
+    }
+  }
 
   const possessionTeamId = String(
     situation?.possession || 
@@ -1095,56 +1117,6 @@ function GameSummary({ game, onBack }) {
   const normalizedYardLine = getNormalizedYardLine()
 
   const isRedZone = (isAwayPossession && (normalizedYardLine >= 80)) || (isHomePossession && (normalizedYardLine <= 20))
-
-  // Debug field
-  if (summaryData && !window._loggedFieldDebug) {
-    window._loggedFieldDebug = true
-    console.log('=== SITUATION SEARCH RESULTS ===')
-    console.log('Data from game object:', game?.situation)
-    console.log('Final Situation Found:', situation)
-    console.log('Down/Dist Text:', downDistanceText)
-    console.log('YardLine Text:', yardLineText)
-    console.log('Possession ID:', possessionTeamId)
-    console.log('Game Summary Data Keys:', summaryData ? Object.keys(summaryData) : 'null')
-    console.log('Is Live?', game.status === 'live')
-    console.log('Win Prob Data:', winProbabilityData)
-    console.log('Win Prob Last Entry:', winProbability)
-    
-    // Deep search for win probability
-    const findProbabilities = (obj, path = 'root') => {
-      if (!obj || typeof obj !== 'object') return;
-      
-      // Look for win percentage arrays
-      if (Array.isArray(obj) && obj.length > 0 && (obj[0].homeWinPercentage !== undefined || obj[0].awayWinPercentage !== undefined)) {
-        console.log(`!!! FOUND PROBABILITIES AT ${path} !!!`, obj);
-      }
-      
-      // Look for predictor or analytics objects
-      if (path.toLowerCase().includes('predictor') || path.toLowerCase().includes('analytics')) {
-        console.log(`!!! FOUND POTENTIAL DATA AT ${path} !!!`, obj);
-      }
-
-      Object.keys(obj).forEach(k => {
-        if (obj[k] && typeof obj[k] === 'object' && k !== 'plays' && k !== 'athletes') {
-          findProbabilities(obj[k], `${path}.${k}`);
-        }
-      });
-    };
-    findProbabilities(summaryData);
-    
-    // Scan for any object with 'down' key anywhere
-    const findKeysRecursive = (obj, targetKey, path = 'root') => {
-      if (!obj || typeof obj !== 'object') return;
-      if (targetKey in obj) console.log(`FOUND ${targetKey} AT ${path}:`, obj[targetKey]);
-      Object.keys(obj).forEach(k => {
-        if (obj[k] && typeof obj[k] === 'object' && k !== 'plays' && k !== 'athletes') {
-          findKeysRecursive(obj[k], targetKey, `${path}.${k}`);
-        }
-      });
-    };
-    findKeysRecursive(summaryData, 'down');
-    findKeysRecursive(summaryData, 'yardLine');
-  }
 
   const getTeamStat = (team, statName) => {
     const stat = team?.statistics?.find(s => s.name === statName)
@@ -1334,9 +1306,74 @@ function GameSummary({ game, onBack }) {
                   </div>
                 </div>
               </div>
+        </div>
+
+        {/* Win Probability Section */}
+        {winProbability && (
+          <div className="win-probability-section">
+            <div className="section-header-row">
+              <h3>WIN PROBABILITY</h3>
+            </div>
+            
+            <div className="win-prob-header">
+              <div className="win-prob-team away">
+                <div className="win-prob-logo">
+                  <img src={awayTeamLogo} alt="" />
+                </div>
+                <div className="win-prob-info">
+                  <span className="win-prob-percent">{((winProbability?.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                  <span className="win-prob-abbr">{game.awayAbbreviation}</span>
+                </div>
+              </div>
+              
+              <div className="win-prob-team home">
+                <div className="win-prob-logo">
+                  <img src={homeTeamLogo} alt="" />
+                </div>
+                <div className="win-prob-info">
+                  <span className="win-prob-percent">{((winProbability?.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                  <span className="win-prob-abbr">{game.homeAbbreviation}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Game Snapshot Section */}
+            {Array.isArray(winProbabilityData) && winProbabilityData.length >= 2 && (
+              <WinProbabilityChart data={winProbabilityData} />
+            )}
+
+            {/* Last Play Summary */}
+            {winProbability?.play && (
+              <div className="last-play-card">
+                <div className="last-play-header">
+                  <div className="last-play-situation-group">
+                    <div className="last-play-situation">
+                      {winProbability.play.text?.match(/\d[a-z]{2}\s&\s\d+/) || 'Last Play'}
+                      {winProbability.play.text?.includes('at ') && ` at ${winProbability.play.text.split('at ')[1].split(' ')[0]} ${winProbability.play.text.split('at ')[1].split(' ')[1]}`}
+                    </div>
+                    <div className="last-play-time">
+                      {winProbability.play?.clock?.displayValue || '--:--'} - {winProbability.play?.period?.number === 1 ? '1st' : winProbability.play?.period?.number === 2 ? '2nd' : winProbability.play?.period?.number === 3 ? '3rd' : winProbability.play?.period?.number === 4 ? '4th' : ''}
+                    </div>
+                  </div>
+                  <div className="last-play-score-group">
+                    <div className="last-play-team-score">
+                      <span className="last-play-val">{winProbability.play?.awayScore ?? '--'}</span>
+                      <span className="last-play-label">{game.awayAbbreviation}</span>
+                    </div>
+                    <div className="last-play-team-score">
+                      <span className="last-play-val">{winProbability.play?.homeScore ?? '--'}</span>
+                      <span className="last-play-label">{game.homeAbbreviation}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="last-play-text">{winProbability.play?.text || 'No description available'}</div>
+              </div>
+            )}
+            
+            <div className="espn-analytics-footer">According to ESPN Analytics</div>
+          </div>
+        )}
+
+        {/* Game Snapshot Section */}
             <div className="game-snapshot-container">
               <div className="snapshot-header-row">
                 {currentDrive && (
@@ -1539,72 +1576,6 @@ function GameSummary({ game, onBack }) {
                 </div>
               </div>
             </div>
-
-            {/* Win Probability Section */}
-            {winProbability && (
-              <div className="win-probability-section">
-                <div style={{ color: 'red', fontSize: '10px' }}>DEBUG: Win Prob Found</div>
-                <div className="section-header-row">
-                  <h3>WIN PROBABILITY</h3>
-                </div>
-                
-                <div className="win-prob-header">
-                  <div className="win-prob-team away">
-                    <div className="win-prob-logo">
-                      <img src={awayTeamLogo} alt="" />
-                    </div>
-                    <div className="win-prob-info">
-                      <span className="win-prob-percent">{((winProbability?.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                      <span className="win-prob-abbr">{game.awayAbbreviation}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="win-prob-team home">
-                    <div className="win-prob-logo">
-                      <img src={homeTeamLogo} alt="" />
-                    </div>
-                    <div className="win-prob-info">
-                      <span className="win-prob-percent">{((winProbability?.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                      <span className="win-prob-abbr">{game.homeAbbreviation}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {Array.isArray(winProbabilityData) && winProbabilityData.length >= 2 && (
-                  <WinProbabilityChart data={winProbabilityData} />
-                )}
-
-                {/* Last Play Summary */}
-                {winProbability?.play && (
-                  <div className="last-play-card">
-                    <div className="last-play-header">
-                      <div className="last-play-situation-group">
-                        <div className="last-play-situation">
-                          {winProbability.play.text?.match(/\d[a-z]{2}\s&\s\d+/) || 'Last Play'}
-                          {winProbability.play.text?.includes('at ') && ` at ${winProbability.play.text.split('at ')[1].split(' ')[0]} ${winProbability.play.text.split('at ')[1].split(' ')[1]}`}
-                        </div>
-                        <div className="last-play-time">
-                          {winProbability.play?.clock?.displayValue || '--:--'} - {winProbability.play?.period?.number === 1 ? '1st' : winProbability.play?.period?.number === 2 ? '2nd' : winProbability.play?.period?.number === 3 ? '3rd' : winProbability.play?.period?.number === 4 ? '4th' : ''}
-                        </div>
-                      </div>
-                      <div className="last-play-score-group">
-                        <div className="last-play-team-score">
-                          <span className="last-play-val">{winProbability.play?.awayScore ?? '--'}</span>
-                          <span className="last-play-label">{game.awayAbbreviation}</span>
-                        </div>
-                        <div className="last-play-team-score">
-                          <span className="last-play-val">{winProbability.play?.homeScore ?? '--'}</span>
-                          <span className="last-play-label">{game.homeAbbreviation}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="last-play-text">{winProbability.play?.text || 'No description available'}</div>
-                  </div>
-                )}
-                
-                <div className="espn-analytics-footer">According to ESPN Analytics</div>
-              </div>
-            )}
 
             {/* Team Stats */}
             {boxscore && awayTeam && homeTeam && (
