@@ -1012,9 +1012,51 @@ function GameSummary({ game, onBack }) {
                           
   const yardLineText = situation?.yardLineText || 
                       situation?.possessionText ||
-                      (situation?.yardLine !== undefined ? (situation.yardLine > 50 ? `Opp ${100 - situation.yardLine}` : `Own ${situation.yardLine}`) : null) ||
+                      (situation?.yardLine !== undefined ? 
+                        (situation.yardLine === 50 ? 'Midfield' : 
+                         situation.yardLine > 50 ? `${game.homeAbbreviation} ${100 - situation.yardLine}` : 
+                         `${game.awayAbbreviation} ${situation.yardLine}`) : null) ||
                       (summaryData?.drives?.current?.lastPlay?.text?.match(/at\s([A-Z]+\s\d+)/) || [])[1] ||
                       '-'
+
+  // Calculate normalized yard line (0-100 where 0 is Away Goal, 100 is Home Goal)
+  const getNormalizedYardLine = () => {
+    const text = String(yardLineText || '').toUpperCase()
+    const homeAbbr = String(game.homeAbbreviation || '').toUpperCase()
+    const awayAbbr = String(game.awayAbbreviation || '').toUpperCase()
+    const rawYL = situation?.yardLine ?? situation?.yardline ?? situation?.location
+    
+    // 1. Try to parse from text (most reliable for territory)
+    // If it says "GB 31", and GB is Home (Right side), position is 100 - 31 = 69
+    if (homeAbbr && text.includes(homeAbbr)) {
+      const match = text.match(/\d+/)
+      if (match) {
+        const dist = parseInt(match[0])
+        if (dist === 50) return 50
+        return 100 - dist
+      }
+    }
+    // If it says "BAL 31", and BAL is Away (Left side), position is 31
+    if (awayAbbr && text.includes(awayAbbr)) {
+      const match = text.match(/\d+/)
+      if (match) return parseInt(match[0])
+    }
+    
+    // 2. Fallback to raw yardLine (if absolute 0-100)
+    if (rawYL !== undefined && rawYL !== null) {
+      const ylNum = parseInt(rawYL)
+      // If it's relative 0-50, we MUST use territory text
+      if (ylNum <= 50) {
+        if (text.includes('OPP') || text.includes('OPPONENT') || (homeAbbr && text.includes(homeAbbr) && isAwayPossession)) return 100 - ylNum
+        if (text.includes('OWN') || (awayAbbr && text.includes(awayAbbr) && isAwayPossession)) return ylNum
+      }
+      return ylNum
+    }
+    
+    return null
+  }
+
+  const normalizedYardLine = getNormalizedYardLine()
 
   // Debug field
   if (summaryData && !window._loggedFieldDebug) {
@@ -1214,11 +1256,11 @@ function GameSummary({ game, onBack }) {
                       </div>
                       
                       {/* Ball Marker */}
-                      {(situation?.yardLine !== undefined || situation?.yardline !== undefined || situation?.location !== undefined || situation?.distance !== undefined) && (
+                      {normalizedYardLine !== null && (
                         <div 
                           className="ball-marker-container" 
                           style={{ 
-                            left: `${situation.yardLine ?? situation.yardline ?? situation.location ?? (100 - (situation.distance || 0))}%`,
+                            left: `${normalizedYardLine}%`,
                             transform: `translateX(-50%)`
                           }}
                         >
