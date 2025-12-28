@@ -1198,7 +1198,7 @@ function GameSummary({ game, onBack }) {
     const hColor = getTeamColor(homeTeam?.team, '#888888');
     const aColor = getTeamColor(awayTeam?.team, '#444444');
 
-    return (
+  return (
       <div className="win-prob-chart-container">
         <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg" preserveAspectRatio="none">
           <defs>
@@ -1336,26 +1336,26 @@ function GameSummary({ game, onBack }) {
             <div className="team-header-new team-away">
               <div className="team-logo-side">
                 <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} />
-              </div>
+                  </div>
               <div className="team-info-side">
                 <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
                 <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-              </div>
+                </div>
               <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '0'}</div>
             </div>
 
             <div className="game-center-section">
               <div className="quarter-scores-table">
                 <table className="quarter-table">
-                  <thead>
-                    <tr>
-                      <th></th>
+                    <thead>
+                      <tr>
+                        <th></th>
                       {[1, 2, 3, 4].map(q => <th key={q}>{q}</th>)}
                       {game.sport === 'nfl' && <th>OT</th>}
                       <th className="total-score">T</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      </tr>
+                    </thead>
+                    <tbody>
                     <tr>
                       <td className="team-abbr">{game.awayAbbreviation || 'AWY'}</td>
                       {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(awayLinescoresFinal, q, 'away')}</td>)}
@@ -1500,7 +1500,7 @@ function GameSummary({ game, onBack }) {
                           <div className="boxscore-row-bar" style={{ height: '4px' }}>
                             <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayColor }} />
                             <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeColor }} />
-                          </div>
+                        </div>
                       </div>
                     )
                   })}
@@ -1596,8 +1596,8 @@ function GameSummary({ game, onBack }) {
                   ))}
                       <div style={{ textAlign: 'center', padding: '15px' }}>
                         <button className="summary-tab" style={{ fontSize: '0.75rem' }} onClick={() => setActiveTab('play-by-play')}>Full Play-by-Play</button>
-                      </div>
-                    </div>
+                </div>
+              </div>
                   </div>
                 </>
               )}
@@ -1784,8 +1784,10 @@ function ScoreTicker({ scores, onOpenSummary, tickerSports }) {
                 <span className="ticker-score">{game.homeScore}</span>
               </div>
             </div>
-            <div className={`ticker-status ${game.status === 'final' ? 'final' : ''}`}>
-              {game.status === 'live' ? (game.time || 'LIVE') : game.status.toUpperCase()}
+            <div className={`ticker-status ${game.status === 'final' ? 'final' : ''} ${game.status === 'scheduled' ? 'scheduled' : ''}`}>
+              {game.status === 'live' ? (game.time || 'LIVE') : 
+               game.status === 'scheduled' ? (game.displayTime || 'TBD') : 
+               game.status.toUpperCase()}
             </div>
           </div>
         ))}

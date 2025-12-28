@@ -133,7 +133,8 @@ body {
     text-transform: uppercase;
 }
 
-.ticker-status.final {
+.ticker-status.final,
+.ticker-status.scheduled {
     color: var(--text-muted);
 }
 
