@@ -3636,12 +3636,12 @@ body.pwa-mode {
 
 .game-leaders-team-header .team-logo,
 .game-leaders-team-header .fallback-logo {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px;
-    min-height: 32px;
-    max-width: 32px;
-    max-height: 32px;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
 }
 
 .game-leaders-team-header .team-logo img {
@@ -3659,10 +3659,11 @@ body.pwa-mode {
 
 .game-leaders-row {
     display: grid;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 1fr auto 1fr;
     gap: 16px;
     padding: 16px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
 }
 
 .game-leaders-row:last-child {
@@ -3679,12 +3680,11 @@ body.pwa-mode {
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding: 0 12px;
 }
 
 .game-leaders-comparison {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    display: contents;
 }
 
 .game-leaders-player {

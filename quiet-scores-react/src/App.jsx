@@ -1178,10 +1178,8 @@ function GameSummary({ game, onBack }) {
                     
                     return (
                       <div key={idx} className="game-leaders-row">
-                        <div className="game-leaders-category-label">{categoryName}</div>
-                        <div className="game-leaders-comparison">
-                          {/* Away Team Leader */}
-                          <div className="game-leaders-player game-leaders-away">
+                        {/* Away Team Leader */}
+                        <div className="game-leaders-player game-leaders-away">
                             {awayLeader ? (
                               <>
                                 <div className="game-leaders-player-image">
@@ -1214,10 +1212,13 @@ function GameSummary({ game, onBack }) {
                                 <span>--</span>
                               </div>
                             )}
-                          </div>
+                        </div>
 
-                          {/* Home Team Leader */}
-                          <div className="game-leaders-player game-leaders-home">
+                        {/* Stat Title in Middle */}
+                        <div className="game-leaders-category-label">{categoryName}</div>
+
+                        {/* Home Team Leader */}
+                        <div className="game-leaders-player game-leaders-home">
                             {homeLeader ? (
                               <>
                                 <div className="game-leaders-player-stat-large">
@@ -1250,7 +1251,6 @@ function GameSummary({ game, onBack }) {
                                 <span>--</span>
                               </div>
                             )}
-                          </div>
                         </div>
                       </div>
                     )
