@@ -5398,7 +5398,7 @@ body.pwa-mode {
 
 /* Ticker Filter Styles */
 .ticker-filter-toggle {
-    width: 45px;
+    width: 60px; /* Increased from 45px */
     height: 45px;
     display: flex;
     align-items: center;
@@ -5407,13 +5407,18 @@ body.pwa-mode {
     background: #0a0a0a;
     cursor: pointer;
     color: var(--text-muted);
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
     z-index: 101;
 }
 
 .ticker-filter-toggle:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ticker-filter-toggle svg {
+    width: 20px; /* Increased from 14px */
+    height: 20px;
 }
 
 .ticker-filters-dropdown {
@@ -5424,12 +5429,12 @@ body.pwa-mode {
     border: 1px solid var(--border-primary);
     border-top: none;
     border-radius: 0 0 12px 0;
-    padding: 10px;
+    padding: 12px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    gap: 8px;
     z-index: 100;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
 }
 
 .ticker-filter-btn {
