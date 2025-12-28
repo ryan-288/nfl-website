@@ -3301,8 +3301,8 @@ body.pwa-mode {
 }
 
 .boxscore-table thead {
-    background: rgba(0, 123, 255, 0.15);
-    border-bottom: 2px solid rgba(0, 123, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .boxscore-title-header {
@@ -3315,7 +3315,7 @@ body.pwa-mode {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 12px;
-    border-bottom: 2px solid var(--accent-primary);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     padding-bottom: 8px;
 }
 
