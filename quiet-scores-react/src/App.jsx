@@ -821,50 +821,59 @@ function GameSummary({ game, onBack }) {
   }
   
   // Extract player stats and leaders
-  // Check multiple possible locations for leaders data
-  let leaders = summaryData?.leaders || boxscore?.leaders || []
+  // The structure is: leaders = [{ team: {...}, leaders: [{ name: "passingYards", displayName: "Passing Yards", leaders: [{ athlete: {...}, ... }] }] }]
+  let leadersData = summaryData?.leaders || boxscore?.leaders || []
   
   // Also check if leaders are in header.competitions[0].leaders
-  if (leaders.length === 0 && summaryData?.header?.competitions?.[0]?.leaders) {
-    leaders = summaryData.header.competitions[0].leaders
+  if (leadersData.length === 0 && summaryData?.header?.competitions?.[0]?.leaders) {
+    leadersData = summaryData.header.competitions[0].leaders
   }
   
-  // Check if we need to build leaders from boxscore.players
-  if (leaders.length === 0 && boxscore?.players) {
-    console.log('No leaders found, checking boxscore.players structure')
-    console.log('boxscore.players:', boxscore.players)
+  // Transform the leaders data structure to match what we need
+  // Group stat categories together, finding the leader from each team
+  const statCategories = []
+  if (leadersData.length > 0) {
+    // Get all unique stat categories from all teams
+    const categoryMap = new Map()
+    
+    leadersData.forEach((teamLeader) => {
+      const teamId = teamLeader.team?.id
+      if (!teamId || !teamLeader.leaders) return
+      
+      teamLeader.leaders.forEach((category) => {
+        const categoryName = category.name || category.displayName
+        if (!categoryName || !category.leaders || category.leaders.length === 0) return
+        
+        if (!categoryMap.has(categoryName)) {
+          categoryMap.set(categoryName, {
+          name: category.name,
+          displayName: category.displayName,
+          leaders: []
+        })
+        }
+        
+        const categoryData = categoryMap.get(categoryName)
+        // Add the player leader from this team
+        const playerLeader = category.leaders[0] // Get top leader for this category
+        if (playerLeader) {
+          categoryData.leaders.push({
+            ...playerLeader,
+            teamId: teamId
+          })
+        }
+      })
+    })
+    
+    // Convert map to array
+    statCategories.push(...Array.from(categoryMap.values()))
   }
   
   // Debug: Log leaders structure
   if (summaryData && !window._loggedLeadersDebug) {
     window._loggedLeadersDebug = true
     console.log('=== GAME LEADERS DEBUG ===')
-    console.log('Leaders from summaryData?.leaders:', summaryData?.leaders)
-    console.log('Leaders from boxscore?.leaders:', boxscore?.leaders)
-    console.log('Final leaders array:', leaders)
-    console.log('Leaders count:', leaders.length)
-    console.log('Full leaders structure:', JSON.stringify(leaders, null, 2).substring(0, 10000))
-    if (leaders.length > 0) {
-      leaders.forEach((leader, idx) => {
-        console.log(`Leader[${idx}]:`, leader)
-        console.log(`Leader[${idx}].name:`, leader.name)
-        console.log(`Leader[${idx}].displayName:`, leader.displayName)
-        console.log(`Leader[${idx}].leaders:`, leader.leaders)
-        if (leader.leaders && leader.leaders.length > 0) {
-          leader.leaders.forEach((player, pIdx) => {
-            console.log(`  Player[${pIdx}] ALL KEYS:`, Object.keys(player))
-            console.log(`  Player[${pIdx}] FULL OBJECT:`, JSON.stringify(player, null, 2))
-            console.log(`  Player[${pIdx}].team:`, player.team)
-            console.log(`  Player[${pIdx}].team?.id:`, player.team?.id)
-            console.log(`  Player[${pIdx}].athlete:`, player.athlete)
-            console.log(`  Player[${pIdx}].displayValue:`, player.displayValue)
-            console.log(`  Player[${pIdx}].shortDisplayValue:`, player.shortDisplayValue)
-            console.log(`  Player[${pIdx}].value:`, player.value)
-            console.log(`  Player[${pIdx}].statistics:`, player.statistics)
-          })
-        }
-      })
-    }
+    console.log('Raw leadersData:', leadersData)
+    console.log('Transformed statCategories:', statCategories)
     console.log('Away team ID:', awayTeam?.team?.id, game.awayTeamId)
     console.log('Home team ID:', homeTeam?.team?.id, game.homeTeamId)
   }
@@ -1117,7 +1126,7 @@ function GameSummary({ game, onBack }) {
             )}
 
             {/* Game Leaders */}
-            {leaders.length > 0 && (
+            {statCategories.length > 0 && (
               <div className="summary-section">
                 <h3>GAME LEADERS</h3>
                 <div className="game-leaders-container">
@@ -1142,24 +1151,18 @@ function GameSummary({ game, onBack }) {
                   </div>
 
                   {/* Leader Categories */}
-                  {leaders.slice(0, 5).map((leader, idx) => {
-                    const categoryLeaders = leader.leaders || []
+                  {statCategories.slice(0, 5).map((category, idx) => {
+                    const categoryLeaders = category.leaders || []
                     if (categoryLeaders.length === 0) return null
                     
-                    // Simple approach: just use first two leaders, or match if possible
-                    let awayLeader = categoryLeaders.find((l) => {
-                      const playerTeamId = String(l.team?.id || l.teamId || l.team?.teamId || '')
-                      return playerTeamId === String(awayTeam?.team?.id || game.awayTeamId || '') || 
-                             l.homeAway === 'away'
-                    })
+                    // Match leaders by team ID
+                    const awayTeamId = String(awayTeam?.team?.id || game.awayTeamId || '')
+                    const homeTeamId = String(homeTeam?.team?.id || game.homeTeamId || '')
                     
-                    let homeLeader = categoryLeaders.find((l) => {
-                      const playerTeamId = String(l.team?.id || l.teamId || l.team?.teamId || '')
-                      return playerTeamId === String(homeTeam?.team?.id || game.homeTeamId || '') || 
-                             l.homeAway === 'home'
-                    })
+                    let awayLeader = categoryLeaders.find((l) => String(l.teamId || '') === awayTeamId)
+                    let homeLeader = categoryLeaders.find((l) => String(l.teamId || '') === homeTeamId)
                     
-                    // Fallback: use first two
+                    // Fallback: use first two if team matching fails
                     if (!awayLeader && categoryLeaders.length > 0) {
                       awayLeader = categoryLeaders[0]
                     }
@@ -1171,7 +1174,7 @@ function GameSummary({ game, onBack }) {
                       }
                     }
                     
-                    const categoryName = leader.displayName || leader.name || 'Stat'
+                    const categoryName = category.displayName || category.name || 'Stat'
                     
                     return (
                       <div key={idx} className="game-leaders-row">
@@ -1182,39 +1185,27 @@ function GameSummary({ game, onBack }) {
                             {awayLeader ? (
                               <>
                                 <div className="game-leaders-player-image">
-                                  {(awayLeader.athlete?.headshot || awayLeader.headshot || awayLeader.player?.headshot) ? (
-                                    <img src={awayLeader.athlete?.headshot || awayLeader.headshot || awayLeader.player?.headshot} alt={awayLeader.athlete?.displayName || awayLeader.displayName || ''} />
+                                  {awayLeader.athlete?.headshot?.href ? (
+                                    <img src={awayLeader.athlete.headshot.href} alt={awayLeader.athlete.displayName || ''} />
                                   ) : (
                                     <div className="game-leaders-player-placeholder"></div>
                                   )}
                                 </div>
                                 <div className="game-leaders-player-info">
                                   <div className="game-leaders-player-name">
-                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || awayLeader.player?.displayName || awayLeader.displayName || awayLeader.name || 'Player'}
+                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || 'Player'}
                                   </div>
                                   <div className="game-leaders-player-position">
-                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || awayLeader.player?.position?.abbreviation || awayLeader.position || ''}
+                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || ''}
                                   </div>
-                                  {(awayLeader.shortDisplayValue || awayLeader.athlete?.statistics || awayLeader.statistics) ? (
+                                  {awayLeader.summary ? (
                                     <div className="game-leaders-player-details">
-                                      {awayLeader.shortDisplayValue || 
-                                       (awayLeader.athlete?.statistics && awayLeader.athlete.statistics.map((stat, sIdx) => (
-                                         <span key={sIdx}>
-                                           {stat.displayValue || stat.value || ''}
-                                           {sIdx < awayLeader.athlete.statistics.length - 1 && ', '}
-                                         </span>
-                                       ))) ||
-                                       (awayLeader.statistics && Array.isArray(awayLeader.statistics) && awayLeader.statistics.map((stat, sIdx) => (
-                                         <span key={sIdx}>
-                                           {stat.displayValue || stat.value || stat.label || ''}
-                                           {sIdx < awayLeader.statistics.length - 1 && ', '}
-                                         </span>
-                                       )))}
+                                      {awayLeader.summary}
                                     </div>
                                   ) : null}
                                 </div>
                                 <div className="game-leaders-player-stat-large">
-                                  {awayLeader.displayValue || awayLeader.value || awayLeader.statValue || '-'}
+                                  {awayLeader.mainStat?.value || awayLeader.displayValue || '-'}
                                 </div>
                               </>
                             ) : (
@@ -1230,37 +1221,25 @@ function GameSummary({ game, onBack }) {
                             {homeLeader ? (
                               <>
                                 <div className="game-leaders-player-stat-large">
-                                  {homeLeader.displayValue || homeLeader.value || homeLeader.statValue || '-'}
+                                  {homeLeader.mainStat?.value || homeLeader.displayValue || '-'}
                                 </div>
                                 <div className="game-leaders-player-image">
-                                  {(homeLeader.athlete?.headshot || homeLeader.headshot || homeLeader.player?.headshot) ? (
-                                    <img src={homeLeader.athlete?.headshot || homeLeader.headshot || homeLeader.player?.headshot} alt={homeLeader.athlete?.displayName || homeLeader.displayName || ''} />
+                                  {homeLeader.athlete?.headshot?.href ? (
+                                    <img src={homeLeader.athlete.headshot.href} alt={homeLeader.athlete.displayName || ''} />
                                   ) : (
                                     <div className="game-leaders-player-placeholder"></div>
                                   )}
                                 </div>
                                 <div className="game-leaders-player-info">
                                   <div className="game-leaders-player-name">
-                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || homeLeader.player?.displayName || homeLeader.displayName || homeLeader.name || 'Player'}
+                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || 'Player'}
                                   </div>
                                   <div className="game-leaders-player-position">
-                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || homeLeader.player?.position?.abbreviation || homeLeader.position || ''}
+                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || ''}
                                   </div>
-                                  {(homeLeader.shortDisplayValue || homeLeader.athlete?.statistics || homeLeader.statistics) ? (
+                                  {homeLeader.summary ? (
                                     <div className="game-leaders-player-details">
-                                      {homeLeader.shortDisplayValue || 
-                                       (homeLeader.athlete?.statistics && homeLeader.athlete.statistics.map((stat, sIdx) => (
-                                         <span key={sIdx}>
-                                           {stat.displayValue || stat.value || ''}
-                                           {sIdx < homeLeader.athlete.statistics.length - 1 && ', '}
-                                         </span>
-                                       ))) ||
-                                       (homeLeader.statistics && Array.isArray(homeLeader.statistics) && homeLeader.statistics.map((stat, sIdx) => (
-                                         <span key={sIdx}>
-                                           {stat.displayValue || stat.value || stat.label || ''}
-                                           {sIdx < homeLeader.statistics.length - 1 && ', '}
-                                         </span>
-                                       )))}
+                                      {homeLeader.summary}
                                     </div>
                                   ) : null}
                                 </div>
