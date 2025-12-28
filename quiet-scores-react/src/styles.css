@@ -3203,8 +3203,8 @@ body.pwa-mode {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
     padding: 20px;
-    margin: 0 auto 20px; /* Centered with bottom margin */
-    max-width: 1200px; /* Increased from default to match field */
+    margin: 0 auto 20px; 
+    max-width: 1450px; /* Increased from 1200px */
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -3227,7 +3227,7 @@ body.pwa-mode {
 
 .boxscore-table {
     width: 100%;
-    max-width: 800px; /* Increased from 600px */
+    max-width: 1000px; /* Increased from 800px */
     border-collapse: collapse;
     font-size: 0.9rem;
     background: rgba(255, 255, 255, 0.02);
@@ -3567,7 +3567,7 @@ body.pwa-mode {
     border: 1px solid var(--border-primary);
     overflow: hidden;
     margin: 15px auto 0;
-    max-width: 900px; /* Increased from 750px */
+    max-width: 1100px; /* Increased from 900px */
 }
 }
 
@@ -4125,7 +4125,7 @@ body.pwa-mode {
 /* Game Snapshot Section */
 .game-snapshot-container {
     margin: 20px auto;
-    max-width: 1200px; /* Increased from 850px to match the wider field */
+    max-width: 1450px; /* Increased from 1200px to match the wider field */
     padding: 0 15px;
 }
 
@@ -4184,9 +4184,9 @@ body.pwa-mode {
 .football-field-wrapper {
     margin: 30px auto 40px;
     position: relative;
-    padding: 0; /* Removed side padding */
-    max-width: 1200px; /* Increased from 950px to make it wider */
-    perspective: 1800px; /* Increased perspective for the wider field */
+    padding: 0; 
+    max-width: 1450px; /* Increased from 1200px to make it even wider */
+    perspective: 2000px; /* Increased perspective for the even wider field */
 }
 
 .football-field {
@@ -4376,7 +4376,7 @@ body.pwa-mode {
 .field-labels-row {
     display: flex;
     justify-content: space-between;
-    padding: 15px 10% 0; /* Reduced side padding slightly for the wider field */
+    padding: 15px 8% 0; /* Reduced padding further for even wider field */
     font-size: 0.75rem;
     font-weight: 800;
     color: var(--text-muted);
