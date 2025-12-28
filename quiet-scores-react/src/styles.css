@@ -4245,24 +4245,28 @@ body.pwa-mode {
 }
 
 .field-endzone {
-    width: 12%; /* Increased from 10% to accommodate text better */
+    width: 12%; 
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 2;
     padding: 0 5px;
+    overflow: hidden; /* Prevent text from spilling out vertically */
 }
 
 .endzone-text {
     color: white;
     font-weight: 900;
-    font-size: 1.2rem; /* Reduced to prevent overlapping */
+    font-size: 1rem; /* Further reduced from 1.2rem */
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     opacity: 0.6;
     white-space: nowrap;
     user-select: none;
+    max-width: 160px; /* Constrain length to fit within field height */
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .away-endzone .endzone-text { transform: rotate(-90deg); }

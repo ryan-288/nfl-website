@@ -1030,7 +1030,6 @@ function GameSummary({ game, onBack }) {
     const rawYL = situation?.yardLine ?? situation?.yardline ?? situation?.location
     
     // 1. Try to parse from text (most reliable for territory)
-    // If it says "GB 31", and GB is Home (Right side), position is 100 - 31 = 69
     if (homeAbbr && text.includes(homeAbbr)) {
       const match = text.match(/\d+/)
       if (match) {
@@ -1039,7 +1038,6 @@ function GameSummary({ game, onBack }) {
         return 100 - dist
       }
     }
-    // If it says "BAL 31", and BAL is Away (Left side), position is 31
     if (awayAbbr && text.includes(awayAbbr)) {
       const match = text.match(/\d+/)
       if (match) return parseInt(match[0])
@@ -1048,7 +1046,6 @@ function GameSummary({ game, onBack }) {
     // 2. Fallback to raw yardLine (if absolute 0-100)
     if (rawYL !== undefined && rawYL !== null) {
       const ylNum = parseInt(rawYL)
-      // If it's relative 0-50, we MUST use territory text
       if (ylNum <= 50) {
         if (text.includes('OPP') || text.includes('OPPONENT') || (homeAbbr && text.includes(homeAbbr) && isAwayPossession)) return 100 - ylNum
         if (text.includes('OWN') || (awayAbbr && text.includes(awayAbbr) && isAwayPossession)) return ylNum
@@ -1060,6 +1057,8 @@ function GameSummary({ game, onBack }) {
   }
 
   const normalizedYardLine = getNormalizedYardLine()
+
+  const isRedZone = (isAwayPossession && (normalizedYardLine >= 80)) || (isHomePossession && (normalizedYardLine <= 20))
 
   // Debug field
   if (summaryData && !window._loggedFieldDebug) {
@@ -1243,6 +1242,16 @@ function GameSummary({ game, onBack }) {
                (game.status === 'live' || game.status === 'halftime') && (
                 <div className="football-field-wrapper">
                   <div className="football-field">
+                    {/* Goal Posts */}
+                    <div className="goal-post away">
+                      <div className="goal-post-base"></div>
+                      <div className="goal-post-crossbar"></div>
+                    </div>
+
+                    {/* Red Zone Overlays */}
+                    <div className="red-zone-overlay left"></div>
+                    <div className="red-zone-overlay right"></div>
+                    
                     <div 
                       className="field-endzone away-endzone" 
                       style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}
@@ -1328,6 +1337,11 @@ function GameSummary({ game, onBack }) {
                       style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}
                     >
                       <span className="endzone-text">{game.homeShortName || game.homeAbbreviation}</span>
+                    </div>
+
+                    <div className="goal-post home">
+                      <div className="goal-post-base"></div>
+                      <div className="goal-post-crossbar"></div>
                     </div>
                   </div>
                   <div className="field-labels-row">
@@ -1661,7 +1675,7 @@ function GameSummary({ game, onBack }) {
                   <div className="header-title-group">
                     <h3>PLAY-BY-PLAY</h3>
                     <span className={`expand-icon ${showPlayByPlay ? 'expanded' : ''}`}>▼</span>
-                  </div>
+                        </div>
                   <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
                     <button 
                       className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
@@ -1675,8 +1689,8 @@ function GameSummary({ game, onBack }) {
                     >
                       All Plays
                     </button>
-                  </div>
-                </div>
+                        </div>
+                        </div>
 
                 <div className="play-by-play-list">
                   {(() => {
@@ -1767,8 +1781,8 @@ function GameSummary({ game, onBack }) {
                                 </div>
                               );
                             })}
-                          </div>
-                        ))}
+                      </div>
+                    ))}
                         {!showPlayByPlay && filteredPlays.length > 5 && (
                           <div className="show-more-indicator" onClick={() => setShowPlayByPlay(true)}>
                             + {filteredPlays.length - 5} more plays. Click to expand full Play-by-Play.
