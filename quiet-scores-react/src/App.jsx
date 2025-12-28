@@ -989,7 +989,10 @@ function GameSummary({ game, onBack }) {
                     summaryData?.drives?.current?.plays?.[summaryData?.drives?.current?.plays?.length - 1]?.situation ||
                     summaryData?.header?.competitions?.[0]?.status
   
-  const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
+  const winProbabilityData = summaryData?.winprobability || summaryData?.winProbability || summaryData?.boxscore?.winprobability
+  const winProbability = Array.isArray(winProbabilityData) && winProbabilityData.length > 0 
+    ? winProbabilityData[winProbabilityData.length - 1] 
+    : null
 
   const possessionTeamId = String(
     situation?.possession || 
@@ -1070,6 +1073,7 @@ function GameSummary({ game, onBack }) {
     console.log('YardLine Text:', yardLineText)
     console.log('Possession ID:', possessionTeamId)
     console.log('Is Live?', game.status === 'live')
+    console.log('Win Prob Found?', !!winProbability, winProbability)
     
     // Scan for any object with 'down' key anywhere
     const findKeysRecursive = (obj, targetKey, path = 'root') => {
