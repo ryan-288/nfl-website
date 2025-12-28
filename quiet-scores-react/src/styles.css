@@ -3636,18 +3636,22 @@ body.pwa-mode {
 
 .game-leaders-team-header .team-logo,
 .game-leaders-team-header .fallback-logo {
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px;
-    min-height: 20px;
-    max-width: 20px;
-    max-height: 20px;
+    width: 12px !important;
+    height: 12px !important;
+    min-width: 12px;
+    min-height: 12px;
+    max-width: 12px;
+    max-height: 12px;
 }
 
 .game-leaders-team-header .team-logo img {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain;
+}
+
+.game-leaders-team-header .fallback-logo {
+    font-size: 0.5rem !important;
 }
 
 .game-leaders-team-abbr {
