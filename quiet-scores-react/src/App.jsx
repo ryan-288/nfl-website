@@ -525,8 +525,11 @@ function GameSummary({ game, onBack }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showFullBoxScore, setShowFullBoxScore] = useState(false)
-  const [playFilter, setPlayFilter] = useState('all') // Start with 'all' to ensure something is visible
+  const [playFilter, setPlayFilter] = useState('all') 
   const [showPlayByPlay, setShowPlayByPlay] = useState(false)
+  const [activeTab, setActiveTab] = useState('gamecast')
+
+  // ... (keep all the existing useEffects and extraction logic)
 
   useEffect(() => {
     let cancelled = false
@@ -1211,473 +1214,524 @@ function GameSummary({ game, onBack }) {
     );
   };
 
-  return (
-    <>
-      <div className="game-summary-content">
-        {isLoading && <div className="info">Loading game summary...</div>}
-        {error && <div className="error">Error loading summary: {error}</div>}
-        {summaryData && (
-          <div>
-            {/* Game Header */}
-            <div className="game-info-header-new">
-              <div className="game-header-top">
-                <div className="game-time-status">
-                  {game.status === 'live' && game.clock != null && game.period ? (() => {
-                    // Safely convert clock to string
-                    const clockStr = game.clock != null ? String(game.clock) : ''
-                    let formattedClock = clockStr
-                    
-                    // If clock is a number (seconds), convert to MM:SS
-                    const clockNum = Number(game.clock)
-                    if (!isNaN(clockNum) && typeof clockStr === 'string' && clockStr.indexOf(':') === -1) {
-                      const totalSeconds = Math.abs(clockNum)
-                      const minutes = Math.floor(totalSeconds / 60)
-                      const seconds = totalSeconds % 60
-                      formattedClock = `${minutes}:${String(seconds).padStart(2, '0')}`
-                    }
-                    
-                    const periodText = game.period === 1 ? '1st' : game.period === 2 ? '2nd' : game.period === 3 ? '3rd' : game.period === 4 ? '4th' : game.period ? `${game.period}th` : ''
-                    return (
-                      <span className="game-clock">
-                        {formattedClock} - {periodText}
-                      </span>
-                    )
-                  })() : game.status === 'live' ? (
-                    <span className="game-status-live">LIVE</span>
-                  ) : game.status === 'final' ? (
-                    <span className="game-status-final">FINAL</span>
-                  ) : game.displayTime ? (
-                    <span className="game-status-scheduled">{game.displayTime}</span>
-                  ) : (
-                    <span className="game-status-scheduled">SCHEDULED</span>
-                  )}
-                </div>
-              </div>
-              <div className="game-teams-header-new">
-                {/* Away Team - Left Side */}
-                <div className="team-header-new team-away">
-                  <div className="team-logo-side">
-                    <TeamLogo 
-                      name={game.awayTeam} 
-                      logoUrl={awayTeamLogo} 
-                      fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
-                    />
-                  </div>
-                  <div className="team-info-side">
-                    <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
-                    <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-                </div>
-                  <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
-                </div>
-
-                {/* Center - Score Breakdown */}
-                <div className="game-center-section">
-                  <div className="quarter-scores-table">
-                    <table className="quarter-table">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>1</th>
-                          <th>2</th>
-                          <th>3</th>
-                          <th>4</th>
-                          {game.sport === 'nfl' && <th>OT</th>}
-                          <th>T</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</td>
-                          <td>{getPeriodScore(awayLinescoresFinal, 1, 'away')}</td>
-                          <td>{getPeriodScore(awayLinescoresFinal, 2, 'away')}</td>
-                          <td>{getPeriodScore(awayLinescoresFinal, 3, 'away')}</td>
-                          <td>{getPeriodScore(awayLinescoresFinal, 4, 'away')}</td>
-                          {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescoresFinal, 5, 'away') || '-'}</td>}
-                          <td className="total-score">{game.awayScore || '0'}</td>
-                        </tr>
-                        <tr>
-                          <td className="team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</td>
-                          <td>{getPeriodScore(homeLinescoresFinal, 1, 'home')}</td>
-                          <td>{getPeriodScore(homeLinescoresFinal, 2, 'home')}</td>
-                          <td>{getPeriodScore(homeLinescoresFinal, 3, 'home')}</td>
-                          <td>{getPeriodScore(homeLinescoresFinal, 4, 'home')}</td>
-                          {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescoresFinal, 5, 'home') || '-'}</td>}
-                          <td className="total-score">{game.homeScore || '0'}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  {game.broadcastChannel && (
-                    <div className="broadcast-info">{abbreviateNetwork(game.broadcastChannel)}</div>
-                  )}
-                </div>
-
-                {/* Home Team - Right Side */}
-                <div className="team-header-new team-home">
-                  <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '-'}</div>
-                  <div className="team-info-side">
-                    <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
-                    <div className="team-record-side">{game.homeTeamRecord || ''}</div>
-                  </div>
-                  <div className="team-logo-side">
-                    <TeamLogo 
-                      name={game.homeTeam} 
-                      logoUrl={homeTeamLogo} 
-                      fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
-                    />
-                  </div>
-                </div>
-              </div>
+  // Helper Components for the new layout
+  const StandingsSection = ({ data }) => {
+    if (!data?.groups) return null;
+    return (
+      <div className="standings-section">
+        <div className="section-header">
+          <h3>2025 STANDINGS</h3>
         </div>
-
-        {/* Win Probability Section */}
-        {winProbability && (
-          <div className="win-probability-section">
-            <div className="section-header-row">
-              <h3>WIN PROBABILITY</h3>
+        {data.groups.map((group, gIdx) => (
+          <div key={gIdx} style={{ marginBottom: '20px' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '10px' }}>
+              {group.name}
             </div>
-            
-            <div className="win-prob-header">
-              <div className="win-prob-team away">
-                <div className="win-prob-logo">
-                  <img src={awayTeamLogo} alt="" />
-                </div>
-                <div className="win-prob-info">
-                  <span className="win-prob-percent">{((winProbability?.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                  <span className="win-prob-abbr">{game.awayAbbreviation}</span>
-                </div>
-              </div>
-              
-              <div className="win-prob-team home">
-                <div className="win-prob-logo">
-                  <img src={homeTeamLogo} alt="" />
-                </div>
-                <div className="win-prob-info">
-                  <span className="win-prob-percent">{((winProbability?.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
-                  <span className="win-prob-abbr">{game.homeAbbreviation}</span>
-                </div>
-              </div>
-            </div>
-
-            {Array.isArray(winProbabilityData) && winProbabilityData.length >= 2 && (
-              <WinProbabilityChart data={winProbabilityData} />
-            )}
-
-            {/* Last Play Summary */}
-            {(winProbability?.play || (game.status === 'live' && (downDistanceText || yardLineText))) && (
-              <div className="last-play-card">
-                <div className="last-play-header">
-                  <div className="last-play-situation-group">
-                    <div className="last-play-situation">
-                      {winProbability?.play?.text?.match(/\d[a-z]{2}\s&\s\d+/) || downDistanceText || 'Current Drive'}
-                      {(winProbability?.play?.text?.includes('at ') || (yardLineText && yardLineText !== '-')) && ` at ${yardLineText || winProbability?.play?.text?.split('at ')[1]?.split(' ')[0] + ' ' + winProbability?.play?.text?.split('at ')[1]?.split(' ')[1]}`}
-                    </div>
-                    <div className="last-play-time">
-                      {winProbability?.play?.clock?.displayValue || game.clock || '--:--'} - {winProbability?.play?.period?.number === 1 ? '1st' : winProbability?.play?.period?.number === 2 ? '2nd' : winProbability?.play?.period?.number === 3 ? '3rd' : winProbability?.play?.period?.number === 4 ? '4th' : game.period || ''}
-                    </div>
-                  </div>
-                  <div className="last-play-score-group">
-                    <div className="last-play-team-score">
-                      <span className="last-play-val">{winProbability?.play?.awayScore ?? game.awayScore ?? '--'}</span>
-                      <span className="last-play-label">{game.awayAbbreviation}</span>
-                    </div>
-                    <div className="last-play-team-score">
-                      <span className="last-play-val">{winProbability?.play?.homeScore ?? game.homeScore ?? '--'}</span>
-                      <span className="last-play-label">{game.homeAbbreviation}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="last-play-text">{winProbability?.play?.text || (summaryData?.plays?.[summaryData?.plays?.length - 1]?.text) || 'No description available'}</div>
-              </div>
-            )}
-            
-            <div className="espn-analytics-footer">According to ESPN Analytics</div>
-          </div>
-        )}
-
-        {/* Game Snapshot Section */}
-            <div className="game-snapshot-container">
-              <div className="snapshot-header-row">
-                {currentDrive && (
-                  <div className="current-drive-section">
-                    <span className="current-drive-label">CURRENT DRIVE</span>
-                    <span className="current-drive-info">
-                      {Array.isArray(currentDrive.plays) ? currentDrive.plays.length : (currentDrive.plays || 0)} plays, {currentDrive.yards || 0} yards, {currentDrive.displayTime || ''}
-                    </span>
-                  </div>
-                )}
-                <div className="snapshot-situation">
-                  <div className="situation-item">
-                    <span className="snapshot-label">Down:</span>
-                    <span className="snapshot-value">
-                      {downDistanceText}
-                    </span>
-                  </div>
-                  <div className="situation-item">
-                    <span className="snapshot-label">Ball on:</span>
-                    <span className="snapshot-value">
-                      {yardLineText}
-                    </span>
-                  </div>
-              </div>
-            </div>
-
-              {/* Football Field Visualization - 3D Perspective - Only for Live Games */}
-              {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && 
-               (game.status === 'live' || game.status === 'halftime') && (
-                <div className="football-field-wrapper">
-                  <div className="football-field">
-                    {/* Goal Posts */}
-                    <div className="goal-post away">
-                      <div className="goal-post-base"></div>
-                      <div className="goal-post-crossbar"></div>
-                    </div>
-
-                    {/* Red Zone Overlays */}
-                    <div className="red-zone-overlay left"></div>
-                    <div className="red-zone-overlay right"></div>
-                    
-                    <div 
-                      className="field-endzone away-endzone" 
-                      style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}
-                    >
-                      <span className="endzone-text">{game.awayShortName || game.awayAbbreviation}</span>
-                    </div>
-                    
-                    <div className="field-grid">
-                      {/* Drive Progress Lines */}
-                      {normalizedYardLine !== null && (
-                        <div className="drive-line-container">
-                          {(() => {
-                            const startYL = situation?.startYardLine || situation?.yardLine || 0;
-                            // Need to normalize startYL too
-                            const startPos = (startYL > 50 && isAwayPossession) || (startYL < 50 && isHomePossession) ? 100 - startYL : startYL;
-                            const currentPos = normalizedYardLine;
-                            
-                            // 1. Solid line from drive start to current ball
-                            const solidLeft = Math.min(startPos, currentPos);
-                            const solidWidth = Math.abs(currentPos - startPos);
-                            
-                            // 2. Dashed line for distance to first down
-                            const yardsToGo = situation?.distance || 0;
-                            const direction = isHomePossession ? -1 : 1;
-                            const firstDownPos = currentPos + (yardsToGo * direction);
-                            const dashLeft = direction === 1 ? currentPos : firstDownPos;
-                            const dashWidth = yardsToGo;
-
-                            return (
-                              <>
-                                <div 
-                                  className="drive-line-solid" 
-                                  style={{ 
-                                    left: `${solidLeft}%`, 
-                                    width: `${solidWidth}%` 
-                                  }}
-                                />
-                                {yardsToGo > 0 && (
-                                  <div 
-                                    className="drive-line-dashed" 
-                                    style={{ 
-                                      left: `${dashLeft}%`, 
-                                      width: `${dashWidth}%` 
-                                    }}
-                                  />
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-
-                      <div className="yard-line-container">
-                        {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(line => (
-                          <div key={line} className="field-yard-line" style={{ left: `${line}%` }}>
-                            <span className="yard-num">{line > 50 ? 100 - line : line}</span>
-                          </div>
-                        ))}
+            <table className="standings-table">
+              <thead>
+                <tr>
+                  <th>TEAM</th>
+                  <th style={{ textAlign: 'center' }}>W</th>
+                  <th style={{ textAlign: 'center' }}>L</th>
+                  <th style={{ textAlign: 'center' }}>PCT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {group.standings?.entries?.map((entry, eIdx) => (
+                  <tr key={eIdx}>
+                    <td>
+                      <div className="standings-team">
+                        <img src={entry.team?.logos?.[0]?.href} alt="" style={{ width: '16px', height: '16px' }} />
+                        <span>{entry.team?.displayName}</span>
                       </div>
-                      
-                      {/* Ball Marker */}
-                      {normalizedYardLine !== null && (
-                        <div 
-                          className="ball-marker-container" 
-                          style={{ 
-                            left: `${normalizedYardLine}%`
-                          }}
-                        >
-                          <div className="ball-marker-icon">
-                            <img 
-                              src={isAwayPossession ? awayTeamLogo : isHomePossession ? homeTeamLogo : (awayTeamLogo || homeTeamLogo)} 
-                              alt="" 
-                              className="marker-logo" 
-                            />
-                            <div className="marker-pointer"></div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'wins')?.value}</td>
+                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'losses')?.value}</td>
+                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'winPercent')?.displayValue}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const NewsSection = ({ articles }) => {
+    if (!articles || articles.length === 0) return null;
+    return (
+      <div className="news-section">
+        <div className="section-header">
+          <h3>LATEST NEWS</h3>
+        </div>
+        {articles.slice(0, 3).map((article, idx) => (
+          <a key={idx} href={article.links?.web?.href} target="_blank" rel="noopener noreferrer" className="news-item" style={{ textDecoration: 'none' }}>
+            <div className="news-thumb">
+              <img src={article.images?.[0]?.url} alt="" />
+            </div>
+            <div className="news-info">
+              <h4>{article.headline}</h4>
+              <p>{article.description}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    );
+  };
+
+  const OddsSection = ({ data }) => {
+    const odds = data?.[0];
+    if (!odds) return null;
+    return (
+      <div className="odds-section">
+        <div className="section-header">
+          <h3>GAME ODDS</h3>
+        </div>
+        <table className="odds-table">
+          <thead>
+            <tr>
+              <th className="odds-team-cell">TEAM</th>
+              <th>SPREAD</th>
+              <th>TOTAL</th>
+              <th>ML</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[awayTeam, homeTeam].map((team, idx) => {
+              const isAway = idx === 0;
+              const spread = isAway ? odds.awayTeamOdds?.spread : odds.homeTeamOdds?.spread;
+              const ml = isAway ? odds.awayTeamOdds?.moneyLine : odds.homeTeamOdds?.moneyLine;
+              const overUnder = odds.overUnder;
+              return (
+                <tr key={idx}>
+                  <td className="odds-team-cell">{team?.team?.displayName || (isAway ? game.awayTeam : game.homeTeam)}</td>
+                  <td>
+                    <div className="odds-box">
+                      <span className="odds-val">{spread > 0 ? `+${spread}` : spread}</span>
+                    </div>
+                  </td>
+                  <td>
+                    {idx === 0 && (
+                      <div className="odds-box">
+                        <span className="odds-val">o{overUnder}</span>
+                      </div>
+                    )}
+                    {idx === 1 && (
+                      <div className="odds-box">
+                        <span className="odds-val">u{overUnder}</span>
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <div className="odds-box">
+                      <span className="odds-val">{ml > 0 ? `+${ml}` : ml}</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  return (
+    <div className="game-summary-container">
+      {isLoading && <div className="info">Loading game summary...</div>}
+      {error && <div className="error">Error loading summary: {error}</div>}
+      
+      {summaryData && (
+        <>
+          {/* Game Info Header - Top */}
+          <div className="game-info-header-new" style={{ marginBottom: '20px' }}>
+            <div className="game-header-top">
+              <div className="game-time-status">
+                {game.status === 'live' && game.clock != null && game.period ? (() => {
+                  const clockStr = game.clock != null ? String(game.clock) : ''
+                  let formattedClock = clockStr
+                  const clockNum = Number(game.clock)
+                  if (!isNaN(clockNum) && typeof clockStr === 'string' && clockStr.indexOf(':') === -1) {
+                    const totalSeconds = Math.abs(clockNum)
+                    const minutes = Math.floor(totalSeconds / 60)
+                    const seconds = totalSeconds % 60
+                    formattedClock = `${minutes}:${String(seconds).padStart(2, '0')}`
+                  }
+                  const periodText = game.period === 1 ? '1st' : game.period === 2 ? '2nd' : game.period === 3 ? '3rd' : game.period === 4 ? '4th' : game.period ? `${game.period}th` : ''
+                  return <span className="game-clock">{formattedClock} - {periodText}</span>
+                })() : game.status === 'live' ? <span className="game-status-live">LIVE</span> : 
+                       game.status === 'final' ? <span className="game-status-final">FINAL</span> : 
+                       <span className="game-status-scheduled">{game.displayTime || 'SCHEDULED'}</span>}
+              </div>
+            </div>
+
+            <div className="game-teams-header-new">
+              <div className="team-header-new team-away">
+                <div className="team-logo-side">
+                  <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} />
+                </div>
+                <div className="team-info-side">
+                  <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
+                  <div className="team-record-side">{game.awayTeamRecord || ''}</div>
+                </div>
+                <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '0'}</div>
+              </div>
+
+              <div className="game-center-section">
+                <div className="quarter-scores-table">
+                  <table className="quarter-table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        {[1, 2, 3, 4].map(q => <th key={q}>{q}</th>)}
+                        {game.sport === 'nfl' && <th>OT</th>}
+                        <th className="total-score">T</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="team-abbr">{game.awayAbbreviation || 'AWY'}</td>
+                        {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(awayLinescoresFinal, q, 'away')}</td>)}
+                        {game.sport === 'nfl' && <td>{getPeriodScore(awayLinescoresFinal, 5, 'away')}</td>}
+                        <td className="total-score">{game.awayScore || '0'}</td>
+                      </tr>
+                      <tr>
+                        <td className="team-abbr">{game.homeAbbreviation || 'HME'}</td>
+                        {[1, 2, 3, 4].map(q => <td key={q}>{getPeriodScore(homeLinescoresFinal, q, 'home')}</td>)}
+                        {game.sport === 'nfl' && <td>{getPeriodScore(homeLinescoresFinal, 5, 'home')}</td>}
+                        <td className="total-score">{game.homeScore || '0'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {game.broadcastChannel && <div className="broadcast-info">{abbreviateNetwork(game.broadcastChannel)}</div>}
+              </div>
+
+              <div className="team-header-new team-home">
+                <div className="team-score-side" style={{ color: homeTeamColor }}>{game.homeScore || '0'}</div>
+                <div className="team-info-side">
+                  <div className="team-name-side" style={{ color: homeTeamColor }}>{game.homeTeam}</div>
+                  <div className="team-record-side">{game.homeTeamRecord || ''}</div>
+                </div>
+                <div className="team-logo-side">
+                  <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs Navigation */}
+          <div className="summary-tabs">
+            {['gamecast', 'boxscore', 'play-by-play', 'team-stats'].map(tab => (
+              <button 
+                key={tab} 
+                className={`summary-tab ${activeTab === tab ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.replace('-', ' ')}
+              </button>
+            ))}
+          </div>
+
+          {/* Main Grid Layout */}
+          <div className="game-summary-grid">
+            
+            {/* Left Sidebar */}
+            <aside className="summary-sidebar-left">
+              {/* Game Leaders */}
+              {statCategories.length > 0 && (
+                <div className="standings-section" style={{ padding: 0 }}>
+                  <div className="section-header" style={{ padding: '15px 20px', marginBottom: 0 }}>
+                    <h3>GAME LEADERS</h3>
+                  </div>
+                  <div className="game-leaders-container" style={{ border: 'none' }}>
+                    <div className="game-leaders-header" style={{ background: 'transparent' }}>
+                      <div className="game-leaders-team-header away">
+                        <div className="team-logo">
+                          <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} />
+                        </div>
+                        <span className="game-leaders-team-abbr">{game.awayAbbreviation}</span>
+                      </div>
+                      <div className="game-leaders-team-header home">
+                        <div className="team-logo">
+                          <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} />
+                        </div>
+                        <span className="game-leaders-team-abbr">{game.homeAbbreviation}</span>
+                      </div>
+                    </div>
+                    {statCategories.slice(0, 3).map((category, idx) => {
+                      const awayTeamId = String(awayTeam?.team?.id || game.awayTeamId || '')
+                      const homeTeamId = String(homeTeam?.team?.id || game.homeTeamId || '')
+                      const awayL = category.leaders?.find(l => String(l.teamId || '') === awayTeamId)
+                      const homeL = category.leaders?.find(l => String(l.teamId || '') === homeTeamId)
+                      return (
+                        <div key={idx} className="game-leaders-row" style={{ gridTemplateColumns: '1fr auto 1fr', padding: '10px 15px' }}>
+                          <div className="game-leaders-player game-leaders-away" style={{ flexDirection: 'column', alignItems: 'center' }}>
+                            <div className="player-headshot-stat-group" style={{ marginBottom: '5px' }}>
+                              <div className="game-leaders-player-image" style={{ width: '40px', height: '40px' }}>
+                                {awayL?.athlete?.headshot?.href ? <img src={awayL.athlete.headshot.href} alt="" /> : <div className="game-leaders-player-placeholder" />}
+                              </div>
+                              <div className="game-leaders-player-stat-large" style={{ fontSize: '1.1rem' }}>{awayL?.mainStat?.value || '-'}</div>
+                            </div>
+                            <div className="game-leaders-player-name" style={{ fontSize: '0.75rem', textAlign: 'center' }}>{awayL?.athlete?.shortName}</div>
+                          </div>
+                          <div className="game-leaders-category-label" style={{ fontSize: '0.7rem' }}>{category.displayName || category.name}</div>
+                          <div className="game-leaders-player game-leaders-home" style={{ flexDirection: 'column', alignItems: 'center' }}>
+                            <div className="player-headshot-stat-group" style={{ marginBottom: '5px' }}>
+                              <div className="game-leaders-player-stat-large" style={{ fontSize: '1.1rem' }}>{homeL?.mainStat?.value || '-'}</div>
+                              <div className="game-leaders-player-image" style={{ width: '40px', height: '40px' }}>
+                                {homeL?.athlete?.headshot?.href ? <img src={homeL.athlete.headshot.href} alt="" /> : <div className="game-leaders-player-placeholder" />}
+                              </div>
+                            </div>
+                            <div className="game-leaders-player-name" style={{ fontSize: '0.75rem', textAlign: 'center' }}>{homeL?.athlete?.shortName}</div>
                           </div>
                         </div>
-                      )}
+                      )
+                    })}
+                    <div style={{ textAlign: 'center', padding: '10px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <button className="summary-tab" style={{ fontSize: '0.7rem', padding: 0, border: 'none' }} onClick={() => setActiveTab('boxscore')}>Full Box Score</button>
                     </div>
-
-                    <div 
-                      className="field-endzone home-endzone" 
-                      style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}
-                    >
-                      <span className="endzone-text">{game.homeShortName || game.homeAbbreviation}</span>
-                    </div>
-
-                    <div className="goal-post home">
-                      <div className="goal-post-base"></div>
-                      <div className="goal-post-crossbar"></div>
-                    </div>
-                  </div>
-                  <div className="field-labels-row">
-                    <span className="field-label-left">{game.awayAbbreviation}</span>
-                    <span className="field-label-center">50</span>
-                    <span className="field-label-right">{game.homeAbbreviation}</span>
                   </div>
                 </div>
               )}
 
-              {/* Status Card */}
-              <div className="snapshot-status-card">
-                <div className="status-card-header">
-                  <div className="status-title-group">
-                    <span className="status-card-title">{game.status?.type?.detail || game.status?.type?.description || 'GAME STATUS'}</span>
+              {/* Team Stats Summary */}
+              {awayTeam?.statistics && (
+                <div className="standings-section">
+                  <div className="section-header">
+                    <h3>TEAM STATS</h3>
                   </div>
-                  {winProbability && (
-                    <div className="win-prob">
-                      Win %: 
-                      {winProbability.homeWinPercentage > winProbability.awayWinPercentage ? (
-                        <span className="win-prob-val">
-                          <img src={homeTeamLogo} alt="" className="tiny-logo" /> {(winProbability.homeWinPercentage * 100).toFixed(1)}
-                        </span>
-                      ) : (
-                        <span className="win-prob-val">
-                          <img src={awayTeamLogo} alt="" className="tiny-logo" /> {(winProbability.awayWinPercentage * 100).toFixed(1)}
-                        </span>
-                      )}
+                  <div className="boxscore-header-teams-unified" style={{ marginBottom: '15px' }}>
+                    <div className="boxscore-header-team-unified">
+                      <div className="boxscore-header-logo" style={{ width: '20px', height: '20px' }}>
+                        <TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} />
+                      </div>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '700' }}>{game.awayAbbreviation}</span>
                     </div>
-                  )}
-                </div>
-                
-                <div className="team-snapshot-cards">
-                  {[awayTeam, homeTeam].map((team, idx) => {
-                    const isAway = idx === 0;
-                    const logo = isAway ? awayTeamLogo : homeTeamLogo;
-                    const teamName = isAway ? game.awayTeam : game.homeTeam;
-                    const record = isAway ? game.awayTeamRecord : game.homeTeamRecord;
-                    const conference = isAway ? game.awayConference : game.homeConference;
-                    
-                    return (
-                      <div key={idx} className="team-mini-card">
-                        <div className="team-mini-header">
-                          <div className="team-mini-logo">
-                            <img src={logo} alt="" />
+                    <div className="boxscore-header-team-unified">
+                      <span style={{ fontSize: '0.7rem', fontWeight: '700' }}>{game.homeAbbreviation}</span>
+                      <div className="boxscore-header-logo" style={{ width: '20px', height: '20px' }}>
+                        <TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} />
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {awayTeam.statistics.slice(0, 5).map((stat, idx) => {
+                      const homeStat = homeTeam?.statistics?.[idx];
+                      const awayVal = parseNumericValue(stat.displayValue ?? stat.value);
+                      const homeVal = parseNumericValue(homeStat?.displayValue ?? homeStat?.value);
+                      const total = (isNaN(awayVal) ? 0 : awayVal) + (isNaN(homeVal) ? 0 : homeVal);
+                      const awayP = total > 0 ? (awayVal / total) * 100 : 50;
+                      const homeP = total > 0 ? (homeVal / total) * 100 : 50;
+                      return (
+                        <div key={idx}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: '700', marginBottom: '5px' }}>
+                            <span>{stat.displayValue}</span>
+                            <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>{stat.label || stat.name}</span>
+                            <span>{homeStat?.displayValue}</span>
                           </div>
-                          <div className="team-mini-info">
-                            <div className="team-mini-name">{teamName}</div>
-                            <div className="team-mini-record">{record} {conference ? `in ${conference}` : ''}</div>
+                          <div className="boxscore-row-bar" style={{ height: '4px' }}>
+                            <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayTeamColor }} />
+                            <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeTeamColor }} />
                           </div>
                         </div>
-                        <div className="team-mini-stats">
-                          <div className="mini-stat-item">
-                            <span className="mini-stat-label">YDS</span>
-                            <span className="mini-stat-value">{getTeamStat(team, 'totalYards')}</span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </aside>
+
+            {/* Middle Main Content */}
+            <main className="summary-main-content">
+              {activeTab === 'gamecast' && (
+                <>
+                  {/* Field and Current Drive */}
+                  <div className="game-snapshot-container">
+                    <div className="snapshot-header-row">
+                      {currentDrive && (
+                        <div className="current-drive-section">
+                          <span className="current-drive-label">CURRENT DRIVE</span>
+                          <span className="current-drive-info">
+                            {Array.isArray(currentDrive.plays) ? currentDrive.plays.length : (currentDrive.plays || 0)} plays, {currentDrive.yards || 0} yards
+                          </span>
+                        </div>
+                      )}
+                      <div className="snapshot-situation">
+                        <div className="situation-item">
+                          <span className="snapshot-label">Down:</span>
+                          <span className="snapshot-value">{downDistanceText}</span>
+                        </div>
+                        <div className="situation-item">
+                          <span className="snapshot-label">Ball On:</span>
+                          <span className="snapshot-value">{yardLineText}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {(game.sport === 'nfl' || game.sport === 'college-football') && (game.status === 'live' || game.status === 'halftime') && (
+                      <div className="football-field-wrapper" style={{ marginTop: '20px' }}>
+                        <div className="football-field" style={{ height: '180px' }}>
+                          <div className="field-arc"></div>
+                          <div className="field-endzone away-endzone" style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}>
+                            <span className="endzone-text">{game.awayAbbreviation}</span>
                           </div>
-                          <div className="mini-stat-item">
-                            <span className="mini-stat-label">T/O</span>
-                            <span className="mini-stat-value">{getTeamStat(team, 'turnovers')}</span>
+                          <div className="field-grid">
+                            <div className="yard-line-container">
+                              {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(line => (
+                                <div key={line} className="field-yard-line" style={{ left: `${line}%` }}>
+                                  <span className="yard-num">{line > 50 ? 100 - line : line}</span>
+                                </div>
+                              ))}
+                            </div>
+                            {normalizedYardLine !== null && (
+                              <div className="ball-marker-container" style={{ left: `${normalizedYardLine}%` }}>
+                                <div className="ball-marker-icon">
+                                  <img src={isAwayPossession ? awayTeamLogo : isHomePossession ? homeTeamLogo : awayTeamLogo} alt="" className="marker-logo" />
+                                  <div className="marker-pointer" />
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="mini-stat-item">
-                            <span className="mini-stat-label">TOP</span>
-                            <span className="mini-stat-value">{getTeamStat(team, 'possessionTime')}</span>
+                          <div className="field-endzone home-endzone" style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}>
+                            <span className="endzone-text">{game.homeAbbreviation}</span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+                    )}
+                  </div>
 
-            {/* Team Stats */}
-            {boxscore && awayTeam && homeTeam && (
+                  {/* Play-by-Play List (Mini) */}
+                  <div className="news-section" style={{ padding: 0 }}>
+                    <div className="section-header-row" style={{ padding: '15px 20px', marginBottom: 0 }}>
+                      <h3 style={{ fontSize: '0.85rem', fontWeight: '800' }}>PLAY-BY-PLAY</h3>
+                      <div className="play-toggle-container">
+                        <button className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`} onClick={() => setPlayFilter('scoring')}>Scoring</button>
+                        <button className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`} onClick={() => setPlayFilter('all')}>All</button>
+                      </div>
+                    </div>
+                    <div className="play-by-play-list" style={{ border: 'none', background: 'transparent' }}>
+                      {plays.filter(p => playFilter === 'all' || p.scoringPlay).slice(-5).reverse().map((play, idx) => (
+                        <div key={idx} className="play-card" style={{ padding: '15px 20px', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <div className="play-card-left">
+                            <div className="play-team-logo" style={{ width: '24px', height: '24px' }}>
+                              <img src={String(play.team?.id) === String(game.awayTeamId) ? awayTeamLogo : homeTeamLogo} alt="" />
+                            </div>
+                            <div className="play-content">
+                              <div className="play-type-row">
+                                <span className="play-type-text" style={{ fontSize: '0.75rem', fontWeight: '800' }}>{play.type?.text}</span>
+                                <span className="play-time-text" style={{ fontSize: '0.7rem' }}>{play.clock?.displayValue}</span>
+                              </div>
+                              <div className="play-description" style={{ fontSize: '0.85rem' }}>{play.text}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ textAlign: 'center', padding: '15px' }}>
+                        <button className="summary-tab" style={{ fontSize: '0.75rem' }} onClick={() => setActiveTab('play-by-play')}>Full Play-by-Play</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Odds Section */}
+                  <OddsSection data={summaryData.pickcenter} />
+                </>
+              )}
+
+              {activeTab === 'boxscore' && (
+                <div className="full-boxscore-container">
+                  {boxscore?.players?.map((teamData, tIdx) => (
+                    <div key={tIdx} className="team-boxscore">
+                      <h4 style={{ color: tIdx === 0 ? awayTeamColor : homeTeamColor }}>{(tIdx === 0 ? game.awayTeam : game.homeTeam).toUpperCase()}</h4>
+                      {teamData.statistics?.map((statCat, sIdx) => (
+                        <div key={sIdx} className="stat-category-block">
+                          <h5 className="stat-category-title">{statCat.name.toUpperCase()}</h5>
+                          <div className="table-responsive">
+                            <table className="full-boxscore-table">
+                              <thead>
+                                <tr>
+                                  <th>PLAYER</th>
+                                  {statCat.labels?.map((label, lIdx) => <th key={lIdx}>{label}</th>)}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {statCat.athletes?.map((player, pIdx) => (
+                                  <tr key={pIdx}>
+                                    <td className="player-cell">
+                                      <div className="player-name">{player.athlete?.displayName}</div>
+                                      <div className="player-pos">{player.athlete?.position?.abbreviation}</div>
+                                    </td>
+                                    {player.stats?.map((stat, stIdx) => <td key={stIdx}>{stat}</td>)}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'play-by-play' && (
+                <div className="play-by-play-list" style={{ border: 'none', background: 'transparent' }}>
+                  {plays.filter(p => playFilter === 'all' || p.scoringPlay).reverse().map((play, idx) => (
+                    <div key={idx} className="play-card">
+                      <div className="play-card-left">
+                        <div className="play-team-logo"><img src={String(play.team?.id) === String(game.awayTeamId) ? awayTeamLogo : homeTeamLogo} alt="" /></div>
+                        <div className="play-content">
+                          <div className="play-type-row">
+                            <span className="play-type-text">{play.type?.text}</span>
+                            <span className="play-time-text">{play.clock?.displayValue}</span>
+                          </div>
+                          <div className="play-description">{play.text}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'team-stats' && (
                 <div className="boxscore-container">
                   <table className="boxscore-table">
                     <thead>
                       <tr>
-                      <th colSpan={3} className="boxscore-title-header">
-                        <div className="boxscore-title">Team Stats</div>
-                        <div className="boxscore-header-teams-unified">
-                          <div className="boxscore-header-team-unified">
-                            <div className="boxscore-header-logo">
-                              <TeamLogo 
-                                name={awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam} 
-                                logoUrl={awayTeamLogo} 
-                                fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
-                              />
+                        <th colSpan={3} className="boxscore-title-header">
+                          <div className="boxscore-header-teams-unified">
+                            <div className="boxscore-header-team-unified">
+                              <div className="boxscore-header-logo"><TeamLogo name={game.awayTeam} logoUrl={awayTeamLogo} /></div>
+                              <span style={{ color: '#e0e0e0' }}>{game.awayTeam}</span>
                             </div>
-                            <span className="boxscore-header-away" style={{ color: '#e0e0e0' }}>
-                              {awayTeam.team?.displayName || awayTeam.team?.name || game.awayTeam}
-                            </span>
-                          </div>
-                          <div className="boxscore-header-team-unified">
-                            <div className="boxscore-header-logo">
-                              <TeamLogo 
-                                name={homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam} 
-                                logoUrl={homeTeamLogo} 
-                                fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
-                              />
+                            <div className="boxscore-header-team-unified">
+                              <div className="boxscore-header-logo"><TeamLogo name={game.homeTeam} logoUrl={homeTeamLogo} /></div>
+                              <span style={{ color: '#e0e0e0' }}>{game.homeTeam}</span>
                             </div>
-                            <span className="boxscore-header-home" style={{ color: '#e0e0e0' }}>
-                              {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
-                            </span>
-                          </div>
                           </div>
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {awayTeam.statistics && homeTeam.statistics && awayTeam.statistics.map((stat, idx) => {
-                        const homeStat = homeTeam.statistics[idx]
-                        if (!stat || !homeStat) return null
-                        const awayDisplay = stat.displayValue || stat.value || '-'
-                        const homeDisplay = homeStat.displayValue || homeStat.value || '-'
-                        const awayVal = parseNumericValue(stat.displayValue ?? stat.value)
-                        const homeVal = parseNumericValue(homeStat.displayValue ?? homeStat.value)
-                        const total = (Number.isNaN(awayVal) ? 0 : awayVal) + (Number.isNaN(homeVal) ? 0 : homeVal)
-                        const awayPercent = total > 0 ? ((Number.isNaN(awayVal) ? 0 : awayVal) / total) * 100 : 50
-                        const homePercent = total > 0 ? ((Number.isNaN(homeVal) ? 0 : homeVal) / total) * 100 : 50
-                        // Use team colors from API, but fallback to neutral gray instead of blue/red
-                        const awayColor = getTeamColor(awayTeam?.team, '#888888')
-                        const homeColor = getTeamColor(homeTeam?.team, '#888888')
-                        // Convert hex to rgba for gradient
-                        const awayColorLight = hexToRgba(awayColor, 0.6)
-                        const awayColorDark = hexToRgba(awayColor, 0.9)
-                        const homeColorLight = hexToRgba(homeColor, 0.6)
-                        const homeColorDark = hexToRgba(homeColor, 0.9)
+                      {awayTeam?.statistics?.map((stat, idx) => {
+                        const homeStat = homeTeam?.statistics?.[idx];
+                        const awayVal = parseNumericValue(stat.displayValue ?? stat.value);
+                        const homeVal = parseNumericValue(homeStat?.displayValue ?? homeStat?.value);
+                        const total = (isNaN(awayVal) ? 0 : awayVal) + (isNaN(homeVal) ? 0 : homeVal);
+                        const awayP = total > 0 ? (awayVal / total) * 100 : 50;
+                        const homeP = total > 0 ? (homeVal / total) * 100 : 50;
                         return (
                           <tr key={idx}>
                             <td className="stat-label">{stat.label || stat.name}</td>
                             <td colSpan={2} className="boxscore-bar-cell">
                               <div className="boxscore-row-with-values">
-                                <span className="boxscore-value away" style={{ color: awayColor }}>{awayDisplay}</span>
+                                <span className="boxscore-value away">{stat.displayValue}</span>
                                 <div className="boxscore-row-bar">
-                                  <div
-                                    className="boxscore-row-bar-segment away"
-                                    style={{ 
-                                      width: `${awayPercent}%`,
-                                      background: `linear-gradient(90deg, ${awayColorDark}, ${awayColorLight})`
-                                    }}
-                                  />
-                                  <div
-                                    className="boxscore-row-bar-segment home"
-                                    style={{ 
-                                      width: `${homePercent}%`,
-                                      background: `linear-gradient(90deg, ${homeColorDark}, ${homeColorLight})`
-                                    }}
-                                  />
+                                  <div className="boxscore-row-bar-segment away" style={{ width: `${awayP}%`, background: awayTeamColor }} />
+                                  <div className="boxscore-row-bar-segment home" style={{ width: `${homeP}%`, background: homeTeamColor }} />
                                 </div>
-                                <span className="boxscore-value home" style={{ color: homeColor }}>{homeDisplay}</span>
+                                <span className="boxscore-value home">{homeStat?.displayValue}</span>
                               </div>
                             </td>
                           </tr>
@@ -1685,340 +1739,57 @@ function GameSummary({ game, onBack }) {
                       })}
                     </tbody>
                   </table>
-              </div>
-            )}
+                </div>
+              )}
+            </main>
 
-            {/* Game Leaders */}
-            {statCategories.length > 0 && (
-              <div className="summary-section">
-                <h3>GAME LEADERS</h3>
-                <div className="game-leaders-container">
-                  {/* Team Headers */}
-                  <div className="game-leaders-header">
-                    <div className="game-leaders-team-header away">
-                      <div className="team-logo">
-                        <TeamLogo 
-                          name={game.awayTeam} 
-                          logoUrl={awayTeamLogo} 
-                          fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
-                        />
+            {/* Right Sidebar */}
+            <aside className="summary-sidebar-right">
+              {/* Win Probability */}
+              {winProbability && (
+                <div className="win-probability-section">
+                  <div className="section-header">
+                    <h3>WIN PROBABILITY</h3>
+                  </div>
+                  <div className="win-prob-header" style={{ padding: 0 }}>
+                    <div className="win-prob-team away" style={{ gap: '10px' }}>
+                      <div className="win-prob-logo" style={{ width: '32px', height: '32px' }}><img src={awayTeamLogo} alt="" /></div>
+                      <div className="win-prob-info">
+                        <span className="win-prob-percent" style={{ fontSize: '1.2rem' }}>{((winProbability.awayWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                        <span className="win-prob-abbr">{game.awayAbbreviation}</span>
                       </div>
-                      <span className="game-leaders-team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</span>
                     </div>
-                    <div></div>
-                    <div className="game-leaders-team-header home">
-                      <div className="team-logo">
-                        <TeamLogo 
-                          name={game.homeTeam} 
-                          logoUrl={homeTeamLogo} 
-                          fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
-                        />
+                    <div className="win-prob-team home" style={{ gap: '10px' }}>
+                      <div className="win-prob-logo" style={{ width: '32px', height: '32px' }}><img src={homeTeamLogo} alt="" /></div>
+                      <div className="win-prob-info">
+                        <span className="win-prob-percent" style={{ fontSize: '1.2rem' }}>{((winProbability.homeWinPercentage ?? 0.5) * 100).toFixed(1)}%</span>
+                        <span className="win-prob-abbr">{game.homeAbbreviation}</span>
                       </div>
-                      <span className="game-leaders-team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</span>
                     </div>
                   </div>
-
-                  {/* Leader Categories */}
-                  {statCategories.slice(0, 5).map((category, idx) => {
-                    const categoryLeaders = category.leaders || []
-                    
-                    const awayTeamId = String(awayTeam?.team?.id || game.awayTeamId || '')
-                    const homeTeamId = String(homeTeam?.team?.id || game.homeTeamId || '')
-                    
-                    const awayLeader = categoryLeaders.find((l) => String(l.teamId || '') === awayTeamId)
-                    const homeLeader = categoryLeaders.find((l) => String(l.teamId || '') === homeTeamId)
-                    
-                    const categoryName = category.displayName || category.name || 'Stat'
-                    
-                    return (
-                      <div key={idx} className="game-leaders-row">
-                        {/* Away Team Leader */}
-                        <div className="game-leaders-player game-leaders-away">
-                          <div className="player-headshot-stat-group">
-                            <div className="game-leaders-player-image">
-                              {awayLeader?.athlete?.headshot?.href ? (
-                                <img src={awayLeader.athlete.headshot.href} alt="" />
-                              ) : (
-                                <div className="game-leaders-player-placeholder"></div>
-                              )}
-                        </div>
-                            <div className="game-leaders-player-stat-large">
-                              {awayLeader?.mainStat?.value || '-'}
-                              </div>
-                              </div>
-                          <div className="game-leaders-player-info">
-                            <div className="game-leaders-player-name">
-                              {awayLeader?.athlete?.shortName || awayLeader?.athlete?.displayName || '-'}
-                              <span className="game-leaders-player-position"> {awayLeader?.athlete?.position?.abbreviation || ''}</span>
-                              </div>
-                            <div className="game-leaders-player-details">
-                              {awayLeader?.summary || '-'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Stat Title in Middle */}
-                        <div className="game-leaders-category-label">{categoryName}</div>
-
-                        {/* Home Team Leader */}
-                        <div className="game-leaders-player game-leaders-home">
-                          <div className="player-headshot-stat-group">
-                            <div className="game-leaders-player-stat-large">
-                              {homeLeader?.mainStat?.value || '-'}
-                            </div>
-                            <div className="game-leaders-player-image">
-                              {homeLeader?.athlete?.headshot?.href ? (
-                                <img src={homeLeader.athlete.headshot.href} alt="" />
-                              ) : (
-                                <div className="game-leaders-player-placeholder"></div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="game-leaders-player-info">
-                            <div className="game-leaders-player-name">
-                              {homeLeader?.athlete?.shortName || homeLeader?.athlete?.displayName || '-'}
-                              <span className="game-leaders-player-position"> {homeLeader?.athlete?.position?.abbreviation || ''}</span>
-                            </div>
-                            <div className="game-leaders-player-details">
-                              {homeLeader?.summary || '-'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                
-                {boxscore?.players && (
-                  <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '10px' }}>
-                    <button 
-                      className="boxscore-toggle-btn"
-                      onClick={() => setShowFullBoxScore(!showFullBoxScore)}
-                    >
-                      {showFullBoxScore ? 'Hide Full Box Score' : 'View Full Box Score'}
-                    </button>
-                  </div>
-                )}
-
-                {showFullBoxScore && boxscore?.players && (
-                  <div className="full-boxscore-container">
-                    {boxscore.players.map((teamData, tIdx) => {
-                      const teamName = tIdx === 0 ? game.awayTeam : game.homeTeam
-                      const teamColor = tIdx === 0 ? awayTeamColor : homeTeamColor
-                      
-                      return (
-                        <div key={tIdx} className="team-boxscore">
-                          <h4 style={{ color: teamColor, borderBottom: `1px solid ${teamColor}44`, paddingBottom: '8px', marginBottom: '15px' }}>
-                            {teamName.toUpperCase()}
-                          </h4>
-                          
-                          {teamData.statistics?.map((statCat, sIdx) => (
-                            <div key={sIdx} className="stat-category-block">
-                              <h5 className="stat-category-title">{statCat.name.toUpperCase()}</h5>
-                              <div className="table-responsive">
-                                <table className="full-boxscore-table">
-                                  <thead>
-                                    <tr>
-                                      <th>PLAYER</th>
-                                      {statCat.labels?.map((label, lIdx) => (
-                                        <th key={lIdx}>{label}</th>
-                                      ))}
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {statCat.athletes?.map((player, pIdx) => (
-                                      <tr key={pIdx}>
-                                        <td className="player-cell">
-                                          <div className="player-name">{player.athlete?.displayName || 'Player'}</div>
-                                          <div className="player-pos">{player.athlete?.position?.abbreviation || ''}</div>
-                                        </td>
-                                        {player.stats?.map((stat, stIdx) => (
-                                          <td key={stIdx}>{stat}</td>
-                                        ))}
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                        </div>
-                            </div>
-                          ))}
-                      </div>
-                    )
-                  })}
-                </div>
-                )}
-              </div>
-            )}
-
-            {/* Play-by-Play */}
-            {plays.length > 0 && (
-              <div className="summary-section collapsible-section">
-                <div 
-                  className={`section-header-row clickable ${showPlayByPlay ? 'expanded' : ''}`}
-                  onClick={() => setShowPlayByPlay(!showPlayByPlay)}
-                >
-                  <div className="header-title-group">
-                    <h3>PLAY-BY-PLAY</h3>
-                    <span className={`expand-icon ${showPlayByPlay ? 'expanded' : ''}`}>▼</span>
-                        </div>
-                  <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
-                    <button 
-                      className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
-                      onClick={() => setPlayFilter('scoring')}
-                    >
-                      Scoring Plays
-                    </button>
-                    <button 
-                      className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
-                      onClick={() => setPlayFilter('all')}
-                    >
-                      All Plays
-                    </button>
-                        </div>
-                        </div>
-
-                <div className="play-by-play-list">
-                  {(() => {
-                    const filteredPlays = plays.filter(play => {
-                      if (playFilter === 'all') return true;
-                      return play.scoringPlay || 
-                             play.type?.text?.toLowerCase().includes('touchdown') || 
-                             play.type?.text?.toLowerCase().includes('field goal') ||
-                             play.type?.text?.toLowerCase().includes('safety');
-                    }).reverse();
-
-                    if (filteredPlays.length === 0) {
-                      return <div className="no-plays-message">No {playFilter === 'scoring' ? 'scoring' : ''} plays found for this game.</div>;
-                    }
-
-                    // Only show latest 5 if not expanded
-                    const displayPlays = showPlayByPlay ? filteredPlays : filteredPlays.slice(0, 5);
-
-                    // Group plays by period
-                    const groupedPlays = displayPlays.reduce((groups, play) => {
-                      const period = play.period?.number || play.period || 1;
-                      if (!groups[period]) groups[period] = [];
-                      groups[period].push(play);
-                      return groups;
-                    }, {});
-
-                    return (
-                      <>
-                        {Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
-                          <div key={period} className="period-group">
-                            <div className="period-header">
-                              {String(period) === '1' ? '1ST QUARTER' : 
-                               String(period) === '2' ? '2ND QUARTER' : 
-                               String(period) === '3' ? '3RD QUARTER' : 
-                               String(period) === '4' ? '4TH QUARTER' : 
-                               `PERIOD ${period}`}
-                            </div>
-                            {groupedPlays[period].map((play, idx) => {
-                              const playTeamId = String(play.team?.id || '');
-                              const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
-                              const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
-                              
-                              return (
-                                <div key={idx} className="play-card">
-                                  <div className="play-card-left">
-                                    <div className="play-team-logo">
-                                      {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
-                                    </div>
-                                    <div className="play-content">
-                                      <div className="play-type-row">
-                                        <span className="play-type-text">
-                                          {typeof play.type?.text === 'string' ? play.type.text : 'Play'}
-                                        </span>
-                                        <span className="play-time-text">
-                                          {typeof play.clock?.displayValue === 'string' ? play.clock.displayValue : ''}
-                                          {play.clock?.displayValue && ' - '}
-                                          {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
-                                        </span>
-                                      </div>
-                                      <div className="play-description">
-                                        {typeof play.text === 'string' ? play.text : (play.text?.displayValue || play.shortText || '')}
-                                      </div>
-                                      {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
-                                        <div className="play-drive-info">
-                                          {typeof (play.drive?.description || play.drive?.displayValue) === 'string' 
-                                            ? (play.drive?.description || play.drive?.displayValue) 
-                                            : `${play.statYardage || 0} yards`}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="play-card-right">
-                                    <div className="play-score-update">
-                                      <div className="score-numbers">
-                                        <span className="score-away">
-                                          {typeof play.awayScore === 'object' ? (play.awayScore?.value ?? '-') : (play.awayScore ?? '-')}
-                                        </span>
-                                        <span className="score-home">
-                                          {typeof play.homeScore === 'object' ? (play.homeScore?.value ?? '-') : (play.homeScore ?? '-')}
-                                        </span>
-                                      </div>
-                                      <div className="score-labels">
-                                        <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
-                                        <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                      </div>
-                    ))}
-                        {!showPlayByPlay && filteredPlays.length > 5 && (
-                          <div className="show-more-indicator" onClick={() => setShowPlayByPlay(true)}>
-                            + {filteredPlays.length - 5} more plays. Click to expand full Play-by-Play.
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* Game Notes/Commentary */}
-            {commentary.length > 0 && (
-              <div className="summary-section">
-                <h3>Game Notes</h3>
-                <div className="game-notes">
-                  {commentary.slice(-5).reverse().map((note, idx) => (
-                    <div key={idx} className="note-item">
-                      <div className="note-time">{note.time}</div>
-                      <div className="note-text">{note.text || note.headline}</div>
+                  {Array.isArray(winProbabilityData) && <WinProbabilityChart data={winProbabilityData} />}
+                  
+                  {winProbability.play && (
+                    <div className="last-play-card" style={{ padding: '15px', border: 'none', background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="last-play-situation" style={{ fontSize: '0.85rem' }}>{winProbability.play.text?.match(/\d[a-z]{2}\s&\s\d+/) || 'Last Play'}</div>
+                      <div className="last-play-text" style={{ fontSize: '0.75rem', border: 'none', padding: 0 }}>{winProbability.play.text}</div>
                     </div>
-                  ))}
+                  )}
+                  <div className="espn-analytics-footer" style={{ marginTop: '10px' }}>According to ESPN Analytics</div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Headlines */}
-            {headlines.length > 0 && (
-              <div className="summary-section">
-                <h3>Related News</h3>
-                <div className="headlines">
-                  {headlines.map((headline, idx) => (
-                    <div key={idx} className="headline-item">
-                      <a
-                        href={headline.links?.web?.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="headline-link"
-                      >
-                        {headline.description || headline.shortLinkText || headline.headline}
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              {/* Standings */}
+              {summaryData.standings && <StandingsSection data={summaryData.standings} />}
+
+              {/* News */}
+              {summaryData.news?.articles && <NewsSection articles={summaryData.news.articles} />}
+            </aside>
+
           </div>
-        )}
-      </div>
-    </>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -2213,35 +1984,37 @@ function App() {
         </div>
 
         <div className="header-center">
-        <div className="sport-filters">
-            <div
-              className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
-              style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
-              onClick={() => {
-                setShowLiveOnly(!showLiveOnly)
-                setSelectedGame(null)
-              }}
-            >
-              <span className="count" id="liveGamesCount">
-                {liveCount}
-              </span>
-              <span>Live</span>
+          {!selectedGame && (
+            <div className="sport-filters">
+              <div
+                className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
+                style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
+                onClick={() => {
+                  setShowLiveOnly(!showLiveOnly)
+                  setSelectedGame(null)
+                }}
+              >
+                <span className="count" id="liveGamesCount">
+                  {liveCount}
+                </span>
+                <span>Live</span>
+              </div>
+              <div className="filter-divider"></div>
+              {SPORT_BUTTONS.map((button) => (
+                <button
+                  key={button.value}
+                  className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                  data-sport={button.value}
+                  onClick={() => handleSportClick(button.value)}
+                >
+                  {button.label}
+                </button>
+              ))}
             </div>
-            <div className="filter-divider"></div>
-          {SPORT_BUTTONS.map((button) => (
-            <button
-              key={button.value}
-              className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                .filter(Boolean)
-                .join(' ')}
-              data-sport={button.value}
-              onClick={() => handleSportClick(button.value)}
-            >
-              {button.label}
-            </button>
-          ))}
+          )}
         </div>
-      </div>
 
         <div className="header-right">
           {/* Right side spacer for balance */}
