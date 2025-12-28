@@ -525,6 +525,7 @@ function GameSummary({ game, onBack }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showFullBoxScore, setShowFullBoxScore] = useState(false)
+  const [playFilter, setPlayFilter] = useState('scoring') // 'scoring' or 'all'
 
   useEffect(() => {
     let cancelled = false
@@ -1296,30 +1297,96 @@ function GameSummary({ game, onBack }) {
               </div>
             )}
 
-            {/* Scoring Plays */}
+            {/* Play-by-Play */}
             {plays.length > 0 && (
               <div className="summary-section">
-                <h3>Scoring Plays</h3>
-                <div className="plays-list">
-                  {plays
-                    .filter((play) => play.scoringPlay || play.type?.text?.includes('Touchdown') || play.type?.text?.includes('Goal'))
-                    .slice(-10)
-                    .reverse()
-                    .map((play, idx) => (
-                      <div key={idx} className="play-item">
-                        <div className="play-period">
-                          {play.period?.displayName || play.period?.number || play.period || '-'}
+                <div className="section-header-row">
+                  <h3>PLAY-BY-PLAY</h3>
+                  <div className="play-toggle-container">
+                    <button 
+                      className={`play-toggle-btn ${playFilter === 'scoring' ? 'active' : ''}`}
+                      onClick={() => setPlayFilter('scoring')}
+                    >
+                      Scoring Plays
+                    </button>
+                    <button 
+                      className={`play-toggle-btn ${playFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setPlayFilter('all')}
+                    >
+                      All Plays
+                    </button>
+                  </div>
+                </div>
+
+                <div className="play-by-play-list">
+                  {(() => {
+                    const filteredPlays = plays.filter(play => 
+                      playFilter === 'all' || play.scoringPlay
+                    ).reverse();
+
+                    // Group plays by period
+                    const groupedPlays = filteredPlays.reduce((groups, play) => {
+                      const period = play.period?.number || play.period || 1;
+                      if (!groups[period]) groups[period] = [];
+                      groups[period].push(play);
+                      return groups;
+                    }, {});
+
+                    return Object.keys(groupedPlays).sort((a, b) => b - a).map(period => (
+                      <div key={period} className="period-group">
+                        <div className="period-header">
+                          {period === '1' ? '1ST QUARTER' : 
+                           period === '2' ? '2ND QUARTER' : 
+                           period === '3' ? '3RD QUARTER' : 
+                           period === '4' ? '4TH QUARTER' : 
+                           `PERIOD ${period}`}
                         </div>
-                        <div className="play-text">
-                          {play.text || play.shortText || play.type?.text || play.description || 'Play'}
-                        </div>
-                        <div className="play-score">
-                          {play.awayScore !== undefined && play.homeScore !== undefined
-                            ? `${play.awayScore} - ${play.homeScore}`
-                            : play.scoreValue || ''}
-                        </div>
+                        {groupedPlays[period].map((play, idx) => {
+                          const playTeamId = String(play.team?.id || '');
+                          const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
+                          const teamLogo = isAwayTeam ? awayTeamLogo : homeTeamLogo;
+                          
+                          return (
+                            <div key={idx} className="play-card">
+                              <div className="play-card-left">
+                                <div className="play-team-logo">
+                                  {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
+                                </div>
+                                <div className="play-content">
+                                  <div className="play-type-row">
+                                    <span className="play-type-text">{play.type?.text || 'Play'}</span>
+                                    <span className="play-time-text">
+                                      {play.clock?.displayValue || ''}
+                                      {play.clock?.displayValue && ' - '}
+                                      {period === '1' ? '1st' : period === '2' ? '2nd' : period === '3' ? '3rd' : period === '4' ? '4th' : `${period}th`}
+                                    </span>
+                                  </div>
+                                  <div className="play-description">{play.text}</div>
+                                  {(play.drive?.description || play.drive?.displayValue || play.statYardage) && (
+                                    <div className="play-drive-info">
+                                      {play.drive?.description || play.drive?.displayValue || `${play.statYardage} yards`}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="play-card-right">
+                                <div className="play-score-update">
+                                  <div className="score-numbers">
+                                    <span className="score-away">{play.awayScore ?? '-'}</span>
+                                    <span className="score-home">{play.homeScore ?? '-'}</span>
+                                  </div>
+                                  <div className="score-labels">
+                                    <span className="label-away">{game.awayAbbreviation || 'AWY'}</span>
+                                    <span className="label-home">{game.homeAbbreviation || 'HME'}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
+                    ));
+                  })()}
                 </div>
               </div>
             )}
