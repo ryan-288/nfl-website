@@ -3477,11 +3477,11 @@ body.pwa-mode {
 }
 
 .boxscore-row-bar-segment.away {
-    background: linear-gradient(90deg, rgba(0, 123, 255, 0.9), rgba(0, 123, 255, 0.6));
+    background: rgba(224, 224, 224, 0.3) !important;
 }
 
 .boxscore-row-bar-segment.home {
-    background: linear-gradient(90deg, rgba(220, 53, 69, 0.9), rgba(220, 53, 69, 0.6));
+    background: rgba(224, 224, 224, 0.3) !important;
 }
 
 .boxscore-value {
