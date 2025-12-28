@@ -4494,17 +4494,6 @@ body.pwa-mode {
     stroke-width: 1;
 }
 
-.chart-path {
-    fill: none;
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.chart-area {
-    opacity: 0.1;
-}
-
 .chart-labels {
     display: flex;
     justify-content: space-between;
@@ -5063,13 +5052,6 @@ body.pwa-mode {
 .chart-grid-line {
     stroke: rgba(255, 255, 255, 0.03);
     stroke-width: 1;
-}
-
-.chart-path {
-    fill: none;
-    stroke: #007bff;
-    stroke-width: 2;
-    stroke-dasharray: 2 4;
 }
 
 .chart-labels {
