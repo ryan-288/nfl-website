@@ -1104,6 +1104,66 @@ function GameSummary({ game, onBack }) {
                 </div>
               </div>
 
+              {/* Football Field Visualization */}
+              {(game.sport === 'nfl' || game.sport === 'college-football') && situation && (
+                <div className="football-field-wrapper">
+                  <div className="football-field">
+                    <div 
+                      className="field-endzone away-endzone" 
+                      style={{ backgroundColor: `#${awayTeam?.team?.color || '333'}` }}
+                    >
+                      <span className="endzone-text">{game.awayAbbreviation || 'AWAY'}</span>
+                    </div>
+                    
+                    <div className="field-grid">
+                      <div className="yard-line-container">
+                        {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(line => (
+                          <div key={line} className="field-yard-line" style={{ left: `${line}%` }}>
+                            <span className="yard-num">{line > 50 ? 100 - line : line}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Ball Marker */}
+                      {situation.yardLine !== undefined && (
+                        <div 
+                          className="ball-marker-container" 
+                          style={{ 
+                            left: `${situation.yardLine}%`,
+                            transform: `translateX(-50%)`
+                          }}
+                        >
+                          <div className="ball-marker-icon">
+                            <img 
+                              src={isAwayPossession ? awayTeamLogo : homeTeamLogo} 
+                              alt="" 
+                              className="marker-logo" 
+                            />
+                            <div className={`drive-arrow ${isHomePossession ? 'reverse' : ''}`}>
+                              <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div 
+                      className="field-endzone home-endzone" 
+                      style={{ backgroundColor: `#${homeTeam?.team?.color || '444'}` }}
+                    >
+                      <span className="endzone-text">{game.homeAbbreviation || 'HOME'}</span>
+                    </div>
+                  </div>
+                  <div className="field-labels-row">
+                    <span className="field-label-left">{game.awayAbbreviation}</span>
+                    <span className="field-label-center">50</span>
+                    <span className="field-label-right">{game.homeAbbreviation}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Status Card */}
               <div className="snapshot-status-card">
                 <div className="status-card-header">
