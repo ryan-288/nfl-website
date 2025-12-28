@@ -3203,7 +3203,8 @@ body.pwa-mode {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
     padding: 20px;
-    margin-bottom: 20px;
+    margin: 0 auto 20px; /* Centered with bottom margin */
+    max-width: 1200px; /* Increased from default to match field */
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -3226,7 +3227,7 @@ body.pwa-mode {
 
 .boxscore-table {
     width: 100%;
-    max-width: 600px;
+    max-width: 800px; /* Increased from 600px */
     border-collapse: collapse;
     font-size: 0.9rem;
     background: rgba(255, 255, 255, 0.02);
@@ -3566,7 +3567,8 @@ body.pwa-mode {
     border: 1px solid var(--border-primary);
     overflow: hidden;
     margin: 15px auto 0;
-    max-width: 750px;
+    max-width: 900px; /* Increased from 750px */
+}
 }
 
 .game-leaders-header {
@@ -4123,7 +4125,7 @@ body.pwa-mode {
 /* Game Snapshot Section */
 .game-snapshot-container {
     margin: 20px auto;
-    max-width: 850px;
+    max-width: 1200px; /* Increased from 850px to match the wider field */
     padding: 0 15px;
 }
 
@@ -4182,9 +4184,9 @@ body.pwa-mode {
 .football-field-wrapper {
     margin: 30px auto 40px;
     position: relative;
-    padding: 0 10px; 
-    max-width: 950px;
-    perspective: 1500px; /* Increased perspective for even fatter look */
+    padding: 0; /* Removed side padding */
+    max-width: 1200px; /* Increased from 950px to make it wider */
+    perspective: 1800px; /* Increased perspective for the wider field */
 }
 
 .football-field {
@@ -4374,7 +4376,7 @@ body.pwa-mode {
 .field-labels-row {
     display: flex;
     justify-content: space-between;
-    padding: 15px 12% 0;
+    padding: 15px 10% 0; /* Reduced side padding slightly for the wider field */
     font-size: 0.75rem;
     font-weight: 800;
     color: var(--text-muted);
