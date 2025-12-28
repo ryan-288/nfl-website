@@ -980,7 +980,8 @@ function GameSummary({ game, onBack }) {
     return null;
   };
 
-  const situation = findSituationInObject(summaryData) || 
+  const situation = game?.situation || 
+                    findSituationInObject(summaryData) || 
                     summaryData?.situation || 
                     summaryData?.boxscore?.situation || 
                     summaryData?.header?.competitions?.[0]?.situation ||
@@ -1019,6 +1020,7 @@ function GameSummary({ game, onBack }) {
   if (summaryData && !window._loggedFieldDebug) {
     window._loggedFieldDebug = true
     console.log('=== SITUATION SEARCH RESULTS ===')
+    console.log('Data from game object:', game?.situation)
     console.log('Final Situation Found:', situation)
     console.log('Down/Dist Text:', downDistanceText)
     console.log('YardLine Text:', yardLineText)
