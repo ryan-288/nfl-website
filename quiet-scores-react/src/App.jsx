@@ -1133,19 +1133,23 @@ function GameSummary({ game, onBack }) {
                   {/* Team Headers */}
                   <div className="game-leaders-header">
                     <div className="game-leaders-team-header">
-                      <TeamLogo 
-                        name={game.awayTeam} 
-                        logoUrl={awayTeamLogo} 
-                        fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
-                      />
+                      <div className="team-logo">
+                        <TeamLogo 
+                          name={game.awayTeam} 
+                          logoUrl={awayTeamLogo} 
+                          fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
+                        />
+                      </div>
                       <span className="game-leaders-team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</span>
                     </div>
                     <div className="game-leaders-team-header">
-                      <TeamLogo 
-                        name={game.homeTeam} 
-                        logoUrl={homeTeamLogo} 
-                        fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
-                      />
+                      <div className="team-logo">
+                        <TeamLogo 
+                          name={game.homeTeam} 
+                          logoUrl={homeTeamLogo} 
+                          fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
+                        />
+                      </div>
                       <span className="game-leaders-team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</span>
                     </div>
                   </div>

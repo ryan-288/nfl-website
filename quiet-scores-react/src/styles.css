@@ -3634,24 +3634,32 @@ body.pwa-mode {
     justify-content: center;
 }
 
-.game-leaders-team-header .team-logo,
-.game-leaders-team-header .fallback-logo {
-    width: 12px !important;
-    height: 12px !important;
-    min-width: 12px;
-    min-height: 12px;
-    max-width: 12px;
-    max-height: 12px;
+.game-leaders-team-header .team-logo {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    flex-shrink: 0;
 }
 
-.game-leaders-team-header .team-logo img {
+.game-leaders-team-header .team-logo img,
+.game-leaders-team-header .team-logo > img {
     width: 100% !important;
     height: 100% !important;
-    object-fit: contain;
+    object-fit: contain !important;
+    display: block;
 }
 
-.game-leaders-team-header .fallback-logo {
+.game-leaders-team-header .team-logo .fallback-logo {
+    width: 100% !important;
+    height: 100% !important;
     font-size: 0.5rem !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .game-leaders-team-abbr {
