@@ -822,6 +822,20 @@ function GameSummary({ game, onBack }) {
   
   // Extract player stats and leaders
   const leaders = summaryData?.leaders || boxscore?.leaders || []
+  
+  // Debug: Log leaders structure
+  if (leaders.length > 0 && !window._loggedLeadersDebug) {
+    window._loggedLeadersDebug = true
+    console.log('=== GAME LEADERS DEBUG ===')
+    console.log('Leaders count:', leaders.length)
+    console.log('First leader:', leaders[0])
+    if (leaders[0]?.leaders?.[0]) {
+      console.log('First leader player:', leaders[0].leaders[0])
+      console.log('Player athlete:', leaders[0].leaders[0].athlete)
+      console.log('Player headshot:', leaders[0].leaders[0].athlete?.headshot)
+      console.log('Player statistics:', leaders[0].leaders[0].athlete?.statistics)
+    }
+  }
   const awayPlayers = awayTeam?.statistics?.[0]?.athletes || awayTeam?.players || []
   const homePlayers = homeTeam?.statistics?.[0]?.athletes || homeTeam?.players || []
   
@@ -1070,34 +1084,134 @@ function GameSummary({ game, onBack }) {
                 </div>
             )}
 
-            {/* Top Player Stats */}
+            {/* Game Leaders */}
             {leaders.length > 0 && (
               <div className="summary-section">
-                <h3>Top Performers</h3>
-                <div className="leaders-grid">
-                  {leaders.slice(0, 6).map((leader, idx) => {
-                    const topLeaders = leader.leaders || []
-                    if (topLeaders.length === 0) return null
+                <h3>GAME LEADERS</h3>
+                <div className="game-leaders-container">
+                  {/* Team Headers */}
+                  <div className="game-leaders-header">
+                    <div className="game-leaders-team-header">
+                      <TeamLogo 
+                        name={game.awayTeam} 
+                        logoUrl={awayTeamLogo} 
+                        fallbackText={getFallbackText(game.awayTeam, game.awayShortName, game.awayAbbreviation)} 
+                      />
+                      <span className="game-leaders-team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</span>
+                    </div>
+                    <div className="game-leaders-team-header">
+                      <TeamLogo 
+                        name={game.homeTeam} 
+                        logoUrl={homeTeamLogo} 
+                        fallbackText={getFallbackText(game.homeTeam, game.homeShortName, game.homeAbbreviation)} 
+                      />
+                      <span className="game-leaders-team-abbr">{game.homeAbbreviation || game.homeShortName || 'HME'}</span>
+                    </div>
+                  </div>
+
+                  {/* Leader Categories */}
+                  {leaders.slice(0, 5).map((leader, idx) => {
+                    const categoryLeaders = leader.leaders || []
+                    if (categoryLeaders.length === 0) return null
+                    
+                    const awayLeader = categoryLeaders.find((l) => 
+                      String(l.team?.id) === String(awayTeam?.team?.id) || 
+                      String(l.team?.id) === String(game.awayTeamId)
+                    )
+                    const homeLeader = categoryLeaders.find((l) => 
+                      String(l.team?.id) === String(homeTeam?.team?.id) || 
+                      String(l.team?.id) === String(game.homeTeamId)
+                    )
+                    
+                    const categoryName = leader.displayName || leader.name || 'Stat'
                     
                     return (
-                      <div key={idx} className="leader-category">
-                        <div className="leader-category-name">
-                          {leader.displayName || leader.name || 'Stat'}
-                        </div>
-                        <div className="leader-players">
-                          {topLeaders.slice(0, 3).map((player, pIdx) => (
-                            <div key={pIdx} className="leader-player">
-                              <div className="leader-player-name">
-                                {player.athlete?.displayName || player.athlete?.fullName || player.displayName || 'Player'}
+                      <div key={idx} className="game-leaders-row">
+                        <div className="game-leaders-category-label">{categoryName}</div>
+                        <div className="game-leaders-comparison">
+                          {/* Away Team Leader */}
+                          <div className="game-leaders-player game-leaders-away">
+                            {awayLeader ? (
+                              <>
+                                <div className="game-leaders-player-image">
+                                  {awayLeader.athlete?.headshot ? (
+                                    <img src={awayLeader.athlete.headshot} alt={awayLeader.athlete.displayName || ''} />
+                                  ) : (
+                                    <div className="game-leaders-player-placeholder"></div>
+                                  )}
+                                </div>
+                                <div className="game-leaders-player-info">
+                                  <div className="game-leaders-player-name">
+                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || awayLeader.displayName || 'Player'}
+                                  </div>
+                                  <div className="game-leaders-player-position">
+                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || ''}
+                                  </div>
+                                  {awayLeader.shortDisplayValue || awayLeader.athlete?.statistics ? (
+                                    <div className="game-leaders-player-details">
+                                      {awayLeader.shortDisplayValue || 
+                                       (awayLeader.athlete?.statistics && awayLeader.athlete.statistics.map((stat, sIdx) => (
+                                         <span key={sIdx}>
+                                           {stat.displayValue || stat.value || ''}
+                                           {sIdx < awayLeader.athlete.statistics.length - 1 && ', '}
+                                         </span>
+                                       )))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                                <div className="game-leaders-player-stat-large">
+                                  {awayLeader.displayValue || awayLeader.value || '-'}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="game-leaders-empty">
+                                <div className="game-leaders-player-placeholder"></div>
+                                <span>--</span>
                               </div>
-                              <div className="leader-player-stat">
-                                {player.displayValue || player.value || '-'}
+                            )}
+                          </div>
+
+                          {/* Home Team Leader */}
+                          <div className="game-leaders-player game-leaders-home">
+                            {homeLeader ? (
+                              <>
+                                <div className="game-leaders-player-stat-large">
+                                  {homeLeader.displayValue || homeLeader.value || '-'}
+                                </div>
+                                <div className="game-leaders-player-image">
+                                  {homeLeader.athlete?.headshot ? (
+                                    <img src={homeLeader.athlete.headshot} alt={homeLeader.athlete.displayName || ''} />
+                                  ) : (
+                                    <div className="game-leaders-player-placeholder"></div>
+                                  )}
+                                </div>
+                                <div className="game-leaders-player-info">
+                                  <div className="game-leaders-player-name">
+                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || homeLeader.displayName || 'Player'}
+                                  </div>
+                                  <div className="game-leaders-player-position">
+                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || ''}
+                                  </div>
+                                  {homeLeader.shortDisplayValue || homeLeader.athlete?.statistics ? (
+                                    <div className="game-leaders-player-details">
+                                      {homeLeader.shortDisplayValue || 
+                                       (homeLeader.athlete?.statistics && homeLeader.athlete.statistics.map((stat, sIdx) => (
+                                         <span key={sIdx}>
+                                           {stat.displayValue || stat.value || ''}
+                                           {sIdx < homeLeader.athlete.statistics.length - 1 && ', '}
+                                         </span>
+                                       )))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="game-leaders-empty">
+                                <div className="game-leaders-player-placeholder"></div>
+                                <span>--</span>
                               </div>
-                              <div className="leader-player-team">
-                                {player.team?.displayName || player.team?.abbreviation || ''}
-                              </div>
-                            </div>
-                          ))}
+                            )}
+                          </div>
                         </div>
                       </div>
                     )
