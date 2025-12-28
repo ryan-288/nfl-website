@@ -949,19 +949,35 @@ function GameSummary({ game, onBack }) {
 
   // Snapshot Data Extraction
   const currentDrive = summaryData?.drives?.current
-  const situation = summaryData?.boxscore?.situation || summaryData?.header?.competitions?.[0]?.situation
+  const situation = summaryData?.boxscore?.situation || 
+                    summaryData?.header?.competitions?.[0]?.situation ||
+                    summaryData?.scoringPlays?.find(p => p.clock && !p.end)?.situation ||
+                    summaryData?.situation
+  
   const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
 
-  const possessionTeamId = String(situation?.possession || situation?.possessionTeam?.id || '')
+  const possessionTeamId = String(situation?.possession || situation?.possessionTeam?.id || situation?.lastPlay?.team?.id || '')
   const isAwayPossession = possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
   const isHomePossession = possessionTeamId === String(homeTeam?.team?.id || game.homeTeamId)
   
+  // Robust extraction of down and distance
+  const downDistanceText = situation?.downDistanceText || 
+                          (situation?.down !== undefined && situation?.distance !== undefined ? 
+                            `${situation.down}${situation.down === 1 ? 'st' : situation.down === 2 ? 'nd' : situation.down === 3 ? 'rd' : 'th'} & ${situation.distance}` : null) ||
+                          (summaryData?.header?.competitions?.[0]?.status?.type?.description === 'In Progress' ? 'Kickoff' : '-')
+                          
+  const yardLineText = situation?.yardLineText || 
+                      (situation?.possessionText ? situation.possessionText : null) ||
+                      (situation?.shortDownDistanceText ? situation.shortDownDistanceText : null) ||
+                      '-'
+
   // Debug field
   if (summaryData && !window._loggedFieldDebug) {
     window._loggedFieldDebug = true
     console.log('=== FIELD DEBUG ===')
     console.log('Sport:', game.sport)
-    console.log('Has situation:', !!situation)
+    console.log('Situation Source:', summaryData?.boxscore?.situation ? 'boxscore' : summaryData?.header?.competitions?.[0]?.situation ? 'header' : summaryData?.situation ? 'root' : 'none')
+    console.log('Full Situation Object:', situation)
     console.log('YardLine:', situation?.yardLine)
     console.log('Possession ID:', possessionTeamId)
   }
@@ -1106,13 +1122,13 @@ function GameSummary({ game, onBack }) {
                   <div className="situation-item">
                     <span className="snapshot-label">Down:</span>
                     <span className="snapshot-value">
-                      {typeof situation?.downDistanceText === 'string' ? situation.downDistanceText : '-'}
+                      {downDistanceText}
                     </span>
                   </div>
                   <div className="situation-item">
                     <span className="snapshot-label">Ball on:</span>
                     <span className="snapshot-value">
-                      {typeof situation?.yardLineText === 'string' ? situation.yardLineText : '-'}
+                      {yardLineText}
                     </span>
                   </div>
                 </div>
@@ -1139,17 +1155,17 @@ function GameSummary({ game, onBack }) {
                       </div>
                       
                       {/* Ball Marker */}
-                      {situation?.yardLine !== undefined && (
+                      {(situation?.yardLine !== undefined || situation?.yardline !== undefined || situation?.location !== undefined) && (
                         <div 
                           className="ball-marker-container" 
                           style={{ 
-                            left: `${situation.yardLine}%`,
+                            left: `${situation.yardLine ?? situation.yardline ?? situation.location}%`,
                             transform: `translateX(-50%)`
                           }}
                         >
                           <div className="ball-marker-icon">
                             <img 
-                              src={isAwayPossession ? awayTeamLogo : homeTeamLogo} 
+                              src={isAwayPossession ? awayTeamLogo : isHomePossession ? homeTeamLogo : (awayTeamLogo || homeTeamLogo)} 
                               alt="" 
                               className="marker-logo" 
                             />
