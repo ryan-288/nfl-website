@@ -1122,38 +1122,48 @@ function GameSummary({ game, onBack }) {
                   {/* Leader Categories */}
                   {leaders.slice(0, 5).map((leader, idx) => {
                     const categoryLeaders = leader.leaders || []
-                    if (categoryLeaders.length === 0) {
-                      // Debug: log why we're skipping
-                      console.log(`Skipping leader[${idx}] - no leaders array:`, leader)
-                      return null
-                    }
+                    if (categoryLeaders.length === 0) return null
                     
-                    // Try multiple ways to match teams
-                    const awayLeader = categoryLeaders.find((l) => {
+                    // Match teams - try multiple strategies
+                    let awayLeader = null
+                    let homeLeader = null
+                    
+                    // Strategy 1: Match by team ID
+                    categoryLeaders.forEach((l) => {
                       const playerTeamId = String(l.team?.id || l.teamId || '')
                       const awayId1 = String(awayTeam?.team?.id || '')
                       const awayId2 = String(game.awayTeamId || '')
-                      const matches = playerTeamId === awayId1 || playerTeamId === awayId2
-                      if (matches) {
-                        console.log(`Found away leader for ${leader.displayName || leader.name}:`, l)
-                      }
-                      return matches
-                    }) || (categoryLeaders.length > 0 && categoryLeaders[0]?.homeAway === 'away' ? categoryLeaders[0] : categoryLeaders[0])
-                    
-                    const homeLeader = categoryLeaders.find((l) => {
-                      const playerTeamId = String(l.team?.id || l.teamId || '')
                       const homeId1 = String(homeTeam?.team?.id || '')
                       const homeId2 = String(game.homeTeamId || '')
-                      const matches = playerTeamId === homeId1 || playerTeamId === homeId2
-                      if (matches) {
-                        console.log(`Found home leader for ${leader.displayName || leader.name}:`, l)
+                      
+                      if ((playerTeamId === awayId1 || playerTeamId === awayId2) && !awayLeader) {
+                        awayLeader = l
                       }
-                      return matches
-                    }) || (categoryLeaders.length > 1 && categoryLeaders[1]?.homeAway === 'home' ? categoryLeaders[1] : (categoryLeaders.length > 1 ? categoryLeaders[1] : null))
+                      if ((playerTeamId === homeId1 || playerTeamId === homeId2) && !homeLeader) {
+                        homeLeader = l
+                      }
+                    })
                     
-                    // Debug if no leaders found
-                    if (!awayLeader && !homeLeader) {
-                      console.log(`No leaders found for ${leader.displayName || leader.name}. Available:`, categoryLeaders)
+                    // Strategy 2: Match by homeAway property
+                    if (!awayLeader || !homeLeader) {
+                      categoryLeaders.forEach((l) => {
+                        if (l.homeAway === 'away' && !awayLeader) {
+                          awayLeader = l
+                        }
+                        if (l.homeAway === 'home' && !homeLeader) {
+                          homeLeader = l
+                        }
+                      })
+                    }
+                    
+                    // Strategy 3: Use first two as fallback
+                    if (!awayLeader && categoryLeaders.length > 0) {
+                      awayLeader = categoryLeaders[0]
+                    }
+                    if (!homeLeader && categoryLeaders.length > 1) {
+                      homeLeader = categoryLeaders[1]
+                    } else if (!homeLeader && categoryLeaders.length === 1 && categoryLeaders[0] !== awayLeader) {
+                      homeLeader = categoryLeaders[0]
                     }
                     
                     const categoryName = leader.displayName || leader.name || 'Stat'
