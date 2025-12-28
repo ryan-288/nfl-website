@@ -1753,29 +1753,7 @@ function GameSummary({ game, onBack }) {
   )
 }
 
-function ScoreTicker({ scores, onOpenSummary }) {
-  const [tickerSports, setTickerSports] = useState(() => {
-    const saved = localStorage.getItem('tickerSports');
-    return saved ? JSON.parse(saved) : ['all'];
-  });
-  const [showFilters, setShowFilters] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('tickerSports', JSON.stringify(tickerSports));
-  }, [tickerSports]);
-
-  const toggleSport = (sport) => {
-    setTickerSports(prev => {
-      if (sport === 'all') return ['all'];
-      const next = prev.filter(s => s !== 'all');
-      if (next.includes(sport)) {
-        const filtered = next.filter(s => s !== sport);
-        return filtered.length === 0 ? ['all'] : filtered;
-      }
-      return [...next, sport];
-    });
-  };
-
+function ScoreTicker({ scores, onOpenSummary, tickerSports }) {
   const filteredScores = scores.filter(game => 
     tickerSports.includes('all') || tickerSports.includes(game.sport)
   );
@@ -1787,26 +1765,6 @@ function ScoreTicker({ scores, onOpenSummary }) {
 
   return (
     <div className="score-ticker-container">
-      <div className="ticker-filter-toggle" onClick={() => setShowFilters(!showFilters)}>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M4 21v-7m0-4V3m8 21v-11m0-4V3m8 21v-9m0-4V3M1 14h6m2-7h6m2 9h6" />
-        </svg>
-      </div>
-
-      {showFilters && (
-        <div className="ticker-filters-dropdown">
-          {SPORT_BUTTONS.map(sport => (
-            <button 
-              key={sport.value}
-              className={`ticker-filter-btn ${tickerSports.includes(sport.value) ? 'active' : ''}`}
-              onClick={() => toggleSport(sport.value)}
-            >
-              {sport.label}
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="score-ticker-track">
         {tickerScores.map((game, idx) => (
           <div 
@@ -1847,6 +1805,28 @@ function App() {
   const [selectedSport, setSelectedSport] = useState('all')
   const [selectedGame, setSelectedGame] = useState(null)
   const [showLiveOnly, setShowLiveOnly] = useState(false)
+  
+  // Ticker filter state moved to App level
+  const [tickerSports, setTickerSports] = useState(() => {
+    const saved = localStorage.getItem('tickerSports');
+    return saved ? JSON.parse(saved) : ['all'];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tickerSports', JSON.stringify(tickerSports));
+  }, [tickerSports]);
+
+  const handleTickerSportToggle = (sport) => {
+    setTickerSports(prev => {
+      if (sport === 'all') return ['all'];
+      const next = prev.filter(s => s !== 'all');
+      if (next.includes(sport)) {
+        const filtered = next.filter(s => s !== sport);
+        return filtered.length === 0 ? ['all'] : filtered;
+      }
+      return [...next, sport];
+    });
+  };
 
   const { scores, isLoading, error } = useScores(currentDate)
 
@@ -2036,36 +2016,34 @@ function App() {
         </div>
 
         <div className="header-center">
-          {!selectedGame && (
-            <div className="sport-filters">
-              <div
-                className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
-                style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
-                onClick={() => {
-                  setShowLiveOnly(!showLiveOnly)
-                  setSelectedGame(null)
-                }}
-              >
-                <span className="count" id="liveGamesCount">
-                  {liveCount}
-                </span>
-                <span>Live</span>
-              </div>
-              <div className="filter-divider"></div>
-              {SPORT_BUTTONS.map((button) => (
-                <button
-                  key={button.value}
-                  className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                    .filter(Boolean)
-                    .join(' ')}
-                  data-sport={button.value}
-                  onClick={() => handleSportClick(button.value)}
-                >
-                  {button.label}
-                </button>
-              ))}
+          <div className="sport-filters">
+            <div
+              className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
+              style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
+              onClick={() => {
+                setShowLiveOnly(!showLiveOnly)
+                setSelectedGame(null)
+              }}
+            >
+              <span className="count" id="liveGamesCount">
+                {liveCount}
+              </span>
+              <span>Live</span>
             </div>
-          )}
+            <div className="filter-divider"></div>
+            {SPORT_BUTTONS.map((button) => (
+              <button
+                key={button.value}
+                className={['sport-btn', (selectedGame ? tickerSports.includes(button.value) : selectedSport === button.value) ? 'active' : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                data-sport={button.value}
+                onClick={() => selectedGame ? handleTickerSportToggle(button.value) : handleSportClick(button.value)}
+              >
+                {button.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="header-right">
@@ -2074,7 +2052,7 @@ function App() {
       </div>
 
       {selectedGame && (
-        <ScoreTicker scores={sortedScores} onOpenSummary={handleOpenGameSummary} />
+        <ScoreTicker scores={sortedScores} onOpenSummary={handleOpenGameSummary} tickerSports={tickerSports} />
       )}
 
       <div style={{ paddingTop: selectedGame ? '45px' : '0' }}>

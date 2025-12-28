@@ -54,13 +54,22 @@ body {
     border-bottom: 1px solid var(--border-primary);
     height: 45px;
     width: 100%;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to show dropdown */
     position: fixed;
     top: 60px; /* Below the 60px site header */
     left: 0;
     z-index: 99;
     display: flex;
     align-items: center;
+}
+
+.score-ticker-track-container {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
 .score-ticker-track {
