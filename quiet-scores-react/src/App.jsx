@@ -1132,7 +1132,7 @@ function GameSummary({ game, onBack }) {
                 <div className="game-leaders-container">
                   {/* Team Headers */}
                   <div className="game-leaders-header">
-                    <div className="game-leaders-team-header">
+                    <div className="game-leaders-team-header away">
                       <div className="team-logo">
                         <TeamLogo 
                           name={game.awayTeam} 
@@ -1142,7 +1142,8 @@ function GameSummary({ game, onBack }) {
                       </div>
                       <span className="game-leaders-team-abbr">{game.awayAbbreviation || game.awayShortName || 'AWY'}</span>
                     </div>
-                    <div className="game-leaders-team-header">
+                    <div></div>
+                    <div className="game-leaders-team-header home">
                       <div className="team-logo">
                         <TeamLogo 
                           name={game.homeTeam} 
