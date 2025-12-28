@@ -1449,16 +1449,36 @@ function App() {
       <div className="site-header">
         <div className="header-left">
           <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
-          <h1>Quiet Scores - Live ESPN Data</h1>
+          <h1>Quiet Scores</h1>
         </div>
-        <div
-          className="live-games-indicator"
-          style={{ display: liveCount > 0 ? 'flex' : 'none' }}
-        >
-          <span className="count" id="liveGamesCount">
-            {liveCount}
-          </span>
-          <span>Live Games</span>
+
+        <div className="header-center">
+          <div className="sport-filters">
+            {SPORT_BUTTONS.map((button) => (
+              <button
+                key={button.value}
+                className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                data-sport={button.value}
+                onClick={() => handleSportClick(button.value)}
+              >
+                {button.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="header-right">
+          <div
+            className="live-games-indicator"
+            style={{ display: liveCount > 0 ? 'flex' : 'none' }}
+          >
+            <span className="count" id="liveGamesCount">
+              {liveCount}
+            </span>
+            <span>Live</span>
+          </div>
         </div>
       </div>
 
@@ -1502,23 +1522,6 @@ function App() {
             onChange={handleCustomDateChange}
             style={{ display: 'none' }}
           />
-        </div>
-      </div>
-
-      <div className="controls">
-        <div className="sport-filters">
-          {SPORT_BUTTONS.map((button) => (
-            <button
-              key={button.value}
-              className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                .filter(Boolean)
-                .join(' ')}
-              data-sport={button.value}
-              onClick={() => handleSportClick(button.value)}
-            >
-              {button.label}
-            </button>
-          ))}
         </div>
       </div>
 
