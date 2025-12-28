@@ -4404,6 +4404,194 @@ body.pwa-mode {
     }
 }
 
+/* Win Probability Section */
+.win-probability-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 1580px;
+}
+
+.win-prob-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 0 40px;
+}
+
+.win-prob-team {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.win-prob-team.home {
+    flex-direction: row-reverse;
+}
+
+.win-prob-logo {
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    border-radius: 50%;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.win-prob-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.win-prob-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.win-prob-percent {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.win-prob-abbr {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.win-prob-chart-container {
+    height: 200px;
+    width: 100%;
+    position: relative;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.win-prob-chart-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-grid-line {
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+}
+
+.chart-center-line {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1;
+}
+
+.chart-path {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chart-area {
+    opacity: 0.1;
+}
+
+.chart-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 40px 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.last-play-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.last-play-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.last-play-situation {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.last-play-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.last-play-score-group {
+    display: flex;
+    gap: 20px;
+}
+
+.last-play-team-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.last-play-val {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.last-play-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.last-play-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.espn-analytics-footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+    .win-prob-percent { font-size: 1.5rem; }
+    .win-prob-logo { width: 40px; height: 40px; }
+    .win-prob-header { padding: 0 10px; }
+    .last-play-situation { font-size: 0.9rem; }
+}
+
 .snapshot-status-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);

@@ -1095,6 +1095,71 @@ function GameSummary({ game, onBack }) {
     return typeof stat.displayValue === 'string' ? stat.displayValue : String(stat.value || '0')
   }
 
+  // Win Probability Chart Component
+  const WinProbabilityChart = ({ data }) => {
+    if (!data || data.length < 2) return null;
+
+    const width = 1000;
+    const height = 200;
+    const padding = 20;
+    const chartWidth = width - (padding * 2);
+    const chartHeight = height - (padding * 2);
+
+    // Map points to SVG coordinates
+    // We use homeWinPercentage for the line (50% is center)
+    const points = data.map((d, i) => {
+      const x = padding + (i / (data.length - 1)) * chartWidth;
+      const prob = d.homeWinPercentage ?? 0.5;
+      const y = height - (padding + (prob * chartHeight));
+      return { x, y };
+    });
+
+    const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+    
+    // Create separate areas for above and below 50%
+    const centerLineY = height / 2;
+    const homeColor = `#${homeTeam?.team?.color || '888888'}`;
+    const awayColor = `#${awayTeam?.team?.color || '888888'}`;
+
+    return (
+      <div className="win-prob-chart-container">
+        <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg">
+          {/* Grid Lines */}
+          <line x1={padding} y1={centerLineY} x2={width-padding} y2={centerLineY} className="chart-center-line" />
+          <line x1={padding} y1={padding} x2={width-padding} y2={padding} className="chart-grid-line" />
+          <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} className="chart-grid-line" />
+          
+          <line x1={padding} y1={centerLineY - chartHeight/4} x2={width-padding} y2={centerLineY - chartHeight/4} className="chart-grid-line" />
+          <line x1={padding} y1={centerLineY + chartHeight/4} x2={width-padding} y2={centerLineY + chartHeight/4} className="chart-grid-line" />
+
+          {/* Vertical quarter lines */}
+          {[0.25, 0.5, 0.75].map(p => (
+            <line key={p} x1={padding + (chartWidth * p)} y1={padding} x2={padding + (chartWidth * p)} y2={height-padding} className="chart-grid-line" />
+          ))}
+          
+          {/* Shaded Area (From path to center line) */}
+          <mask id="chart-mask">
+            <rect x="0" y="0" width={width} height={height} fill="white" />
+          </mask>
+          
+          <path 
+            d={`${pathD} L ${points[points.length-1].x},${centerLineY} L ${points[0].x},${centerLineY} Z`} 
+            fill="rgba(0,0,0,0.1)" 
+          />
+          
+          {/* The Data Path (Dotted) */}
+          <path d={pathD} stroke="#333" className="chart-path" style={{ strokeWidth: 2, strokeDasharray: '3 3' }} />
+        </svg>
+        <div className="chart-labels">
+          <span>1st</span>
+          <span>2nd</span>
+          <span>3rd</span>
+          <span>4th</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="game-summary-content">
@@ -1417,6 +1482,69 @@ function GameSummary({ game, onBack }) {
                 </div>
               </div>
             </div>
+
+            {/* Win Probability Section */}
+            {(game.sport === 'nfl' || game.sport === 'college-football') && winProbabilityData?.length > 0 && (
+              <div className="win-probability-section">
+                <div className="section-header-row">
+                  <h3>WIN PROBABILITY</h3>
+                </div>
+                
+                <div className="win-prob-header">
+                  <div className="win-prob-team away">
+                    <div className="win-prob-logo">
+                      <img src={awayTeamLogo} alt="" />
+                    </div>
+                    <div className="win-prob-info">
+                      <span className="win-prob-percent">{(winProbability?.awayWinPercentage * 100).toFixed(1)}%</span>
+                      <span className="win-prob-abbr">{game.awayAbbreviation}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="win-prob-team home">
+                    <div className="win-prob-logo">
+                      <img src={homeTeamLogo} alt="" />
+                    </div>
+                    <div className="win-prob-info">
+                      <span className="win-prob-percent">{(winProbability?.homeWinPercentage * 100).toFixed(1)}%</span>
+                      <span className="win-prob-abbr">{game.homeAbbreviation}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <WinProbabilityChart data={winProbabilityData} />
+
+                {/* Last Play Summary */}
+                {winProbability?.play && (
+                  <div className="last-play-card">
+                    <div className="last-play-header">
+                      <div className="last-play-situation-group">
+                        <div className="last-play-situation">
+                          {winProbability.play.text?.match(/\d[a-z]{2}\s&\s\d+/) || 'Last Play'}
+                          {winProbability.play.text?.includes('at ') && ` at ${winProbability.play.text.split('at ')[1].split(' ')[0]} ${winProbability.play.text.split('at ')[1].split(' ')[1]}`}
+                        </div>
+                        <div className="last-play-time">
+                          {winProbability.play.clock?.displayValue} - {winProbability.play.period?.number === 1 ? '1st' : winProbability.play.period?.number === 2 ? '2nd' : winProbability.play.period?.number === 3 ? '3rd' : '4th'}
+                        </div>
+                      </div>
+                      <div className="last-play-score-group">
+                        <div className="last-play-team-score">
+                          <span className="last-play-val">{winProbability.play.awayScore}</span>
+                          <span className="last-play-label">{game.awayAbbreviation}</span>
+                        </div>
+                        <div className="last-play-team-score">
+                          <span className="last-play-val">{winProbability.play.homeScore}</span>
+                          <span className="last-play-label">{game.homeAbbreviation}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="last-play-text">{winProbability.play.text}</div>
+                  </div>
+                )}
+                
+                <div className="espn-analytics-footer">According to ESPN Analytics</div>
+              </div>
+            )}
 
             {/* Team Stats */}
             {boxscore && awayTeam && homeTeam && (
