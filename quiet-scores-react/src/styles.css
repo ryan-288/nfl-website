@@ -126,29 +126,28 @@ body.pwa-mode {
     background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
     border: 1px solid rgba(220, 53, 69, 0.2);
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     user-select: none;
+    white-space: nowrap;
 }
 
 .live-games-indicator:hover {
     background: rgba(220, 53, 69, 0.2);
     border-color: rgba(220, 53, 69, 0.4);
-    transform: translateY(-1px);
 }
 
 .live-games-indicator.active {
     background: #dc3545;
     color: #ffffff;
     border-color: #dc3545;
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 .live-games-indicator .count {
@@ -157,6 +156,7 @@ body.pwa-mode {
     padding: 1px 6px;
     border-radius: 4px;
     font-size: 0.7rem;
+    font-weight: 700;
     transition: all 0.2s ease;
 }
 
@@ -341,11 +341,19 @@ body.pwa-mode {
 /* Sport filters */
 .sport-filters {
     display: flex;
+    align-items: center;
     gap: 4px;
     padding: 4px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filter-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
 }
 
 .sport-btn {
@@ -492,10 +500,6 @@ body.pwa-mode {
     .site-logo {
         width: 24px;
         height: 24px;
-    }
-
-    .live-games-indicator {
-        order: 2;
     }
 }
 

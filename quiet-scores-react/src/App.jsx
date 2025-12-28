@@ -1462,6 +1462,17 @@ function App() {
 
         <div className="header-center">
           <div className="sport-filters">
+            <div
+              className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
+              style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
+              onClick={() => setShowLiveOnly(!showLiveOnly)}
+            >
+              <span className="count" id="liveGamesCount">
+                {liveCount}
+              </span>
+              <span>Live</span>
+            </div>
+            <div className="filter-divider"></div>
             {SPORT_BUTTONS.map((button) => (
               <button
                 key={button.value}
@@ -1478,16 +1489,7 @@ function App() {
         </div>
 
         <div className="header-right">
-          <div
-            className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
-            style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
-            onClick={() => setShowLiveOnly(!showLiveOnly)}
-          >
-            <span className="count" id="liveGamesCount">
-              {liveCount}
-            </span>
-            <span>Live</span>
-          </div>
+          {/* Right side spacer for balance */}
         </div>
       </div>
 
