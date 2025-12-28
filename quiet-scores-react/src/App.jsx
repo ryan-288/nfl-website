@@ -824,25 +824,32 @@ function GameSummary({ game, onBack }) {
   const leaders = summaryData?.leaders || boxscore?.leaders || []
   
   // Debug: Log leaders structure
-  if (leaders.length > 0 && !window._loggedLeadersDebug) {
+  if (summaryData && !window._loggedLeadersDebug) {
     window._loggedLeadersDebug = true
     console.log('=== GAME LEADERS DEBUG ===')
+    console.log('Leaders from summaryData?.leaders:', summaryData?.leaders)
+    console.log('Leaders from boxscore?.leaders:', boxscore?.leaders)
+    console.log('Final leaders array:', leaders)
     console.log('Leaders count:', leaders.length)
-    console.log('All leaders:', leaders)
-    leaders.forEach((leader, idx) => {
-      console.log(`Leader[${idx}]:`, leader)
-      console.log(`Leader[${idx}].name:`, leader.name)
-      console.log(`Leader[${idx}].displayName:`, leader.displayName)
-      console.log(`Leader[${idx}].leaders:`, leader.leaders)
-      if (leader.leaders && leader.leaders.length > 0) {
-        leader.leaders.forEach((player, pIdx) => {
-          console.log(`  Player[${pIdx}]:`, player)
-          console.log(`  Player[${pIdx}].team:`, player.team)
-          console.log(`  Player[${pIdx}].team?.id:`, player.team?.id)
-          console.log(`  Player[${pIdx}].athlete:`, player.athlete)
-        })
-      }
-    })
+    console.log('Full leaders structure:', JSON.stringify(leaders, null, 2).substring(0, 10000))
+    if (leaders.length > 0) {
+      leaders.forEach((leader, idx) => {
+        console.log(`Leader[${idx}]:`, leader)
+        console.log(`Leader[${idx}].name:`, leader.name)
+        console.log(`Leader[${idx}].displayName:`, leader.displayName)
+        console.log(`Leader[${idx}].leaders:`, leader.leaders)
+        if (leader.leaders && leader.leaders.length > 0) {
+          leader.leaders.forEach((player, pIdx) => {
+            console.log(`  Player[${pIdx}]:`, JSON.stringify(player, null, 2).substring(0, 500))
+            console.log(`  Player[${pIdx}].team:`, player.team)
+            console.log(`  Player[${pIdx}].team?.id:`, player.team?.id)
+            console.log(`  Player[${pIdx}].athlete:`, player.athlete)
+            console.log(`  Player[${pIdx}].displayValue:`, player.displayValue)
+            console.log(`  Player[${pIdx}].shortDisplayValue:`, player.shortDisplayValue)
+          })
+        }
+      })
+    }
     console.log('Away team ID:', awayTeam?.team?.id, game.awayTeamId)
     console.log('Home team ID:', homeTeam?.team?.id, game.homeTeamId)
   }
@@ -1124,46 +1131,29 @@ function GameSummary({ game, onBack }) {
                     const categoryLeaders = leader.leaders || []
                     if (categoryLeaders.length === 0) return null
                     
-                    // Match teams - try multiple strategies
-                    let awayLeader = null
-                    let homeLeader = null
-                    
-                    // Strategy 1: Match by team ID
-                    categoryLeaders.forEach((l) => {
-                      const playerTeamId = String(l.team?.id || l.teamId || '')
-                      const awayId1 = String(awayTeam?.team?.id || '')
-                      const awayId2 = String(game.awayTeamId || '')
-                      const homeId1 = String(homeTeam?.team?.id || '')
-                      const homeId2 = String(game.homeTeamId || '')
-                      
-                      if ((playerTeamId === awayId1 || playerTeamId === awayId2) && !awayLeader) {
-                        awayLeader = l
-                      }
-                      if ((playerTeamId === homeId1 || playerTeamId === homeId2) && !homeLeader) {
-                        homeLeader = l
-                      }
+                    // Simple approach: just use first two leaders, or match if possible
+                    let awayLeader = categoryLeaders.find((l) => {
+                      const playerTeamId = String(l.team?.id || l.teamId || l.team?.teamId || '')
+                      return playerTeamId === String(awayTeam?.team?.id || game.awayTeamId || '') || 
+                             l.homeAway === 'away'
                     })
                     
-                    // Strategy 2: Match by homeAway property
-                    if (!awayLeader || !homeLeader) {
-                      categoryLeaders.forEach((l) => {
-                        if (l.homeAway === 'away' && !awayLeader) {
-                          awayLeader = l
-                        }
-                        if (l.homeAway === 'home' && !homeLeader) {
-                          homeLeader = l
-                        }
-                      })
-                    }
+                    let homeLeader = categoryLeaders.find((l) => {
+                      const playerTeamId = String(l.team?.id || l.teamId || l.team?.teamId || '')
+                      return playerTeamId === String(homeTeam?.team?.id || game.homeTeamId || '') || 
+                             l.homeAway === 'home'
+                    })
                     
-                    // Strategy 3: Use first two as fallback
+                    // Fallback: use first two
                     if (!awayLeader && categoryLeaders.length > 0) {
                       awayLeader = categoryLeaders[0]
                     }
-                    if (!homeLeader && categoryLeaders.length > 1) {
-                      homeLeader = categoryLeaders[1]
-                    } else if (!homeLeader && categoryLeaders.length === 1 && categoryLeaders[0] !== awayLeader) {
-                      homeLeader = categoryLeaders[0]
+                    if (!homeLeader) {
+                      if (categoryLeaders.length > 1 && categoryLeaders[1] !== awayLeader) {
+                        homeLeader = categoryLeaders[1]
+                      } else if (categoryLeaders.length > 0 && categoryLeaders[0] !== awayLeader) {
+                        homeLeader = categoryLeaders[0]
+                      }
                     }
                     
                     const categoryName = leader.displayName || leader.name || 'Stat'
