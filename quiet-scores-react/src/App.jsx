@@ -951,7 +951,21 @@ function GameSummary({ game, onBack }) {
   const currentDrive = summaryData?.drives?.current
   const situation = summaryData?.boxscore?.situation || summaryData?.header?.competitions?.[0]?.situation
   const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
+
+  const possessionTeamId = String(situation?.possession || situation?.possessionTeam?.id || '')
+  const isAwayPossession = possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
+  const isHomePossession = possessionTeamId === String(homeTeam?.team?.id || game.homeTeamId)
   
+  // Debug field
+  if (summaryData && !window._loggedFieldDebug) {
+    window._loggedFieldDebug = true
+    console.log('=== FIELD DEBUG ===')
+    console.log('Sport:', game.sport)
+    console.log('Has situation:', !!situation)
+    console.log('YardLine:', situation?.yardLine)
+    console.log('Possession ID:', possessionTeamId)
+  }
+
   const getTeamStat = (team, statName) => {
     const stat = team?.statistics?.find(s => s.name === statName)
     if (!stat) return '0'
@@ -1105,7 +1119,7 @@ function GameSummary({ game, onBack }) {
               </div>
 
               {/* Football Field Visualization */}
-              {(game.sport === 'nfl' || game.sport === 'college-football') && situation && (
+              {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && (
                 <div className="football-field-wrapper">
                   <div className="football-field">
                     <div 
@@ -1125,7 +1139,7 @@ function GameSummary({ game, onBack }) {
                       </div>
                       
                       {/* Ball Marker */}
-                      {situation.yardLine !== undefined && (
+                      {situation?.yardLine !== undefined && (
                         <div 
                           className="ball-marker-container" 
                           style={{ 
@@ -1139,11 +1153,13 @@ function GameSummary({ game, onBack }) {
                               alt="" 
                               className="marker-logo" 
                             />
-                            <div className={`drive-arrow ${isHomePossession ? 'reverse' : ''}`}>
-                              <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z" />
-                              </svg>
-                            </div>
+                            {(isAwayPossession || isHomePossession) && (
+                              <div className={`drive-arrow ${isHomePossession ? 'reverse' : ''}`}>
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
