@@ -1050,11 +1050,21 @@ function GameSummary({ game, onBack }) {
   
   // Try to find the matching play if details are missing from the win prob object
   if (winProbability && !winProbability.play) {
-    const allPlays = summaryData?.plays || [];
+    const allPlays = [
+      ...(summaryData?.plays || []),
+      ...(summaryData?.boxscore?.plays || []),
+      ...(summaryData?.drives?.previous?.flatMap(d => d.plays || []) || []),
+      ...(summaryData?.drives?.current?.plays || [])
+    ];
     const targetPlayId = winProbability.playId;
     
     if (targetPlayId) {
-      winProbability.play = allPlays.find(p => String(p.id) === String(targetPlayId));
+      // Try exact match and partial match (ESPN sometimes has IDs that are prefixes or suffixes)
+      winProbability.play = allPlays.find(p => 
+        String(p.id) === String(targetPlayId) || 
+        String(targetPlayId).includes(String(p.id)) ||
+        String(p.id).includes(String(targetPlayId))
+      );
     }
     
     // If still no play, use the absolute last play from the game summary data
