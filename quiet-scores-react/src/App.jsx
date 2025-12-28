@@ -1787,7 +1787,7 @@ function ScoreTicker({ scores, onOpenSummary }) {
 
   return (
     <div className="score-ticker-container">
-      <div className="ticker-filter-toggle" onClick={() => setShowShowFilters(!showFilters)}>
+      <div className="ticker-filter-toggle" onClick={() => setShowFilters(!showFilters)}>
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M4 21v-7m0-4V3m8 21v-11m0-4V3m8 21v-9m0-4V3M1 14h6m2-7h6m2 9h6" />
         </svg>
