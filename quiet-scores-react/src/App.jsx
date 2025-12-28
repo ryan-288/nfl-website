@@ -524,6 +524,7 @@ function GameSummary({ game, onBack }) {
   const [summaryData, setSummaryData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showFullBoxScore, setShowFullBoxScore] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -1233,6 +1234,65 @@ function GameSummary({ game, onBack }) {
                     )
                   })}
                 </div>
+                
+                {boxscore?.players && (
+                  <div style={{ textAlign: 'center', marginTop: '20px', paddingBottom: '10px' }}>
+                    <button 
+                      className="boxscore-toggle-btn"
+                      onClick={() => setShowFullBoxScore(!showFullBoxScore)}
+                    >
+                      {showFullBoxScore ? 'Hide Full Box Score' : 'View Full Box Score'}
+                    </button>
+                  </div>
+                )}
+
+                {showFullBoxScore && boxscore?.players && (
+                  <div className="full-boxscore-container">
+                    {boxscore.players.map((teamData, tIdx) => {
+                      const teamName = tIdx === 0 ? game.awayTeam : game.homeTeam
+                      const teamColor = tIdx === 0 ? awayTeamColor : homeTeamColor
+                      
+                      return (
+                        <div key={tIdx} className="team-boxscore">
+                          <h4 style={{ color: teamColor, borderBottom: `1px solid ${teamColor}44`, paddingBottom: '8px', marginBottom: '15px' }}>
+                            {teamName.toUpperCase()}
+                          </h4>
+                          
+                          {teamData.statistics?.map((statCat, sIdx) => (
+                            <div key={sIdx} className="stat-category-block">
+                              <h5 className="stat-category-title">{statCat.name.toUpperCase()}</h5>
+                              <div className="table-responsive">
+                                <table className="full-boxscore-table">
+                                  <thead>
+                                    <tr>
+                                      <th>PLAYER</th>
+                                      {statCat.labels?.map((label, lIdx) => (
+                                        <th key={lIdx}>{label}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {statCat.athletes?.map((player, pIdx) => (
+                                      <tr key={pIdx}>
+                                        <td className="player-cell">
+                                          <div className="player-name">{player.athlete?.displayName || 'Player'}</div>
+                                          <div className="player-pos">{player.athlete?.position?.abbreviation || ''}</div>
+                                        </td>
+                                        {player.stats?.map((stat, stIdx) => (
+                                          <td key={stIdx}>{stat}</td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
