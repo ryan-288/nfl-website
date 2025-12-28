@@ -950,13 +950,28 @@ function GameSummary({ game, onBack }) {
   // Snapshot Data Extraction
   const currentDrive = summaryData?.drives?.current
   
-  // Very robust situation extraction - checking every possible known location in ESPN API
-  const situation = summaryData?.situation || 
+  // Exhaustive recursive search for situation data in the API response
+  const findSituationInObject = (obj, depth = 0) => {
+    if (!obj || typeof obj !== 'object' || depth > 10) return null;
+    if (obj.down !== undefined && obj.distance !== undefined && obj.down > 0) return obj;
+    if (obj.downDistanceText || obj.shortDownDistanceText) return obj;
+    
+    // Check children
+    for (const key in obj) {
+      if (obj[key] && typeof obj[key] === 'object' && key !== 'plays' && key !== 'athletes') {
+        const found = findSituationInObject(obj[key], depth + 1);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const situation = findSituationInObject(summaryData) || 
+                    summaryData?.situation || 
                     summaryData?.boxscore?.situation || 
                     summaryData?.header?.competitions?.[0]?.situation ||
-                    summaryData?.drives?.current?.plays?.[summaryData.drives.current.plays.length - 1]?.situation ||
-                    summaryData?.scoringPlays?.find(p => p.clock && !p.end)?.situation ||
-                    summaryData?.header?.competitions?.[0]?.status?.situation
+                    summaryData?.drives?.current?.plays?.[summaryData?.drives?.current?.plays?.length - 1]?.situation ||
+                    summaryData?.header?.competitions?.[0]?.status
   
   const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
 
@@ -965,6 +980,7 @@ function GameSummary({ game, onBack }) {
     situation?.possessionTeam?.id || 
     situation?.lastPlay?.team?.id || 
     summaryData?.drives?.current?.team?.id ||
+    summaryData?.header?.competitions?.[0]?.competitors?.find(c => c.possession || c.possessionTeam?.id)?.team?.id ||
     ''
   )
   const isAwayPossession = possessionTeamId !== '' && possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
@@ -975,11 +991,11 @@ function GameSummary({ game, onBack }) {
                           situation?.shortDownDistanceText ||
                           (situation?.down !== undefined && situation?.distance !== undefined && situation?.down > 0 ? 
                             `${situation.down}${situation.down === 1 ? 'st' : situation.down === 2 ? 'nd' : situation.down === 3 ? 'rd' : 'th'} & ${situation.distance}` : null) ||
-                          (summaryData?.header?.competitions?.[0]?.status?.type?.state === 'in' || game.status === 'live' ? '1st & 10' : '-')
+                          (game.status === 'live' ? '1st & 10' : '-')
                           
   const yardLineText = situation?.yardLineText || 
                       situation?.possessionText ||
-                      (situation?.yardLine !== undefined ? `Own ${situation.yardLine}` : null) ||
+                      (situation?.yardLine !== undefined ? (situation.yardLine > 50 ? `Opp ${100 - situation.yardLine}` : `Own ${situation.yardLine}`) : null) ||
                       '-'
 
   // Debug field
