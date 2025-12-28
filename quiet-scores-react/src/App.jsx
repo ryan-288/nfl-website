@@ -1753,6 +1753,43 @@ function GameSummary({ game, onBack }) {
   )
 }
 
+function ScoreTicker({ scores, onOpenSummary }) {
+  if (!scores || scores.length === 0) return null;
+
+  // Duplicate scores to create seamless infinite scroll effect
+  const tickerScores = [...scores, ...scores];
+
+  return (
+    <div className="score-ticker-container">
+      <div className="score-ticker-track">
+        {tickerScores.map((game, idx) => (
+          <div 
+            key={`${game.id}-${idx}`} 
+            className="ticker-item"
+            onClick={() => onOpenSummary(game)}
+          >
+            <div className="ticker-teams">
+              <div className="ticker-team-row">
+                <img src={game.awayLogo} alt="" className="ticker-logo" />
+                <span>{game.awayAbbreviation}</span>
+                <span className="ticker-score">{game.awayScore}</span>
+              </div>
+              <div className="ticker-team-row">
+                <img src={game.homeLogo} alt="" className="ticker-logo" />
+                <span>{game.homeAbbreviation}</span>
+                <span className="ticker-score">{game.homeScore}</span>
+              </div>
+            </div>
+            <div className={`ticker-status ${game.status === 'final' ? 'final' : ''}`}>
+              {game.status === 'live' ? (game.time || 'LIVE') : game.status.toUpperCase()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const today = useMemo(() => stripTime(new Date()), [])
   const baseMonday = useMemo(() => getMonday(today), [today])
@@ -1945,7 +1982,7 @@ function App() {
 
         <div className="header-center">
           {!selectedGame && (
-        <div className="sport-filters">
+            <div className="sport-filters">
               <div
                 className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
                 style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
@@ -1960,28 +1997,34 @@ function App() {
                 <span>Live</span>
               </div>
               <div className="filter-divider"></div>
-          {SPORT_BUTTONS.map((button) => (
-            <button
-              key={button.value}
-              className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                .filter(Boolean)
-                .join(' ')}
-              data-sport={button.value}
-              onClick={() => handleSportClick(button.value)}
-            >
-              {button.label}
-            </button>
-          ))}
-        </div>
+              {SPORT_BUTTONS.map((button) => (
+                <button
+                  key={button.value}
+                  className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                  data-sport={button.value}
+                  onClick={() => handleSportClick(button.value)}
+                >
+                  {button.label}
+                </button>
+              ))}
+            </div>
           )}
-      </div>
+        </div>
 
         <div className="header-right">
           {/* Right side spacer for balance */}
           </div>
       </div>
 
-      {mainContent}
+      {selectedGame && (
+        <ScoreTicker scores={sortedScores} onOpenSummary={handleOpenGameSummary} />
+      )}
+
+      <div style={{ paddingTop: selectedGame ? '45px' : '0' }}>
+        {mainContent}
+      </div>
     </div>
   )
 }

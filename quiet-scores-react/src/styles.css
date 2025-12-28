@@ -48,6 +48,91 @@ body {
     padding-top: 80px;
 }
 
+/* Score Ticker Styles */
+.score-ticker-container {
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border-primary);
+    height: 45px;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 60px; /* Below the 60px site header */
+    left: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+}
+
+.score-ticker-track {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    animation: ticker-scroll 60s linear infinite;
+    width: max-content;
+}
+
+.score-ticker-track:hover {
+    animation-play-state: paused;
+}
+
+.ticker-item {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 100%;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.ticker-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ticker-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ticker-team-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 100px;
+}
+
+.ticker-logo {
+    width: 12px;
+    height: 12px;
+    object-fit: contain;
+}
+
+.ticker-score {
+    margin-left: auto;
+    color: var(--text-primary);
+}
+
+.ticker-status {
+    margin-left: 12px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #dc3545; /* Red for live */
+    text-transform: uppercase;
+}
+
+.ticker-status.final {
+    color: var(--text-muted);
+}
+
+@keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
 
 
 /* PWA-specific styles - only apply when app is installed */
