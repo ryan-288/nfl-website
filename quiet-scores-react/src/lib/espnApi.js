@@ -328,6 +328,7 @@ function transformEvent(event, sportKey) {
     awayTeamId: away.team?.id ? String(away.team.id) : null,
     homeTeamId: home.team?.id ? String(home.team.id) : null,
     atBatTeam,
+    situation,
     // MLB-specific fields
     inningNumber,
     topBottom,
