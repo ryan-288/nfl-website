@@ -953,15 +953,29 @@ function GameSummary({ game, onBack }) {
   // Exhaustive recursive search for situation data in the API response
   const findSituationInObject = (obj, depth = 0) => {
     if (!obj || typeof obj !== 'object' || depth > 10) return null;
-    if (obj.down !== undefined && obj.distance !== undefined && obj.down > 0) return obj;
-    if (obj.downDistanceText || obj.shortDownDistanceText) return obj;
     
-    // Check children
-    for (const key in obj) {
-      if (obj[key] && typeof obj[key] === 'object' && key !== 'plays' && key !== 'athletes') {
-        const found = findSituationInObject(obj[key], depth + 1);
-        if (found) return found;
-      }
+    // Check if THIS object is a situation object
+    const hasDown = obj.down !== undefined && obj.down !== null;
+    const hasDist = obj.distance !== undefined && obj.distance !== null;
+    const hasText = !!(obj.downDistanceText || obj.shortDownDistanceText || obj.yardLineText || obj.possessionText);
+    
+    if ((hasDown && hasDist) || hasText) {
+      // Basic validation - if it has down/dist but they are 0/null, keep looking unless it has text
+      if (hasText || (obj.down > 0)) return obj;
+    }
+    
+    // Check children - prioritizing keys that sound like situation
+    const keys = Object.keys(obj);
+    const priorityKeys = keys.filter(k => k.toLowerCase().includes('situation') || k.toLowerCase().includes('lastplay') || k === 'status');
+    const otherKeys = keys.filter(k => !priorityKeys.includes(k) && k !== 'plays' && k !== 'athletes' && k !== 'links');
+    
+    for (const key of [...priorityKeys, ...otherKeys]) {
+      try {
+        if (obj[key] && typeof obj[key] === 'object') {
+          const found = findSituationInObject(obj[key], depth + 1);
+          if (found) return found;
+        }
+      } catch (e) { /* ignore */ }
     }
     return null;
   };
@@ -970,6 +984,7 @@ function GameSummary({ game, onBack }) {
                     summaryData?.situation || 
                     summaryData?.boxscore?.situation || 
                     summaryData?.header?.competitions?.[0]?.situation ||
+                    summaryData?.header?.competitions?.[0]?.status?.situation ||
                     summaryData?.drives?.current?.plays?.[summaryData?.drives?.current?.plays?.length - 1]?.situation ||
                     summaryData?.header?.competitions?.[0]?.status
   
@@ -991,22 +1006,37 @@ function GameSummary({ game, onBack }) {
                           situation?.shortDownDistanceText ||
                           (situation?.down !== undefined && situation?.distance !== undefined && situation?.down > 0 ? 
                             `${situation.down}${situation.down === 1 ? 'st' : situation.down === 2 ? 'nd' : situation.down === 3 ? 'rd' : 'th'} & ${situation.distance}` : null) ||
-                          (game.status === 'live' ? '1st & 10' : '-')
+                          (summaryData?.drives?.current?.lastPlay?.text?.match(/\d[a-z]{2}\s&\s\d+/) || [])[0] ||
+                          (game.status === 'live' ? 'Live' : '-')
                           
   const yardLineText = situation?.yardLineText || 
                       situation?.possessionText ||
                       (situation?.yardLine !== undefined ? (situation.yardLine > 50 ? `Opp ${100 - situation.yardLine}` : `Own ${situation.yardLine}`) : null) ||
+                      (summaryData?.drives?.current?.lastPlay?.text?.match(/at\s([A-Z]+\s\d+)/) || [])[1] ||
                       '-'
 
   // Debug field
   if (summaryData && !window._loggedFieldDebug) {
     window._loggedFieldDebug = true
-    console.log('=== FIELD DEBUG ===')
-    console.log('Sport:', game.sport)
-    console.log('Situation Source:', summaryData?.boxscore?.situation ? 'boxscore' : summaryData?.header?.competitions?.[0]?.situation ? 'header' : summaryData?.situation ? 'root' : 'none')
-    console.log('Full Situation Object:', situation)
-    console.log('YardLine:', situation?.yardLine)
+    console.log('=== SITUATION SEARCH RESULTS ===')
+    console.log('Final Situation Found:', situation)
+    console.log('Down/Dist Text:', downDistanceText)
+    console.log('YardLine Text:', yardLineText)
     console.log('Possession ID:', possessionTeamId)
+    console.log('Is Live?', game.status === 'live')
+    
+    // Scan for any object with 'down' key anywhere
+    const findKeysRecursive = (obj, targetKey, path = 'root') => {
+      if (!obj || typeof obj !== 'object') return;
+      if (targetKey in obj) console.log(`FOUND ${targetKey} AT ${path}:`, obj[targetKey]);
+      Object.keys(obj).forEach(k => {
+        if (obj[k] && typeof obj[k] === 'object' && k !== 'plays' && k !== 'athletes') {
+          findKeysRecursive(obj[k], targetKey, `${path}.${k}`);
+        }
+      });
+    };
+    findKeysRecursive(summaryData, 'down');
+    findKeysRecursive(summaryData, 'yardLine');
   }
 
   const getTeamStat = (team, statName) => {
