@@ -926,7 +926,7 @@ function GameSummary({ game, onBack }) {
   const homeTeamLogo = homeTeam?.team?.logos?.[0]?.href || homeTeam?.team?.logo || game.homeLogo
 
   return (
-    <div className="container">
+    <>
       <button className="back-btn floating" onClick={onBack}>
         ← Back
       </button>
@@ -1306,7 +1306,7 @@ function GameSummary({ game, onBack }) {
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
@@ -1340,6 +1340,7 @@ function App() {
   const handleSportClick = (sport) => {
     setSelectedSport(sport)
     setShowLiveOnly(false)
+    setSelectedGame(null)
   }
 
   const handleDaySelect = (dayKey) => {
@@ -1424,51 +1425,10 @@ function App() {
   }, [scores, selectedSport])
 
   // Show game summary if a game is selected
-  if (selectedGame) {
-    return <GameSummary game={selectedGame} onBack={handleBackToScores} />
-  }
-
-  return (
-    <div className="container">
-      <div className="site-header">
-        <div className="header-left">
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
-          <h1>Quiet Scores</h1>
-        </div>
-
-        <div className="header-center">
-          <div className="sport-filters">
-            <div
-              className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
-              style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
-              onClick={() => setShowLiveOnly(!showLiveOnly)}
-            >
-              <span className="count" id="liveGamesCount">
-                {liveCount}
-              </span>
-              <span>Live</span>
-            </div>
-            <div className="filter-divider"></div>
-            {SPORT_BUTTONS.map((button) => (
-              <button
-                key={button.value}
-                className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                  .filter(Boolean)
-                  .join(' ')}
-                data-sport={button.value}
-                onClick={() => handleSportClick(button.value)}
-              >
-                {button.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="header-right">
-          {/* Right side spacer for balance */}
-        </div>
-      </div>
-
+  const mainContent = selectedGame ? (
+    <GameSummary game={selectedGame} onBack={handleBackToScores} />
+  ) : (
+    <>
       <div className="date-navigation">
         <div className="week-display" onClick={toggleDatePicker} style={{ cursor: 'pointer' }}>
           <div className="week-label" id="weekLabel">
@@ -1529,6 +1489,54 @@ function App() {
           ))
         )}
       </div>
+    </>
+  )
+
+  return (
+    <div className="container">
+      <div className="site-header">
+        <div className="header-left" onClick={handleBackToScores} style={{ cursor: 'pointer' }}>
+          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
+          <h1>Quiet Scores</h1>
+        </div>
+
+        <div className="header-center">
+          <div className="sport-filters">
+            <div
+              className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
+              style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
+              onClick={() => {
+                setShowLiveOnly(!showLiveOnly)
+                setSelectedGame(null)
+              }}
+            >
+              <span className="count" id="liveGamesCount">
+                {liveCount}
+              </span>
+              <span>Live</span>
+            </div>
+            <div className="filter-divider"></div>
+            {SPORT_BUTTONS.map((button) => (
+              <button
+                key={button.value}
+                className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                  .filter(Boolean)
+                  .join(' ')}
+                data-sport={button.value}
+                onClick={() => handleSportClick(button.value)}
+              >
+                {button.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="header-right">
+          {/* Right side spacer for balance */}
+        </div>
+      </div>
+
+      {mainContent}
     </div>
   )
 }
