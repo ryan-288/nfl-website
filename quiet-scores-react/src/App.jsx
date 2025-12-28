@@ -1352,6 +1352,19 @@ function GameSummary({ game, onBack }) {
           </div>
         </div>
 
+        {/* Tabs Navigation */}
+        <div className="summary-tabs">
+          {['gamecast', 'boxscore', 'play-by-play', 'team-stats'].map(tab => (
+            <button 
+              key={tab} 
+              className={`summary-tab ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.replace('-', ' ')}
+            </button>
+          ))}
+        </div>
+
         {/* Main Grid Layout */}
         <div className="game-summary-grid">
 
