@@ -821,7 +821,19 @@ function GameSummary({ game, onBack }) {
   }
   
   // Extract player stats and leaders
-  const leaders = summaryData?.leaders || boxscore?.leaders || []
+  // Check multiple possible locations for leaders data
+  let leaders = summaryData?.leaders || boxscore?.leaders || []
+  
+  // Also check if leaders are in header.competitions[0].leaders
+  if (leaders.length === 0 && summaryData?.header?.competitions?.[0]?.leaders) {
+    leaders = summaryData.header.competitions[0].leaders
+  }
+  
+  // Check if we need to build leaders from boxscore.players
+  if (leaders.length === 0 && boxscore?.players) {
+    console.log('No leaders found, checking boxscore.players structure')
+    console.log('boxscore.players:', boxscore.players)
+  }
   
   // Debug: Log leaders structure
   if (summaryData && !window._loggedLeadersDebug) {
@@ -840,12 +852,15 @@ function GameSummary({ game, onBack }) {
         console.log(`Leader[${idx}].leaders:`, leader.leaders)
         if (leader.leaders && leader.leaders.length > 0) {
           leader.leaders.forEach((player, pIdx) => {
-            console.log(`  Player[${pIdx}]:`, JSON.stringify(player, null, 2).substring(0, 500))
+            console.log(`  Player[${pIdx}] ALL KEYS:`, Object.keys(player))
+            console.log(`  Player[${pIdx}] FULL OBJECT:`, JSON.stringify(player, null, 2))
             console.log(`  Player[${pIdx}].team:`, player.team)
             console.log(`  Player[${pIdx}].team?.id:`, player.team?.id)
             console.log(`  Player[${pIdx}].athlete:`, player.athlete)
             console.log(`  Player[${pIdx}].displayValue:`, player.displayValue)
             console.log(`  Player[${pIdx}].shortDisplayValue:`, player.shortDisplayValue)
+            console.log(`  Player[${pIdx}].value:`, player.value)
+            console.log(`  Player[${pIdx}].statistics:`, player.statistics)
           })
         }
       })
@@ -1167,20 +1182,20 @@ function GameSummary({ game, onBack }) {
                             {awayLeader ? (
                               <>
                                 <div className="game-leaders-player-image">
-                                  {awayLeader.athlete?.headshot ? (
-                                    <img src={awayLeader.athlete.headshot} alt={awayLeader.athlete.displayName || ''} />
+                                  {(awayLeader.athlete?.headshot || awayLeader.headshot || awayLeader.player?.headshot) ? (
+                                    <img src={awayLeader.athlete?.headshot || awayLeader.headshot || awayLeader.player?.headshot} alt={awayLeader.athlete?.displayName || awayLeader.displayName || ''} />
                                   ) : (
                                     <div className="game-leaders-player-placeholder"></div>
                                   )}
                                 </div>
                                 <div className="game-leaders-player-info">
                                   <div className="game-leaders-player-name">
-                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || awayLeader.displayName || 'Player'}
+                                    {awayLeader.athlete?.displayName || awayLeader.athlete?.fullName || awayLeader.player?.displayName || awayLeader.displayName || awayLeader.name || 'Player'}
                                   </div>
                                   <div className="game-leaders-player-position">
-                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || ''}
+                                    {awayLeader.athlete?.position?.abbreviation || awayLeader.athlete?.position?.name || awayLeader.player?.position?.abbreviation || awayLeader.position || ''}
                                   </div>
-                                  {awayLeader.shortDisplayValue || awayLeader.athlete?.statistics ? (
+                                  {(awayLeader.shortDisplayValue || awayLeader.athlete?.statistics || awayLeader.statistics) ? (
                                     <div className="game-leaders-player-details">
                                       {awayLeader.shortDisplayValue || 
                                        (awayLeader.athlete?.statistics && awayLeader.athlete.statistics.map((stat, sIdx) => (
@@ -1188,12 +1203,18 @@ function GameSummary({ game, onBack }) {
                                            {stat.displayValue || stat.value || ''}
                                            {sIdx < awayLeader.athlete.statistics.length - 1 && ', '}
                                          </span>
+                                       ))) ||
+                                       (awayLeader.statistics && Array.isArray(awayLeader.statistics) && awayLeader.statistics.map((stat, sIdx) => (
+                                         <span key={sIdx}>
+                                           {stat.displayValue || stat.value || stat.label || ''}
+                                           {sIdx < awayLeader.statistics.length - 1 && ', '}
+                                         </span>
                                        )))}
                                     </div>
                                   ) : null}
                                 </div>
                                 <div className="game-leaders-player-stat-large">
-                                  {awayLeader.displayValue || awayLeader.value || '-'}
+                                  {awayLeader.displayValue || awayLeader.value || awayLeader.statValue || '-'}
                                 </div>
                               </>
                             ) : (
@@ -1209,29 +1230,35 @@ function GameSummary({ game, onBack }) {
                             {homeLeader ? (
                               <>
                                 <div className="game-leaders-player-stat-large">
-                                  {homeLeader.displayValue || homeLeader.value || '-'}
+                                  {homeLeader.displayValue || homeLeader.value || homeLeader.statValue || '-'}
                                 </div>
                                 <div className="game-leaders-player-image">
-                                  {homeLeader.athlete?.headshot ? (
-                                    <img src={homeLeader.athlete.headshot} alt={homeLeader.athlete.displayName || ''} />
+                                  {(homeLeader.athlete?.headshot || homeLeader.headshot || homeLeader.player?.headshot) ? (
+                                    <img src={homeLeader.athlete?.headshot || homeLeader.headshot || homeLeader.player?.headshot} alt={homeLeader.athlete?.displayName || homeLeader.displayName || ''} />
                                   ) : (
                                     <div className="game-leaders-player-placeholder"></div>
                                   )}
                                 </div>
                                 <div className="game-leaders-player-info">
                                   <div className="game-leaders-player-name">
-                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || homeLeader.displayName || 'Player'}
+                                    {homeLeader.athlete?.displayName || homeLeader.athlete?.fullName || homeLeader.player?.displayName || homeLeader.displayName || homeLeader.name || 'Player'}
                                   </div>
                                   <div className="game-leaders-player-position">
-                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || ''}
+                                    {homeLeader.athlete?.position?.abbreviation || homeLeader.athlete?.position?.name || homeLeader.player?.position?.abbreviation || homeLeader.position || ''}
                                   </div>
-                                  {homeLeader.shortDisplayValue || homeLeader.athlete?.statistics ? (
+                                  {(homeLeader.shortDisplayValue || homeLeader.athlete?.statistics || homeLeader.statistics) ? (
                                     <div className="game-leaders-player-details">
                                       {homeLeader.shortDisplayValue || 
                                        (homeLeader.athlete?.statistics && homeLeader.athlete.statistics.map((stat, sIdx) => (
                                          <span key={sIdx}>
                                            {stat.displayValue || stat.value || ''}
                                            {sIdx < homeLeader.athlete.statistics.length - 1 && ', '}
+                                         </span>
+                                       ))) ||
+                                       (homeLeader.statistics && Array.isArray(homeLeader.statistics) && homeLeader.statistics.map((stat, sIdx) => (
+                                         <span key={sIdx}>
+                                           {stat.displayValue || stat.value || stat.label || ''}
+                                           {sIdx < homeLeader.statistics.length - 1 && ', '}
                                          </span>
                                        )))}
                                     </div>
