@@ -949,26 +949,37 @@ function GameSummary({ game, onBack }) {
 
   // Snapshot Data Extraction
   const currentDrive = summaryData?.drives?.current
-  const situation = summaryData?.boxscore?.situation || 
+  
+  // Very robust situation extraction - checking every possible known location in ESPN API
+  const situation = summaryData?.situation || 
+                    summaryData?.boxscore?.situation || 
                     summaryData?.header?.competitions?.[0]?.situation ||
+                    summaryData?.drives?.current?.plays?.[summaryData.drives.current.plays.length - 1]?.situation ||
                     summaryData?.scoringPlays?.find(p => p.clock && !p.end)?.situation ||
-                    summaryData?.situation
+                    summaryData?.header?.competitions?.[0]?.status?.situation
   
   const winProbability = summaryData?.winprobability?.[summaryData.winprobability.length - 1]
 
-  const possessionTeamId = String(situation?.possession || situation?.possessionTeam?.id || situation?.lastPlay?.team?.id || '')
-  const isAwayPossession = possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
-  const isHomePossession = possessionTeamId === String(homeTeam?.team?.id || game.homeTeamId)
+  const possessionTeamId = String(
+    situation?.possession || 
+    situation?.possessionTeam?.id || 
+    situation?.lastPlay?.team?.id || 
+    summaryData?.drives?.current?.team?.id ||
+    ''
+  )
+  const isAwayPossession = possessionTeamId !== '' && possessionTeamId === String(awayTeam?.team?.id || game.awayTeamId)
+  const isHomePossession = possessionTeamId !== '' && possessionTeamId === String(homeTeam?.team?.id || game.homeTeamId)
   
   // Robust extraction of down and distance
   const downDistanceText = situation?.downDistanceText || 
-                          (situation?.down !== undefined && situation?.distance !== undefined ? 
+                          situation?.shortDownDistanceText ||
+                          (situation?.down !== undefined && situation?.distance !== undefined && situation?.down > 0 ? 
                             `${situation.down}${situation.down === 1 ? 'st' : situation.down === 2 ? 'nd' : situation.down === 3 ? 'rd' : 'th'} & ${situation.distance}` : null) ||
-                          (summaryData?.header?.competitions?.[0]?.status?.type?.description === 'In Progress' ? 'Kickoff' : '-')
+                          (summaryData?.header?.competitions?.[0]?.status?.type?.state === 'in' || game.status === 'live' ? '1st & 10' : '-')
                           
   const yardLineText = situation?.yardLineText || 
-                      (situation?.possessionText ? situation.possessionText : null) ||
-                      (situation?.shortDownDistanceText ? situation.shortDownDistanceText : null) ||
+                      situation?.possessionText ||
+                      (situation?.yardLine !== undefined ? `Own ${situation.yardLine}` : null) ||
                       '-'
 
   // Debug field
@@ -1043,7 +1054,7 @@ function GameSummary({ game, onBack }) {
                   <div className="team-info-side">
                     <div className="team-name-side" style={{ color: awayTeamColor }}>{game.awayTeam}</div>
                     <div className="team-record-side">{game.awayTeamRecord || ''}</div>
-                  </div>
+                </div>
                   <div className="team-score-side" style={{ color: awayTeamColor }}>{game.awayScore || '-'}</div>
                 </div>
 
@@ -1131,8 +1142,8 @@ function GameSummary({ game, onBack }) {
                       {yardLineText}
                     </span>
                   </div>
-                </div>
               </div>
+            </div>
 
               {/* Football Field Visualization */}
               {(game.sport === 'nfl' || game.sport === 'college-football' || game.sportName?.toLowerCase().includes('football')) && (
@@ -1155,11 +1166,11 @@ function GameSummary({ game, onBack }) {
                       </div>
                       
                       {/* Ball Marker */}
-                      {(situation?.yardLine !== undefined || situation?.yardline !== undefined || situation?.location !== undefined) && (
+                      {(situation?.yardLine !== undefined || situation?.yardline !== undefined || situation?.location !== undefined || situation?.distance !== undefined) && (
                         <div 
                           className="ball-marker-container" 
                           style={{ 
-                            left: `${situation.yardLine ?? situation.yardline ?? situation.location}%`,
+                            left: `${situation.yardLine ?? situation.yardline ?? situation.location ?? (100 - (situation.distance || 0))}%`,
                             transform: `translateX(-50%)`
                           }}
                         >
@@ -1260,10 +1271,10 @@ function GameSummary({ game, onBack }) {
 
             {/* Team Stats */}
             {boxscore && awayTeam && homeTeam && (
-              <div className="boxscore-container">
-                <table className="boxscore-table">
-                  <thead>
-                    <tr>
+                <div className="boxscore-container">
+                  <table className="boxscore-table">
+                    <thead>
+                      <tr>
                       <th colSpan={3} className="boxscore-title-header">
                         <div className="boxscore-title">Team Stats</div>
                         <div className="boxscore-header-teams-unified">
@@ -1291,10 +1302,10 @@ function GameSummary({ game, onBack }) {
                               {homeTeam.team?.displayName || homeTeam.team?.name || game.homeTeam}
                             </span>
                           </div>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {awayTeam.statistics && homeTeam.statistics && awayTeam.statistics.map((stat, idx) => {
                         const homeStat = homeTeam.statistics[idx]
@@ -1344,7 +1355,7 @@ function GameSummary({ game, onBack }) {
                       })}
                     </tbody>
                   </table>
-                </div>
+              </div>
             )}
 
             {/* Game Leaders */}
@@ -1400,16 +1411,16 @@ function GameSummary({ game, onBack }) {
                               ) : (
                                 <div className="game-leaders-player-placeholder"></div>
                               )}
-                            </div>
+                        </div>
                             <div className="game-leaders-player-stat-large">
                               {awayLeader?.mainStat?.value || '-'}
-                            </div>
-                          </div>
+                              </div>
+                              </div>
                           <div className="game-leaders-player-info">
                             <div className="game-leaders-player-name">
                               {awayLeader?.athlete?.shortName || awayLeader?.athlete?.displayName || '-'}
                               <span className="game-leaders-player-position"> {awayLeader?.athlete?.position?.abbreviation || ''}</span>
-                            </div>
+                              </div>
                             <div className="game-leaders-player-details">
                               {awayLeader?.summary || '-'}
                             </div>
@@ -1498,13 +1509,13 @@ function GameSummary({ game, onBack }) {
                                     ))}
                                   </tbody>
                                 </table>
-                              </div>
+                        </div>
                             </div>
                           ))}
-                        </div>
-                      )
-                    })}
-                  </div>
+                      </div>
+                    )
+                  })}
+                </div>
                 )}
               </div>
             )}
@@ -1519,7 +1530,7 @@ function GameSummary({ game, onBack }) {
                   <div className="header-title-group">
                     <h3>PLAY-BY-PLAY</h3>
                     <span className={`expand-icon ${showPlayByPlay ? 'expanded' : ''}`}>▼</span>
-                  </div>
+                        </div>
                   {showPlayByPlay && (
                     <div className="play-toggle-container" onClick={(e) => e.stopPropagation()}>
                       <button 
@@ -1534,9 +1545,9 @@ function GameSummary({ game, onBack }) {
                       >
                         All Plays
                       </button>
-                    </div>
+                        </div>
                   )}
-                </div>
+                        </div>
 
                 {showPlayByPlay && (
                   <div className="play-by-play-list">
@@ -1569,7 +1580,7 @@ function GameSummary({ game, onBack }) {
                              String(period) === '3' ? '3RD QUARTER' : 
                              String(period) === '4' ? '4TH QUARTER' : 
                              `PERIOD ${period}`}
-                          </div>
+                      </div>
                           {groupedPlays[period].map((play, idx) => {
                             const playTeamId = String(play.team?.id || '');
                             const isAwayTeam = playTeamId === String(awayTeam?.team?.id || game.awayTeamId);
@@ -1580,7 +1591,7 @@ function GameSummary({ game, onBack }) {
                                 <div className="play-card-left">
                                   <div className="play-team-logo">
                                     {teamLogo ? <img src={teamLogo} alt="" /> : <div className="logo-placeholder" />}
-                                  </div>
+                </div>
                                   <div className="play-content">
                                     <div className="play-type-row">
                                       <span className="play-type-text">
@@ -1864,7 +1875,7 @@ function App() {
         </div>
 
         <div className="header-center">
-          <div className="sport-filters">
+        <div className="sport-filters">
             <div
               className={`live-games-indicator ${showLiveOnly ? 'active' : ''}`}
               style={{ display: liveCount > 0 ? 'flex' : 'none', cursor: 'pointer' }}
@@ -1879,24 +1890,24 @@ function App() {
               <span>Live</span>
             </div>
             <div className="filter-divider"></div>
-            {SPORT_BUTTONS.map((button) => (
-              <button
-                key={button.value}
-                className={['sport-btn', selectedSport === button.value ? 'active' : '']
-                  .filter(Boolean)
-                  .join(' ')}
-                data-sport={button.value}
-                onClick={() => handleSportClick(button.value)}
-              >
-                {button.label}
-              </button>
-            ))}
-          </div>
+          {SPORT_BUTTONS.map((button) => (
+            <button
+              key={button.value}
+              className={['sport-btn', selectedSport === button.value ? 'active' : '']
+                .filter(Boolean)
+                .join(' ')}
+              data-sport={button.value}
+              onClick={() => handleSportClick(button.value)}
+            >
+              {button.label}
+            </button>
+          ))}
         </div>
+      </div>
 
         <div className="header-right">
           {/* Right side spacer for balance */}
-        </div>
+          </div>
       </div>
 
       {mainContent}
