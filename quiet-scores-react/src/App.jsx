@@ -1754,13 +1754,59 @@ function GameSummary({ game, onBack }) {
 }
 
 function ScoreTicker({ scores, onOpenSummary }) {
-  if (!scores || scores.length === 0) return null;
+  const [tickerSports, setTickerSports] = useState(() => {
+    const saved = localStorage.getItem('tickerSports');
+    return saved ? JSON.parse(saved) : ['all'];
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('tickerSports', JSON.stringify(tickerSports));
+  }, [tickerSports]);
+
+  const toggleSport = (sport) => {
+    setTickerSports(prev => {
+      if (sport === 'all') return ['all'];
+      const next = prev.filter(s => s !== 'all');
+      if (next.includes(sport)) {
+        const filtered = next.filter(s => s !== sport);
+        return filtered.length === 0 ? ['all'] : filtered;
+      }
+      return [...next, sport];
+    });
+  };
+
+  const filteredScores = scores.filter(game => 
+    tickerSports.includes('all') || tickerSports.includes(game.sport)
+  );
+
+  if (!filteredScores || filteredScores.length === 0) return null;
 
   // Duplicate scores to create seamless infinite scroll effect
-  const tickerScores = [...scores, ...scores];
+  const tickerScores = [...filteredScores, ...filteredScores];
 
   return (
     <div className="score-ticker-container">
+      <div className="ticker-filter-toggle" onClick={() => setShowShowFilters(!showFilters)}>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M4 21v-7m0-4V3m8 21v-11m0-4V3m8 21v-9m0-4V3M1 14h6m2-7h6m2 9h6" />
+        </svg>
+      </div>
+
+      {showFilters && (
+        <div className="ticker-filters-dropdown">
+          {SPORT_BUTTONS.map(sport => (
+            <button 
+              key={sport.value}
+              className={`ticker-filter-btn ${tickerSports.includes(sport.value) ? 'active' : ''}`}
+              onClick={() => toggleSport(sport.value)}
+            >
+              {sport.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="score-ticker-track">
         {tickerScores.map((game, idx) => (
           <div 
@@ -1975,9 +2021,18 @@ function App() {
   return (
     <div className="container">
       <div className="site-header">
-        <div className="header-left" onClick={handleBackToScores} style={{ cursor: 'pointer' }}>
-          <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
-          <h1>Quiet Scores</h1>
+        <div className="header-left">
+          <div className="header-logo-group" onClick={handleBackToScores} style={{ cursor: 'pointer' }}>
+            <img src="helmet logo.png" alt="Quiet Scores Logo" className="site-logo" />
+            <h1>Quiet Scores</h1>
+          </div>
+          <button className="home-nav-btn" onClick={handleBackToScores} title="Back to Scores">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+          </button>
         </div>
 
         <div className="header-center">
