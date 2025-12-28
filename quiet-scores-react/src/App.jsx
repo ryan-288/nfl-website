@@ -1007,17 +1007,20 @@ function GameSummary({ game, onBack }) {
     
     // If it's the array from ESPN's winprobability key
     if (Array.isArray(data)) {
-      if (data.length === 0) {
-        console.log('Win Prob Array is empty');
-        return null;
-      }
+      if (data.length === 0) return null;
       const last = data[data.length - 1];
-      const hProb = last.homeWinPercentage ?? last.homeWinProbability ?? last.homeProbability ?? 0.5;
-      const aProb = last.awayWinPercentage ?? last.awayWinProbability ?? last.awayProbability ?? (1 - hProb);
-      console.log('Found Win Prob in Array:', { hProb, aProb });
+      
+      // Look for any key that represents home win percentage
+      const hProb = last.homeWinPercentage ?? last.homeWinProbability ?? last.homeProbability ?? last.homeTeamProbability ?? 0.5;
+      const aProb = last.awayWinPercentage ?? last.awayWinProbability ?? last.awayProbability ?? last.awayTeamProbability ?? (1 - hProb);
+      
+      // Normalize to 0-1 scale
+      const hNorm = hProb > 1 ? hProb / 100 : hProb;
+      const aNorm = aProb > 1 ? aProb / 100 : aProb;
+
       return {
-        homeWinPercentage: hProb,
-        awayWinPercentage: aProb,
+        homeWinPercentage: hNorm,
+        awayWinPercentage: aNorm,
         play: last.play,
         playId: last.playId
       };
@@ -1025,22 +1028,23 @@ function GameSummary({ game, onBack }) {
     
     // If it's a single number
     if (typeof data === 'number') {
-      console.log('Win Prob is a number:', data);
-      return { homeWinPercentage: data, awayWinPercentage: 1 - data };
+      const norm = data > 1 ? data / 100 : data;
+      return { homeWinPercentage: norm, awayWinPercentage: 1 - norm };
     }
     
     // If it's a single object (like 'predictor' or 'analytics')
-    const hProb = data.homeWinPercentage ?? data.homeWinProbability ?? data.homeTeam?.winProbability ?? data.homeTeamProbability;
-    const aProb = data.awayWinPercentage ?? data.awayWinProbability ?? data.awayTeam?.winProbability ?? data.awayTeamProbability ?? (hProb !== undefined ? 1 - hProb : undefined);
+    const hProb = data.homeWinPercentage ?? data.homeWinProbability ?? data.homeTeam?.winProbability ?? data.homeTeamProbability ?? data.homeProbability;
+    const aProb = data.awayWinPercentage ?? data.awayWinProbability ?? data.awayTeam?.winProbability ?? data.awayTeamProbability ?? data.awayProbability ?? (hProb !== undefined ? (hProb > 1 ? 100 - hProb : 1 - hProb) : undefined);
     
     if (hProb !== undefined) {
-      console.log('Found Win Prob in Object:', { hProb, aProb });
+      const hNorm = hProb > 1 ? hProb / 100 : hProb;
+      const aNorm = aProb > 1 ? aProb / 100 : aProb;
       return { 
-        homeWinPercentage: hProb, 
-        awayWinPercentage: aProb
+        homeWinPercentage: hNorm, 
+        awayWinPercentage: aNorm,
+        playId: data.playId
       };
     }
-    console.log('Win Prob Data object exists but no percentages found:', data);
     return null;
   };
 
@@ -1162,64 +1166,94 @@ function GameSummary({ game, onBack }) {
 
   // Win Probability Chart Component
   const WinProbabilityChart = ({ data }) => {
-    if (!data || data.length < 2) return null;
+    if (!data || !Array.isArray(data) || data.length < 2) return null;
 
     const width = 1000;
     const height = 200;
     const padding = 20;
     const chartWidth = width - (padding * 2);
     const chartHeight = height - (padding * 2);
+    const centerLineY = height / 2;
 
-    // Map points to SVG coordinates
-    // We use homeWinPercentage for the line (50% is center)
+    // Filter and normalize data
     const points = data.map((d, i) => {
       const x = padding + (i / (data.length - 1)) * chartWidth;
-      const prob = d.homeWinPercentage ?? d.homeWinProbability ?? 0.5;
+      // Robust percentage extraction
+      let prob = d.homeWinPercentage ?? d.homeWinProbability ?? d.homeProbability ?? d.homeTeamProbability ?? 0.5;
+      
+      // If it's on a 0-100 scale, convert to 0-1
+      if (prob > 1) prob = prob / 100;
+      
+      // Y is inverted in SVG: 0 is top (100% home), height is bottom (100% away)
       const y = height - (padding + (prob * chartHeight));
-      return { x, y };
+      return { x, y, prob };
     });
 
+    // Create the path for the line
     const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
-    // Create separate areas for above and below 50%
-    const centerLineY = height / 2;
-    const homeColor = `#${homeTeam?.team?.color || '888888'}`;
-    const awayColor = `#${awayTeam?.team?.color || '888888'}`;
+    // Create fill paths for home and away areas
+    const homeAreaPath = `${pathD} L ${points[points.length-1].x},${centerLineY} L ${points[0].x},${centerLineY} Z`;
+    
+    const hColor = getTeamColor(homeTeam?.team, '#888888');
+    const aColor = getTeamColor(awayTeam?.team, '#444444');
 
-  return (
+    return (
       <div className="win-prob-chart-container">
-        <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg">
-          {/* Grid Lines */}
-          <line x1={padding} y1={centerLineY} x2={width-padding} y2={centerLineY} className="chart-center-line" />
-          <line x1={padding} y1={padding} x2={width-padding} y2={padding} className="chart-grid-line" />
-          <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} className="chart-grid-line" />
-          
-          <line x1={padding} y1={centerLineY - chartHeight/4} x2={width-padding} y2={centerLineY - chartHeight/4} className="chart-grid-line" />
-          <line x1={padding} y1={centerLineY + chartHeight/4} x2={width-padding} y2={centerLineY + chartHeight/4} className="chart-grid-line" />
+        <svg viewBox={`0 0 ${width} ${height}`} className="win-prob-chart-svg" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="homeGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={hColor} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={hColor} stopOpacity="0.05" />
+            </linearGradient>
+            <linearGradient id="awayGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={aColor} stopOpacity="0.05" />
+              <stop offset="100%" stopColor={aColor} stopOpacity="0.3" />
+            </linearGradient>
+            <clipPath id="clip-home">
+              <rect x="0" y="0" width={width} height={centerLineY} />
+            </clipPath>
+            <clipPath id="clip-away">
+              <rect x="0" y={centerLineY} width={width} height={height - centerLineY} />
+            </clipPath>
+          </defs>
 
-          {/* Vertical quarter lines */}
-          {[0.25, 0.5, 0.75].map(p => (
-            <line key={p} x1={padding + (chartWidth * p)} y1={padding} x2={padding + (chartWidth * p)} y2={height-padding} className="chart-grid-line" />
-          ))}
+          {/* Grid Lines */}
+          <line x1={padding} y1={centerLineY} x2={width-padding} y2={centerLineY} className="chart-center-line" strokeOpacity="0.2" stroke="#fff" />
+          <line x1={padding} y1={padding} x2={width-padding} y2={padding} className="chart-grid-line" strokeOpacity="0.1" stroke="#fff" />
+          <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} className="chart-grid-line" strokeOpacity="0.1" stroke="#fff" />
+
+          {/* Shaded Areas */}
+          <path d={homeAreaPath} fill="url(#homeGradient)" clipPath="url(#clip-home)" />
+          <path d={homeAreaPath} fill="url(#awayGradient)" clipPath="url(#clip-away)" />
           
-          {/* Shaded Area (From path to center line) */}
-          <mask id="chart-mask">
-            <rect x="0" y="0" width={width} height={height} fill="white" />
-          </mask>
-          
+          {/* The Data Path */}
           <path 
-            d={`${pathD} L ${points[points.length-1].x},${centerLineY} L ${points[0].x},${centerLineY} Z`} 
-            fill="rgba(0,0,0,0.1)" 
+            d={pathD} 
+            fill="none" 
+            stroke="#fff" 
+            strokeWidth="3" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0px 0px 2px rgba(0,0,0,0.5))' }}
           />
           
-          {/* The Data Path (Dotted) */}
-          <path d={pathD} stroke="#333" className="chart-path" style={{ strokeWidth: 2, strokeDasharray: '3 3' }} />
+          {/* Current Position Marker */}
+          {points.length > 0 && (
+            <circle 
+              cx={points[points.length-1].x} 
+              cy={points[points.length-1].y} 
+              r="4" 
+              fill="#fff" 
+              style={{ filter: 'drop-shadow(0px 0px 3px rgba(255,255,255,0.8))' }}
+            />
+          )}
         </svg>
         <div className="chart-labels">
-          <span>1st</span>
-          <span>2nd</span>
-          <span>3rd</span>
-          <span>4th</span>
+          <span>1ST</span>
+          <span>2ND</span>
+          <span>3RD</span>
+          <span>4TH</span>
         </div>
       </div>
     );
