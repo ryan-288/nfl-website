@@ -2075,14 +2075,14 @@ function App() {
             {selectedGame && (
               <>
                 <button
-                  className="sport-btn active"
+                  className="sport-btn"
                   onClick={handleBackToScores}
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '6px', 
+                    gap: '6px',
                     background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                    color: '#ffffff'
                   }}
                 >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
