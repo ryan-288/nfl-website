@@ -2134,20 +2134,18 @@ function App() {
         {mainContent}
       </div>
 
-      <footer className="site-footer">
-        <a 
-          href="https://buymeacoffee.com/ryanc0804" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="bmc-link"
-        >
-          <img 
-            src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" 
-            alt="Buy Me A Coffee" 
-            className="bmc-img"
-          />
-        </a>
-      </footer>
+      {!selectedGame && (
+        <footer className="site-footer">
+          <a 
+            href="https://buymeacoffee.com/ryanc0804" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bmc-text-link"
+          >
+            Buy me a coffee
+          </a>
+        </footer>
+      )}
     </div>
   )
 }
