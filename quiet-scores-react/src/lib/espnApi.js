@@ -645,14 +645,38 @@ async function fetchStandings(sportKey, { signal } = {}) {
 }
 
 // Helper to find and process divisions/groups containing specific team IDs
-function processStandingsGroup(group, teamIdStrings, matchingGroups) {
+function processStandingsGroup(group, teamIdStrings, matchingGroups, logDetails = false) {
   const entries = group.standings?.entries || []
   
-  if (entries.length === 0) return
+  if (entries.length === 0) {
+    if (logDetails) console.log('    No entries in group:', group.name)
+    return
+  }
   
-  const hasMatchingTeam = entries.some(entry => 
-    teamIdStrings.includes(String(entry.team?.id))
-  )
+  // Log first entry structure to debug
+  if (logDetails && entries[0]) {
+    console.log('    First entry structure:', {
+      teamId: entries[0].team?.id,
+      teamName: entries[0].team?.displayName || entries[0].team?.name,
+      entryKeys: Object.keys(entries[0])
+    })
+  }
+  
+  // Try multiple ways to match team IDs
+  const hasMatchingTeam = entries.some(entry => {
+    const entryTeamId = String(entry.team?.id || '')
+    const matched = teamIdStrings.includes(entryTeamId)
+    if (logDetails && matched) {
+      console.log('    MATCH FOUND:', entryTeamId, 'in', teamIdStrings)
+    }
+    return matched
+  })
+  
+  if (logDetails) {
+    console.log('    Team IDs in this group:', entries.slice(0, 5).map(e => e.team?.id))
+    console.log('    Looking for:', teamIdStrings)
+    console.log('    Has matching team:', hasMatchingTeam)
+  }
   
   if (hasMatchingTeam) {
     matchingGroups.push({
@@ -692,6 +716,7 @@ function filterStandingsByTeams(standingsData, teamIds) {
   if (standingsData.children?.length > 0) {
     console.log('Using children structure, count:', standingsData.children.length)
     
+    let loggedOne = false
     standingsData.children.forEach((conference, cIdx) => {
       console.log(`Conference ${cIdx}:`, conference.name, 'has children?', !!conference.children)
       
@@ -699,12 +724,17 @@ function filterStandingsByTeams(standingsData, teamIds) {
         // Has divisions under conferences (NFL, NBA structure)
         conference.children.forEach((division, dIdx) => {
           console.log(`  Division ${dIdx}:`, division.name, 'entries:', division.standings?.entries?.length || 0)
-          processStandingsGroup(division, teamIdStrings, matchingGroups)
+          // Log details for first division only to see structure
+          const shouldLog = !loggedOne
+          if (shouldLog) loggedOne = true
+          processStandingsGroup(division, teamIdStrings, matchingGroups, shouldLog)
         })
       } else {
         // Conference level standings (no division subdivision)
         console.log(`  Conference-level standings, entries:`, conference.standings?.entries?.length || 0)
-        processStandingsGroup(conference, teamIdStrings, matchingGroups)
+        const shouldLog = !loggedOne
+        if (shouldLog) loggedOne = true
+        processStandingsGroup(conference, teamIdStrings, matchingGroups, shouldLog)
       }
     })
   }

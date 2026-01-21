@@ -1894,7 +1894,12 @@ function GameSummary({ game, onBack }) {
               {standingsError && !standingsData && (
                 <div className="standings-section">
                   <div className="section-header"><h3>DIVISION STANDINGS</h3></div>
-                  <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Debug: {standingsError}</div>
+                  <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    Debug: {standingsError}<br/>
+                    <span style={{ fontSize: '0.65rem' }}>
+                      HomeID: {game?.homeTeamId || 'none'} | AwayID: {game?.awayTeamId || 'none'}
+                    </span>
+                  </div>
                 </div>
               )}
               {standingsData && <StandingsSection data={standingsData} />}
