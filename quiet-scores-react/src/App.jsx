@@ -1394,9 +1394,27 @@ function GameSummary({ game, onBack }) {
   // Helper Components for the new layout
   const StandingsSection = ({ data }) => {
     if (!data?.groups) return null;
-    const currentYear = new Date().getFullYear();
-    // Get team IDs for highlighting
-    const gameTeamIds = [String(game.homeTeamId), String(game.awayTeamId)];
+    
+    // Helper to check if a team is one of the game teams
+    const isGameTeam = (entry) => {
+      const teamId = String(entry.team?.id || '')
+      const teamName = (entry.team?.displayName || entry.team?.name || '').toLowerCase()
+      const teamAbbr = (entry.team?.abbreviation || '').toLowerCase()
+      
+      // Check by ID
+      if (game.homeTeamId && teamId === String(game.homeTeamId)) return true
+      if (game.awayTeamId && teamId === String(game.awayTeamId)) return true
+      
+      // Check by name
+      if (game.homeTeam && teamName.includes(game.homeTeam.toLowerCase())) return true
+      if (game.awayTeam && teamName.includes(game.awayTeam.toLowerCase())) return true
+      
+      // Check by abbreviation
+      if (game.homeAbbreviation && teamAbbr === game.homeAbbreviation.toLowerCase()) return true
+      if (game.awayAbbreviation && teamAbbr === game.awayAbbreviation.toLowerCase()) return true
+      
+      return false
+    }
     
     return (
       <div className="standings-section">
@@ -1419,13 +1437,13 @@ function GameSummary({ game, onBack }) {
               </thead>
               <tbody>
                 {group.standings?.entries?.map((entry, eIdx) => {
-                  const isGameTeam = gameTeamIds.includes(String(entry.team?.id));
+                  const highlighted = isGameTeam(entry);
                   return (
-                    <tr key={eIdx} style={isGameTeam ? { background: 'rgba(0, 123, 255, 0.15)' } : {}}>
+                    <tr key={eIdx} style={highlighted ? { background: 'rgba(0, 123, 255, 0.15)' } : {}}>
                       <td>
                         <div className="standings-team">
                           <img src={entry.team?.logos?.[0]?.href} alt="" style={{ width: '16px', height: '16px' }} />
-                          <span style={isGameTeam ? { fontWeight: '700', color: 'var(--text-primary)' } : {}}>{entry.team?.displayName}</span>
+                          <span style={highlighted ? { fontWeight: '700', color: 'var(--text-primary)' } : {}}>{entry.team?.displayName}</span>
                         </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'wins')?.value ?? '-'}</td>
