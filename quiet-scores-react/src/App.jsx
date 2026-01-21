@@ -589,18 +589,48 @@ function GameSummary({ game, onBack }) {
   }, [game?.id, game?.sport])
 
   // Fetch standings for the teams' divisions
+  // Need to wait for summaryData to get team IDs from boxscore if not available in game object
   useEffect(() => {
     let cancelled = false
 
     async function loadStandings() {
-      if (!game?.sport || !game?.homeTeamId || !game?.awayTeamId) return
+      if (!game?.sport) {
+        console.log('Missing game.sport, skipping standings fetch')
+        return
+      }
+
+      // Try to get team IDs from multiple sources
+      let homeId = game?.homeTeamId
+      let awayId = game?.awayTeamId
+      
+      // If IDs not in game object, try to get from summaryData
+      if ((!homeId || !awayId) && summaryData) {
+        const competitors = summaryData.header?.competitions?.[0]?.competitors || []
+        const homeComp = competitors.find(c => c.homeAway === 'home')
+        const awayComp = competitors.find(c => c.homeAway === 'away')
+        homeId = homeId || homeComp?.team?.id
+        awayId = awayId || awayComp?.team?.id
+      }
+      
+      console.log('=== LOAD STANDINGS ===')
+      console.log('game.sport:', game?.sport)
+      console.log('homeId:', homeId)
+      console.log('awayId:', awayId)
+      
+      if (!homeId || !awayId) {
+        console.log('Missing team IDs, skipping standings fetch')
+        return
+      }
 
       try {
         const allStandings = await fetchStandings(game.sport)
+        console.log('Fetched standings:', allStandings ? 'success' : 'null')
+        
         if (!cancelled && allStandings) {
           // Filter to only show divisions containing the two teams in this game
-          const teamIds = [game.homeTeamId, game.awayTeamId]
+          const teamIds = [homeId, awayId]
           const filtered = filterStandingsByTeams(allStandings, teamIds)
+          console.log('Filtered standings result:', filtered)
           setStandingsData(filtered)
         }
       } catch (err) {
@@ -615,7 +645,7 @@ function GameSummary({ game, onBack }) {
     return () => {
       cancelled = true
     }
-  }, [game?.sport, game?.homeTeamId, game?.awayTeamId])
+  }, [game?.sport, game?.homeTeamId, game?.awayTeamId, summaryData])
 
   const boxscore = summaryData?.boxscore
   const teams = boxscore?.teams || []

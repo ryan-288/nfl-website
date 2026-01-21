@@ -620,6 +620,18 @@ async function fetchStandings(sportKey, { signal } = {}) {
 
     const data = await response.json()
     
+    // Debug: log the structure
+    console.log('=== STANDINGS API RESPONSE ===')
+    console.log('Sport:', sportKey)
+    console.log('Top-level keys:', Object.keys(data))
+    console.log('Has children?', !!data.children, 'count:', data.children?.length)
+    if (data.children?.[0]) {
+      console.log('First child keys:', Object.keys(data.children[0]))
+      console.log('First child name:', data.children[0].name)
+      console.log('First child has children?', !!data.children[0].children)
+      console.log('First child has standings?', !!data.children[0].standings)
+    }
+    
     // Cache the result
     standingsCache.set(cacheKey, { data, timestamp: Date.now() })
     
@@ -632,63 +644,101 @@ async function fetchStandings(sportKey, { signal } = {}) {
   }
 }
 
+// Helper to find and process divisions/groups containing specific team IDs
+function processStandingsGroup(group, teamIdStrings, matchingGroups) {
+  const entries = group.standings?.entries || []
+  
+  if (entries.length === 0) return
+  
+  const hasMatchingTeam = entries.some(entry => 
+    teamIdStrings.includes(String(entry.team?.id))
+  )
+  
+  if (hasMatchingTeam) {
+    matchingGroups.push({
+      name: group.name || group.abbreviation || group.shortName,
+      standings: {
+        entries: [...entries].sort((a, b) => {
+          // Sort by wins descending, then by win percentage
+          const aWins = a.stats?.find(s => s.name === 'wins')?.value || 0
+          const bWins = b.stats?.find(s => s.name === 'wins')?.value || 0
+          if (bWins !== aWins) return bWins - aWins
+          const aPct = a.stats?.find(s => s.name === 'winPercent')?.value || 0
+          const bPct = b.stats?.find(s => s.name === 'winPercent')?.value || 0
+          return bPct - aPct
+        })
+      }
+    })
+  }
+}
+
 // Get standings filtered by team IDs - returns only divisions containing the specified teams
 function filterStandingsByTeams(standingsData, teamIds) {
-  if (!standingsData?.children) return null
+  console.log('=== FILTER STANDINGS ===')
+  console.log('Team IDs to find:', teamIds)
+  console.log('standingsData keys:', standingsData ? Object.keys(standingsData) : 'null')
+  
+  if (!standingsData) {
+    console.log('No standings data')
+    return null
+  }
   
   const teamIdStrings = teamIds.map(id => String(id))
   const matchingGroups = []
 
-  // ESPN standings structure: children = conferences, each conference has children = divisions
-  standingsData.children.forEach(conference => {
-    if (conference.children) {
-      // Has divisions under conferences (NFL, NBA structure)
-      conference.children.forEach(division => {
-        const entries = division.standings?.entries || []
-        const hasMatchingTeam = entries.some(entry => 
-          teamIdStrings.includes(String(entry.team?.id))
-        )
-        if (hasMatchingTeam) {
-          matchingGroups.push({
-            name: division.name || division.abbreviation,
-            standings: {
-              entries: entries.sort((a, b) => {
-                // Sort by wins descending, then by win percentage
-                const aWins = a.stats?.find(s => s.name === 'wins')?.value || 0
-                const bWins = b.stats?.find(s => s.name === 'wins')?.value || 0
-                if (bWins !== aWins) return bWins - aWins
-                const aPct = a.stats?.find(s => s.name === 'winPercent')?.value || 0
-                const bPct = b.stats?.find(s => s.name === 'winPercent')?.value || 0
-                return bPct - aPct
-              })
-            }
-          })
-        }
-      })
-    } else {
-      // Flat structure (no divisions, just conference)
-      const entries = conference.standings?.entries || []
-      const hasMatchingTeam = entries.some(entry => 
-        teamIdStrings.includes(String(entry.team?.id))
-      )
-      if (hasMatchingTeam) {
-        matchingGroups.push({
-          name: conference.name || conference.abbreviation,
-          standings: {
-            entries: entries.sort((a, b) => {
-              const aWins = a.stats?.find(s => s.name === 'wins')?.value || 0
-              const bWins = b.stats?.find(s => s.name === 'wins')?.value || 0
-              if (bWins !== aWins) return bWins - aWins
-              const aPct = a.stats?.find(s => s.name === 'winPercent')?.value || 0
-              const bPct = b.stats?.find(s => s.name === 'winPercent')?.value || 0
-              return bPct - aPct
-            })
-          }
+  // Try different ESPN API structures
+  
+  // Structure 1: data.children (conferences) -> children (divisions) -> standings.entries
+  if (standingsData.children?.length > 0) {
+    console.log('Using children structure, count:', standingsData.children.length)
+    
+    standingsData.children.forEach((conference, cIdx) => {
+      console.log(`Conference ${cIdx}:`, conference.name, 'has children?', !!conference.children)
+      
+      if (conference.children?.length > 0) {
+        // Has divisions under conferences (NFL, NBA structure)
+        conference.children.forEach((division, dIdx) => {
+          console.log(`  Division ${dIdx}:`, division.name, 'entries:', division.standings?.entries?.length || 0)
+          processStandingsGroup(division, teamIdStrings, matchingGroups)
         })
+      } else {
+        // Conference level standings (no division subdivision)
+        console.log(`  Conference-level standings, entries:`, conference.standings?.entries?.length || 0)
+        processStandingsGroup(conference, teamIdStrings, matchingGroups)
       }
-    }
-  })
+    })
+  }
+  // Structure 2: data.standings.entries directly
+  else if (standingsData.standings?.entries?.length > 0) {
+    console.log('Using direct standings.entries structure')
+    processStandingsGroup({ name: 'Standings', standings: standingsData.standings }, teamIdStrings, matchingGroups)
+  }
+  // Structure 3: data.groups array
+  else if (standingsData.groups?.length > 0) {
+    console.log('Using groups structure, count:', standingsData.groups.length)
+    standingsData.groups.forEach(group => {
+      processStandingsGroup(group, teamIdStrings, matchingGroups)
+    })
+  }
+  // Structure 4: Array at top level
+  else if (Array.isArray(standingsData) && standingsData.length > 0) {
+    console.log('Using array structure, count:', standingsData.length)
+    standingsData.forEach(group => {
+      if (group.children) {
+        group.children.forEach(division => {
+          processStandingsGroup(division, teamIdStrings, matchingGroups)
+        })
+      } else {
+        processStandingsGroup(group, teamIdStrings, matchingGroups)
+      }
+    })
+  }
+  else {
+    console.log('Unknown standings structure, trying to log full object')
+    console.log(JSON.stringify(standingsData, null, 2).substring(0, 3000))
+  }
 
+  console.log('Matching groups found:', matchingGroups.length)
   return matchingGroups.length > 0 ? { groups: matchingGroups } : null
 }
 
