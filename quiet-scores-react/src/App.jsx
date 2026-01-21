@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useScores } from './hooks/useScores'
-import { fetchGameSummary } from './lib/espnApi'
+import { fetchGameSummary, fetchStandings, filterStandingsByTeams } from './lib/espnApi'
 
 const SPORT_BUTTONS = [
   { label: 'All Sports', value: 'all' },
@@ -528,6 +528,7 @@ function GameSummary({ game, onBack }) {
   const [playFilter, setPlayFilter] = useState('all') 
   const [showPlayByPlay, setShowPlayByPlay] = useState(false)
   const [activeTab, setActiveTab] = useState('gamecast')
+  const [standingsData, setStandingsData] = useState(null)
 
   // ... (keep all the existing useEffects and extraction logic)
 
@@ -586,6 +587,35 @@ function GameSummary({ game, onBack }) {
       cancelled = true
     }
   }, [game?.id, game?.sport])
+
+  // Fetch standings for the teams' divisions
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadStandings() {
+      if (!game?.sport || !game?.homeTeamId || !game?.awayTeamId) return
+
+      try {
+        const allStandings = await fetchStandings(game.sport)
+        if (!cancelled && allStandings) {
+          // Filter to only show divisions containing the two teams in this game
+          const teamIds = [game.homeTeamId, game.awayTeamId]
+          const filtered = filterStandingsByTeams(allStandings, teamIds)
+          setStandingsData(filtered)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.warn('Failed to load standings:', err)
+        }
+      }
+    }
+
+    loadStandings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [game?.sport, game?.homeTeamId, game?.awayTeamId])
 
   const boxscore = summaryData?.boxscore
   const teams = boxscore?.teams || []
@@ -1310,10 +1340,14 @@ function GameSummary({ game, onBack }) {
   // Helper Components for the new layout
   const StandingsSection = ({ data }) => {
     if (!data?.groups) return null;
+    const currentYear = new Date().getFullYear();
+    // Get team IDs for highlighting
+    const gameTeamIds = [String(game.homeTeamId), String(game.awayTeamId)];
+    
     return (
       <div className="standings-section">
         <div className="section-header">
-          <h3>2025 STANDINGS</h3>
+          <h3>DIVISION STANDINGS</h3>
         </div>
         {data.groups.map((group, gIdx) => (
           <div key={gIdx} style={{ marginBottom: '20px' }}>
@@ -1330,19 +1364,22 @@ function GameSummary({ game, onBack }) {
                 </tr>
               </thead>
               <tbody>
-                {group.standings?.entries?.map((entry, eIdx) => (
-                  <tr key={eIdx}>
-                    <td>
-                      <div className="standings-team">
-                        <img src={entry.team?.logos?.[0]?.href} alt="" style={{ width: '16px', height: '16px' }} />
-                        <span>{entry.team?.displayName}</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'wins')?.value}</td>
-                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'losses')?.value}</td>
-                    <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'winPercent')?.displayValue}</td>
-                  </tr>
-                ))}
+                {group.standings?.entries?.map((entry, eIdx) => {
+                  const isGameTeam = gameTeamIds.includes(String(entry.team?.id));
+                  return (
+                    <tr key={eIdx} style={isGameTeam ? { background: 'rgba(0, 123, 255, 0.15)' } : {}}>
+                      <td>
+                        <div className="standings-team">
+                          <img src={entry.team?.logos?.[0]?.href} alt="" style={{ width: '16px', height: '16px' }} />
+                          <span style={isGameTeam ? { fontWeight: '700', color: 'var(--text-primary)' } : {}}>{entry.team?.displayName}</span>
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'wins')?.value ?? '-'}</td>
+                      <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'losses')?.value ?? '-'}</td>
+                      <td style={{ textAlign: 'center' }}>{entry.stats?.find(s => s.name === 'winPercent')?.displayValue ?? '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1799,8 +1836,8 @@ function GameSummary({ game, onBack }) {
                 </div>
               )}
 
-              {/* Standings */}
-              {summaryData.standings && <StandingsSection data={summaryData.standings} />}
+              {/* Standings - shows divisions of teams in this game */}
+              {standingsData && <StandingsSection data={standingsData} />}
             </aside>
 
           </div>
