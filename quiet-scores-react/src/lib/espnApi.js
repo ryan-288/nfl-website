@@ -644,8 +644,8 @@ async function fetchStandings(sportKey, { signal } = {}) {
   }
 }
 
-// Helper to find and process divisions/groups containing specific team IDs
-function processStandingsGroup(group, teamIdStrings, matchingGroups, logDetails = false) {
+// Helper to find and process divisions/groups containing specific teams
+function processStandingsGroup(group, teamIdentifiers, matchingGroups, logDetails = false) {
   const entries = group.standings?.entries || []
   
   if (entries.length === 0) {
@@ -658,23 +658,34 @@ function processStandingsGroup(group, teamIdStrings, matchingGroups, logDetails 
     console.log('    First entry structure:', {
       teamId: entries[0].team?.id,
       teamName: entries[0].team?.displayName || entries[0].team?.name,
+      teamAbbr: entries[0].team?.abbreviation,
       entryKeys: Object.keys(entries[0])
     })
   }
   
-  // Try multiple ways to match team IDs
+  // Try multiple ways to match teams - by ID, name, or abbreviation
   const hasMatchingTeam = entries.some(entry => {
     const entryTeamId = String(entry.team?.id || '')
-    const matched = teamIdStrings.includes(entryTeamId)
+    const entryTeamName = (entry.team?.displayName || entry.team?.name || '').toLowerCase()
+    const entryTeamAbbr = (entry.team?.abbreviation || '').toLowerCase()
+    
+    const matched = teamIdentifiers.ids.includes(entryTeamId) ||
+                    teamIdentifiers.names.some(n => entryTeamName.includes(n.toLowerCase())) ||
+                    teamIdentifiers.abbrs.some(a => entryTeamAbbr === a.toLowerCase())
+    
     if (logDetails && matched) {
-      console.log('    MATCH FOUND:', entryTeamId, 'in', teamIdStrings)
+      console.log('    MATCH FOUND:', { id: entryTeamId, name: entryTeamName, abbr: entryTeamAbbr })
     }
     return matched
   })
   
   if (logDetails) {
-    console.log('    Team IDs in this group:', entries.slice(0, 5).map(e => e.team?.id))
-    console.log('    Looking for:', teamIdStrings)
+    console.log('    Sample teams in group:', entries.slice(0, 4).map(e => ({ 
+      id: e.team?.id, 
+      name: e.team?.displayName,
+      abbr: e.team?.abbreviation 
+    })))
+    console.log('    Looking for:', teamIdentifiers)
     console.log('    Has matching team:', hasMatchingTeam)
   }
   
@@ -696,10 +707,11 @@ function processStandingsGroup(group, teamIdStrings, matchingGroups, logDetails 
   }
 }
 
-// Get standings filtered by team IDs - returns only divisions containing the specified teams
-function filterStandingsByTeams(standingsData, teamIds) {
+// Get standings filtered by team identifiers - returns only divisions containing the specified teams
+// teamInfo: { ids: string[], names: string[], abbrs: string[] }
+function filterStandingsByTeams(standingsData, teamInfo) {
   console.log('=== FILTER STANDINGS ===')
-  console.log('Team IDs to find:', teamIds)
+  console.log('Team info to find:', teamInfo)
   console.log('standingsData keys:', standingsData ? Object.keys(standingsData) : 'null')
   
   if (!standingsData) {
@@ -707,7 +719,13 @@ function filterStandingsByTeams(standingsData, teamIds) {
     return null
   }
   
-  const teamIdStrings = teamIds.map(id => String(id))
+  // Build team identifiers object for matching
+  const teamIdentifiers = {
+    ids: (teamInfo.ids || []).map(id => String(id)).filter(Boolean),
+    names: (teamInfo.names || []).filter(Boolean),
+    abbrs: (teamInfo.abbrs || []).filter(Boolean)
+  }
+  
   const matchingGroups = []
 
   // Try different ESPN API structures
@@ -727,27 +745,27 @@ function filterStandingsByTeams(standingsData, teamIds) {
           // Log details for first division only to see structure
           const shouldLog = !loggedOne
           if (shouldLog) loggedOne = true
-          processStandingsGroup(division, teamIdStrings, matchingGroups, shouldLog)
+          processStandingsGroup(division, teamIdentifiers, matchingGroups, shouldLog)
         })
       } else {
         // Conference level standings (no division subdivision)
         console.log(`  Conference-level standings, entries:`, conference.standings?.entries?.length || 0)
         const shouldLog = !loggedOne
         if (shouldLog) loggedOne = true
-        processStandingsGroup(conference, teamIdStrings, matchingGroups, shouldLog)
+        processStandingsGroup(conference, teamIdentifiers, matchingGroups, shouldLog)
       }
     })
   }
   // Structure 2: data.standings.entries directly
   else if (standingsData.standings?.entries?.length > 0) {
     console.log('Using direct standings.entries structure')
-    processStandingsGroup({ name: 'Standings', standings: standingsData.standings }, teamIdStrings, matchingGroups)
+    processStandingsGroup({ name: 'Standings', standings: standingsData.standings }, teamIdentifiers, matchingGroups, true)
   }
   // Structure 3: data.groups array
   else if (standingsData.groups?.length > 0) {
     console.log('Using groups structure, count:', standingsData.groups.length)
     standingsData.groups.forEach(group => {
-      processStandingsGroup(group, teamIdStrings, matchingGroups)
+      processStandingsGroup(group, teamIdentifiers, matchingGroups)
     })
   }
   // Structure 4: Array at top level
@@ -756,10 +774,10 @@ function filterStandingsByTeams(standingsData, teamIds) {
     standingsData.forEach(group => {
       if (group.children) {
         group.children.forEach(division => {
-          processStandingsGroup(division, teamIdStrings, matchingGroups)
+          processStandingsGroup(division, teamIdentifiers, matchingGroups)
         })
       } else {
-        processStandingsGroup(group, teamIdStrings, matchingGroups)
+        processStandingsGroup(group, teamIdentifiers, matchingGroups)
       }
     })
   }

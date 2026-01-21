@@ -636,8 +636,14 @@ function GameSummary({ game, onBack }) {
         if (!cancelled) {
           if (allStandings) {
             // Filter to only show divisions containing the two teams in this game
-            const teamIds = [homeId, awayId]
-            const filtered = filterStandingsByTeams(allStandings, teamIds)
+            // Pass multiple identifiers for better matching
+            const teamInfo = {
+              ids: [homeId, awayId].filter(Boolean),
+              names: [game.homeTeam, game.awayTeam].filter(Boolean),
+              abbrs: [game.homeAbbreviation, game.awayAbbreviation].filter(Boolean)
+            }
+            console.log('Team info for filtering:', teamInfo)
+            const filtered = filterStandingsByTeams(allStandings, teamInfo)
             console.log('Filtered standings result:', filtered)
             if (filtered) {
               setStandingsData(filtered)
