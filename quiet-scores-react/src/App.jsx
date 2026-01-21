@@ -529,6 +529,8 @@ function GameSummary({ game, onBack }) {
   const [showPlayByPlay, setShowPlayByPlay] = useState(false)
   const [activeTab, setActiveTab] = useState('gamecast')
   const [standingsData, setStandingsData] = useState(null)
+  const [standingsLoading, setStandingsLoading] = useState(false)
+  const [standingsError, setStandingsError] = useState(null)
 
   // ... (keep all the existing useEffects and extraction logic)
 
@@ -589,13 +591,12 @@ function GameSummary({ game, onBack }) {
   }, [game?.id, game?.sport])
 
   // Fetch standings for the teams' divisions
-  // Need to wait for summaryData to get team IDs from boxscore if not available in game object
   useEffect(() => {
     let cancelled = false
 
     async function loadStandings() {
       if (!game?.sport) {
-        console.log('Missing game.sport, skipping standings fetch')
+        setStandingsError('No sport specified')
         return
       }
 
@@ -618,24 +619,41 @@ function GameSummary({ game, onBack }) {
       console.log('awayId:', awayId)
       
       if (!homeId || !awayId) {
-        console.log('Missing team IDs, skipping standings fetch')
+        // Don't set error yet - might get IDs from summaryData later
+        if (summaryData) {
+          setStandingsError('Could not find team IDs')
+        }
         return
       }
+
+      setStandingsLoading(true)
+      setStandingsError(null)
 
       try {
         const allStandings = await fetchStandings(game.sport)
         console.log('Fetched standings:', allStandings ? 'success' : 'null')
         
-        if (!cancelled && allStandings) {
-          // Filter to only show divisions containing the two teams in this game
-          const teamIds = [homeId, awayId]
-          const filtered = filterStandingsByTeams(allStandings, teamIds)
-          console.log('Filtered standings result:', filtered)
-          setStandingsData(filtered)
+        if (!cancelled) {
+          if (allStandings) {
+            // Filter to only show divisions containing the two teams in this game
+            const teamIds = [homeId, awayId]
+            const filtered = filterStandingsByTeams(allStandings, teamIds)
+            console.log('Filtered standings result:', filtered)
+            if (filtered) {
+              setStandingsData(filtered)
+            } else {
+              setStandingsError('No matching divisions found')
+            }
+          } else {
+            setStandingsError('Failed to fetch standings')
+          }
+          setStandingsLoading(false)
         }
       } catch (err) {
         if (!cancelled) {
           console.warn('Failed to load standings:', err)
+          setStandingsError(err.message)
+          setStandingsLoading(false)
         }
       }
     }
@@ -1867,6 +1885,18 @@ function GameSummary({ game, onBack }) {
               )}
 
               {/* Standings - shows divisions of teams in this game */}
+              {standingsLoading && (
+                <div className="standings-section">
+                  <div className="section-header"><h3>DIVISION STANDINGS</h3></div>
+                  <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Loading standings...</div>
+                </div>
+              )}
+              {standingsError && !standingsData && (
+                <div className="standings-section">
+                  <div className="section-header"><h3>DIVISION STANDINGS</h3></div>
+                  <div style={{ padding: '15px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Debug: {standingsError}</div>
+                </div>
+              )}
               {standingsData && <StandingsSection data={standingsData} />}
             </aside>
 
