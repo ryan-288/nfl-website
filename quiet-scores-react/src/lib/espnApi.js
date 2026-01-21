@@ -584,5 +584,113 @@ async function fetchTeamConferences(sportKey, { signal } = {}) {
   }
 }
 
-export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary, fetchTeamConferences }
+// Standings API endpoints
+const ESPN_STANDINGS_APIS = {
+  nfl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/standings',
+  nba: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/standings',
+  mlb: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/standings',
+  nhl: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/standings',
+  'college-football': 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/standings',
+  'college-basketball': 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/standings',
+}
+
+// Cache for standings data
+const standingsCache = new Map()
+
+async function fetchStandings(sportKey, { signal } = {}) {
+  const endpoint = ESPN_STANDINGS_APIS[sportKey]
+  if (!endpoint) {
+    console.warn(`No standings endpoint for sport: ${sportKey}`)
+    return null
+  }
+
+  // Check cache first (cache for 5 minutes)
+  const cacheKey = sportKey
+  const cached = standingsCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+    return cached.data
+  }
+
+  try {
+    const response = await fetch(endpoint, { signal })
+    if (!response.ok) {
+      console.warn(`Failed to fetch standings for ${sportKey}:`, response.status)
+      return null
+    }
+
+    const data = await response.json()
+    
+    // Cache the result
+    standingsCache.set(cacheKey, { data, timestamp: Date.now() })
+    
+    return data
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      console.warn(`Error fetching standings for ${sportKey}:`, error)
+    }
+    return null
+  }
+}
+
+// Get standings filtered by team IDs - returns only divisions containing the specified teams
+function filterStandingsByTeams(standingsData, teamIds) {
+  if (!standingsData?.children) return null
+  
+  const teamIdStrings = teamIds.map(id => String(id))
+  const matchingGroups = []
+
+  // ESPN standings structure: children = conferences, each conference has children = divisions
+  standingsData.children.forEach(conference => {
+    if (conference.children) {
+      // Has divisions under conferences (NFL, NBA structure)
+      conference.children.forEach(division => {
+        const entries = division.standings?.entries || []
+        const hasMatchingTeam = entries.some(entry => 
+          teamIdStrings.includes(String(entry.team?.id))
+        )
+        if (hasMatchingTeam) {
+          matchingGroups.push({
+            name: division.name || division.abbreviation,
+            standings: {
+              entries: entries.sort((a, b) => {
+                // Sort by wins descending, then by win percentage
+                const aWins = a.stats?.find(s => s.name === 'wins')?.value || 0
+                const bWins = b.stats?.find(s => s.name === 'wins')?.value || 0
+                if (bWins !== aWins) return bWins - aWins
+                const aPct = a.stats?.find(s => s.name === 'winPercent')?.value || 0
+                const bPct = b.stats?.find(s => s.name === 'winPercent')?.value || 0
+                return bPct - aPct
+              })
+            }
+          })
+        }
+      })
+    } else {
+      // Flat structure (no divisions, just conference)
+      const entries = conference.standings?.entries || []
+      const hasMatchingTeam = entries.some(entry => 
+        teamIdStrings.includes(String(entry.team?.id))
+      )
+      if (hasMatchingTeam) {
+        matchingGroups.push({
+          name: conference.name || conference.abbreviation,
+          standings: {
+            entries: entries.sort((a, b) => {
+              const aWins = a.stats?.find(s => s.name === 'wins')?.value || 0
+              const bWins = b.stats?.find(s => s.name === 'wins')?.value || 0
+              if (bWins !== aWins) return bWins - aWins
+              const aPct = a.stats?.find(s => s.name === 'winPercent')?.value || 0
+              const bPct = b.stats?.find(s => s.name === 'winPercent')?.value || 0
+              return bPct - aPct
+            })
+          }
+        })
+      }
+    }
+  })
+
+  return matchingGroups.length > 0 ? { groups: matchingGroups } : null
+}
+
+export { ESPN_APIS, ESPN_SUMMARY_APIS, fetchAllScoreboards, fetchSportScoreboard, fetchGameSummary, fetchTeamConferences, fetchStandings, filterStandingsByTeams }
 
